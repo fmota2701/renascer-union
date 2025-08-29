@@ -51,28 +51,13 @@ class DistributionManager {
         // Carrega dados dos jogadores e itens da API
         try {
             // Carregar jogadores da API
-            const playersResponse = await fetch(this.playersApiUrl);
-            if (playersResponse.ok) {
-                this.players = await playersResponse.json();
-            } else {
-                console.error('Erro ao carregar jogadores da API');
-                this.players = [];
-            }
+            this.players = await api.getPlayers();
             
             // Carregar itens da API
-            const itemsResponse = await fetch(this.itemsApiUrl);
-            if (itemsResponse.ok) {
-                this.items = await itemsResponse.json();
-            } else {
-                console.error('Erro ao carregar itens da API');
-                this.items = [];
-            }
+            this.items = await api.getItems();
             
             // Carrega distribuição da API
-            const distributionResponse = await fetch(this.distributionApiUrl);
-            if (distributionResponse.ok) {
-                this.distribution = await distributionResponse.json();
-            }
+            this.distribution = await api.getDistributions();
             
             // Manter distributionData no localStorage por enquanto
             this.distributionData = JSON.parse(localStorage.getItem('distributionData')) || {};
@@ -277,25 +262,15 @@ class DistributionManager {
             };
             
             // Salva na API
-            const response = await fetch(this.distributionApiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(distributionRecord)
-            });
+            await api.createDistribution(distributionRecord);
             
-            if (response.ok) {
-                // Atualiza dados locais
-                this.distribution.push(distributionRecord);
-                
-                // Re-renderiza a tabela
-                this.renderTable();
-                
-                this.showMessage(`Item "${selectedItem.name}" distribuído para ${nextPlayer.nick}!`, 'success');
-            } else {
-                throw new Error('Erro ao salvar distribuição');
-            }
+            // Atualiza dados locais
+            this.distribution.push(distributionRecord);
+            
+            // Re-renderiza a tabela
+            this.renderTable();
+            
+            this.showMessage(`Item "${selectedItem.name}" distribuído para ${nextPlayer.nick}!`, 'success');
         } catch (error) {
             console.error('Erro ao distribuir item:', error);
             this.showMessage('Erro ao distribuir item. Tente novamente.', 'error');
@@ -355,25 +330,15 @@ class DistributionManager {
              };
              
              // Salva na API
-             const response = await fetch(this.distributionApiUrl, {
-                 method: 'POST',
-                 headers: {
-                     'Content-Type': 'application/json'
-                 },
-                 body: JSON.stringify(distributionRecord)
-             });
-             
-             if (response.ok) {
-                 // Atualiza dados locais
-                 this.distribution.push(distributionRecord);
-                 
-                 // Re-renderiza a tabela
-                 this.renderTable();
-                 
-                 this.showMessage(`Item "${selectedItem.name}" distribuído para ${selectedPlayer.nick}!`, 'success');
-             } else {
-                 throw new Error('Erro ao salvar distribuição');
-             }
+            await api.createDistribution(distributionRecord);
+            
+            // Atualiza dados locais
+            this.distribution.push(distributionRecord);
+            
+            // Re-renderiza a tabela
+            this.renderTable();
+            
+            this.showMessage(`Item "${selectedItem.name}" distribuído para ${selectedPlayer.nick}!`, 'success');
          } catch (error) {
              console.error('Erro ao distribuir item:', error);
              this.showMessage('Erro ao distribuir item. Tente novamente.', 'error');
@@ -413,23 +378,18 @@ class DistributionManager {
                     distributedAt: new Date().toISOString()
                 };
 
-                // Salva na API
-                const response = await fetch(this.distributionApiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(distributionRecord)
-                });
-
-                if (response.ok) {
+                try {
+                    // Salva na API
+                    await api.createDistribution(distributionRecord);
+                    
                     this.distribution.push(distributionRecord);
                     distributionResults.push({
                         item: this.items.find(i => i.id === itemId)?.name,
                         player: nextPlayer.nick,
                         success: true
                     });
-                } else {
+                } catch (error) {
+                    console.error('Erro ao salvar distribuição:', error);
                     distributionResults.push({
                         item: this.items.find(i => i.id === itemId)?.name,
                         player: nextPlayer.nick,

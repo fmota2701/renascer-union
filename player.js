@@ -65,11 +65,8 @@ class PlayerPanel {
 
     async updateDashboardStats() {
         try {
-            const response = await fetch('http://localhost:3001/items');
-            const items = await response.json();
-            
-            const participantsResponse = await fetch('http://localhost:3001/participants');
-            const participants = await participantsResponse.json();
+            const items = await api.getItems();
+            const participants = await api.getPlayers();
             
             // Update total items
             const totalItemsElement = document.getElementById('playerTotalItems');

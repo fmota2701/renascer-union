@@ -15,15 +15,15 @@
                     <h1 class="guild-name">Renascer Union</h1>
                     <div class="guild-stats">
                         <div class="stat-item">
-                            <span class="stat-number">47</span>
+                            <span class="stat-number" id="totalMembers">0</span>
                             <span class="stat-label">Membros</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-number">1,234</span>
+                            <span class="stat-number" id="totalDistributions">0</span>
                             <span class="stat-label">Itens Distribuídos</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-number">89</span>
+                            <span class="stat-number" id="totalEvents">0</span>
                             <span class="stat-label">Eventos</span>
                         </div>
                     </div>
@@ -83,6 +83,32 @@
         </div>
     </main>
     
+    <script src="storage.js"></script>
+    <script>
+        // Carregar estatísticas reais da API
+        async function loadRealStats() {
+            try {
+                const players = await api.getPlayers();
+                const distributions = await api.getDistributions();
+                
+                // Calcular estatísticas
+                const totalMembers = players.length;
+                const totalDistributions = distributions.length;
+                const totalEvents = Math.floor(totalDistributions / 10); // Aproximação baseada em distribuições
+                
+                // Atualizar elementos na tela
+                document.getElementById('totalMembers').textContent = totalMembers;
+                document.getElementById('totalDistributions').textContent = totalDistributions;
+                document.getElementById('totalEvents').textContent = totalEvents;
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+                // Manter valores padrão em caso de erro
+            }
+        }
+        
+        // Carregar estatísticas quando a página carregar
+        document.addEventListener('DOMContentLoaded', loadRealStats);
+    </script>
     <script src="login.js"></script>
 </body>
 </html>

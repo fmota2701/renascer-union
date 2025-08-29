@@ -46,8 +46,7 @@ class LoginManager {
 
         try {
             // Check if player exists in the database
-            const response = await fetch('/api/players');
-            const players = await response.json();
+            const players = await api.getPlayers();
             
             const player = players.find(p => p.nick.toLowerCase() === nick.toLowerCase());
             

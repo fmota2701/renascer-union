@@ -184,13 +184,7 @@ class PlayerManager {
 
     async loadPlayers() {
         try {
-            const response = await fetch(this.apiUrl);
-            if (response.ok) {
-                this.players = await response.json();
-            } else {
-                console.error('Erro ao carregar jogadores da API');
-                this.players = [];
-            }
+            this.players = await api.getPlayers();
         } catch (error) {
             console.error('Erro ao conectar com a API:', error);
             this.players = [];
@@ -199,19 +193,7 @@ class PlayerManager {
 
     async savePlayer(player) {
         try {
-            const response = await fetch(this.apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(player)
-            });
-            
-            if (response.ok) {
-                return await response.json();
-            } else {
-                throw new Error('Erro ao salvar jogador');
-            }
+            return await api.createPlayer(player);
         } catch (error) {
             console.error('Erro ao salvar jogador:', error);
             throw error;
@@ -220,19 +202,7 @@ class PlayerManager {
 
     async updatePlayerAPI(id, player) {
         try {
-            const response = await fetch(`${this.apiUrl}/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(player)
-            });
-            
-            if (response.ok) {
-                return await response.json();
-            } else {
-                throw new Error('Erro ao atualizar jogador');
-            }
+            return await api.updatePlayer(id, player);
         } catch (error) {
             console.error('Erro ao atualizar jogador:', error);
             throw error;
@@ -241,13 +211,7 @@ class PlayerManager {
 
     async deletePlayerAPI(id) {
         try {
-            const response = await fetch(`${this.apiUrl}/${id}`, {
-                method: 'DELETE'
-            });
-            
-            if (!response.ok) {
-                throw new Error('Erro ao deletar jogador');
-            }
+            await api.deletePlayer(id);
         } catch (error) {
             console.error('Erro ao deletar jogador:', error);
             throw error;

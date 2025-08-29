@@ -205,13 +205,7 @@ class ItemManager {
 
     async loadItems() {
         try {
-            const response = await fetch(this.apiUrl);
-            if (response.ok) {
-                this.items = await response.json();
-            } else {
-                console.error('Erro ao carregar itens da API');
-                this.items = [];
-            }
+            this.items = await api.getItems();
         } catch (error) {
             console.error('Erro ao conectar com a API:', error);
             this.items = [];
@@ -220,19 +214,7 @@ class ItemManager {
 
     async saveItem(item) {
         try {
-            const response = await fetch(this.apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(item)
-            });
-            
-            if (response.ok) {
-                return await response.json();
-            } else {
-                throw new Error('Erro ao salvar item');
-            }
+            return await api.createItem(item);
         } catch (error) {
             console.error('Erro ao salvar item:', error);
             throw error;
@@ -241,19 +223,7 @@ class ItemManager {
 
     async updateItemAPI(id, item) {
         try {
-            const response = await fetch(`${this.apiUrl}/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(item)
-            });
-            
-            if (response.ok) {
-                return await response.json();
-            } else {
-                throw new Error('Erro ao atualizar item');
-            }
+            return await api.updateItem(id, item);
         } catch (error) {
             console.error('Erro ao atualizar item:', error);
             throw error;
@@ -262,13 +232,7 @@ class ItemManager {
 
     async deleteItemAPI(id) {
         try {
-            const response = await fetch(`${this.apiUrl}/${id}`, {
-                method: 'DELETE'
-            });
-            
-            if (!response.ok) {
-                throw new Error('Erro ao deletar item');
-            }
+            await api.deleteItem(id);
         } catch (error) {
             console.error('Erro ao deletar item:', error);
             throw error;

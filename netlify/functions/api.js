@@ -1,29 +1,82 @@
-const fs = require('fs');
-const path = require('path');
+// Base de dados inicial (será sobrescrita pelos dados do localStorage)
+let database = {
+  players: [
+    {
+      "id": "1",
+      "name": "João Silva",
+      "level": 85,
+      "class": "Guerreiro",
+      "guild": "Dragões de Ferro",
+      "status": "online",
+      "lastLogin": "2024-01-15T10:30:00Z"
+    },
+    {
+      "id": "2",
+      "name": "Maria Santos",
+      "level": 92,
+      "class": "Mago",
+      "guild": "Círculo Arcano",
+      "status": "offline",
+      "lastLogin": "2024-01-14T22:15:00Z"
+    },
+    {
+      "id": "3",
+      "name": "Pedro Costa",
+      "level": 78,
+      "class": "Arqueiro",
+      "guild": "Caçadores Sombrios",
+      "status": "online",
+      "lastLogin": "2024-01-15T09:45:00Z"
+    }
+  ],
+  items: [
+    {
+      "id": "1",
+      "name": "Espada Flamejante",
+      "type": "Arma",
+      "rarity": "Épico",
+      "level": 80,
+      "description": "Uma espada forjada nas chamas do dragão ancião"
+    },
+    {
+      "id": "2",
+      "name": "Armadura de Cristal",
+      "type": "Armadura",
+      "rarity": "Lendário",
+      "level": 90,
+      "description": "Armadura feita com cristais mágicos raros"
+    },
+    {
+      "id": "3",
+      "name": "Poção de Cura Maior",
+      "type": "Consumível",
+      "rarity": "Comum",
+      "level": 1,
+      "description": "Restaura 500 pontos de vida instantaneamente"
+    }
+  ],
+  distribution: [
+    {
+      "id": "1",
+      "playerId": "1",
+      "playerName": "João Silva",
+      "itemId": "1",
+      "itemName": "Espada Flamejante",
+      "date": "2024-01-15T10:30:00Z",
+      "status": "entregue"
+    }
+  ]
+};
 
-// Caminho para o arquivo db.json
-const dbPath = path.join(process.cwd(), 'db.json');
-
-// Função para ler o banco de dados
+// Função para ler o banco de dados (retorna dados padrão)
 function readDB() {
-  try {
-    const data = fs.readFileSync(dbPath, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Erro ao ler db.json:', error);
-    return { players: [], items: [], distribution: [] };
-  }
+  return database;
 }
 
-// Função para escrever no banco de dados
+// Função para escrever no banco de dados (não faz nada no serverless)
 function writeDB(data) {
-  try {
-    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
-    return true;
-  } catch (error) {
-    console.error('Erro ao escrever db.json:', error);
-    return false;
-  }
+  database = data;
+  return true;
 }
 
 // Função para gerar ID único

@@ -8,16 +8,12 @@ async function updateDashboardStats() {
     const participationsTodayElement = document.getElementById('participationsToday');
     
     try {
-        // Buscar dados atualizados da API
-        const [playersResponse, itemsResponse, distributionsResponse] = await Promise.all([
-            fetch('/api/players'),
-            fetch('/api/items'),
-            fetch('/api/distribution')
+        // Buscar dados atualizados da API local
+        const [currentPlayers, currentItems, currentDistributions] = await Promise.all([
+            api.getPlayers(),
+            api.getItems(),
+            api.getDistributions()
         ]);
-        
-        const currentPlayers = playersResponse.ok ? await playersResponse.json() : [];
-        const currentItems = itemsResponse.ok ? await itemsResponse.json() : [];
-        const currentDistributions = distributionsResponse.ok ? await distributionsResponse.json() : [];
         
         const stats = {
             players: currentPlayers.length,
@@ -145,13 +141,7 @@ async function savePlayersOrder() {
         // Atualizar ordem no servidor
         for (let i = 0; i < players.length; i++) {
             const player = { ...players[i], order: i };
-            await fetch(`${playersApiUrl}/${player.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(player)
-            });
+            await api.updatePlayer(player.id, player);
         }
         
         // Salvar ordem no localStorage como backup
@@ -250,13 +240,7 @@ async function saveItemsOrder() {
         // Atualizar ordem no servidor
         for (let i = 0; i < items.length; i++) {
             const item = { ...items[i], order: i };
-            await fetch(`${itemsApiUrl}/${item.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(item)
-            });
+            await api.updateItem(item.id, item);
         }
         
         // Salvar ordem no localStorage como backup
@@ -277,15 +261,10 @@ const playersApiUrl = '/api/players';
 
 async function loadPlayers() {
     try {
-        const response = await fetch(playersApiUrl);
-        if (response.ok) {
-            players = await response.json();
-            renderPlayersList();
-        } else {
-            console.error('Erro ao carregar jogadores da API');
-        }
+        players = await api.getPlayers();
+        renderPlayersList();
     } catch (error) {
-        console.error('Erro ao conectar com a API:', error);
+        console.error('Erro ao carregar jogadores:', error);
     }
 }
 
@@ -316,35 +295,25 @@ async function addPlayer() {
         };
         
         try {
-            const response = await fetch(`${playersApiUrl}/${editingId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(updatedPlayer)
-            });
+            await api.updatePlayer(editingId, updatedPlayer);
             
-            if (response.ok) {
-                // Atualizar na lista local
-                const index = players.findIndex(p => p.id === editingId);
-                if (index !== -1) {
-                    players[index] = updatedPlayer;
-                }
-                
-                // Limpar campos e resetar modo
-                nickInput.value = '';
-                classInput.value = '';
-                levelInput.value = '';
-                delete nickInput.dataset.editingId;
-                
-                const submitBtn = document.querySelector('#playerForm button[type="submit"]');
-                if (submitBtn) submitBtn.textContent = 'Adicionar Jogador';
-                
-                renderPlayersList();
-                alert('Jogador atualizado com sucesso!');
-            } else {
-                alert('Erro ao atualizar jogador');
+            // Atualizar na lista local
+            const index = players.findIndex(p => p.id === editingId);
+            if (index !== -1) {
+                players[index] = updatedPlayer;
             }
+            
+            // Limpar campos e resetar modo
+            nickInput.value = '';
+            classInput.value = '';
+            levelInput.value = '';
+            delete nickInput.dataset.editingId;
+            
+            const submitBtn = document.querySelector('#playerForm button[type="submit"]');
+            if (submitBtn) submitBtn.textContent = 'Adicionar Jogador';
+            
+            renderPlayersList();
+            alert('Jogador atualizado com sucesso!');
         } catch (error) {
             console.error('Erro ao atualizar jogador:', error);
             alert('Erro ao conectar com o servidor!');
@@ -365,25 +334,15 @@ async function addPlayer() {
         };
         
         try {
-            const response = await fetch(playersApiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(newPlayer)
-            });
+            await api.createPlayer(newPlayer);
             
-            if (response.ok) {
-                players.push(newPlayer);
-                nickInput.value = '';
-                classInput.value = '';
-                levelInput.value = '';
-                renderPlayersList();
-                updateDistributionSelects();
-                alert('Jogador adicionado com sucesso!');
-            } else {
-                alert('Erro ao adicionar jogador');
-            }
+            players.push(newPlayer);
+            nickInput.value = '';
+            classInput.value = '';
+            levelInput.value = '';
+            renderPlayersList();
+            updateDistributionSelects();
+            alert('Jogador adicionado com sucesso!');
         } catch (error) {
             console.error('Erro ao adicionar jogador:', error);
             alert('Erro ao conectar com o servidor!');
@@ -426,13 +385,7 @@ async function deletePlayer(id) {
 }
 
 async function deletePlayerAPI(id) {
-    const response = await fetch(`${playersApiUrl}/${id}`, {
-        method: 'DELETE'
-    });
-    
-    if (!response.ok) {
-        throw new Error('Erro ao excluir jogador');
-    }
+    await api.deletePlayer(id);
 }
 
 function searchPlayers() {
@@ -488,15 +441,10 @@ const itemsApiUrl = '/api/items';
 
 async function loadItems() {
     try {
-        const response = await fetch(itemsApiUrl);
-        if (response.ok) {
-            items = await response.json();
-            renderItemsList();
-        } else {
-            console.error('Erro ao carregar itens da API');
-        }
+        items = await api.getItems();
+        renderItemsList();
     } catch (error) {
-        console.error('Erro ao conectar com a API:', error);
+        console.error('Erro ao carregar itens:', error);
     }
 }
 
@@ -523,35 +471,25 @@ async function addItem() {
         };
         
         try {
-            const response = await fetch(`${itemsApiUrl}/${editingId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(updatedItem)
-            });
+            await api.updateItem(editingId, updatedItem);
             
-            if (response.ok) {
-                // Atualizar na lista local
-                const index = items.findIndex(i => i.id === editingId);
-                if (index !== -1) {
-                    items[index] = updatedItem;
-                }
-                
-                // Limpar campos e resetar modo
-                nameInput.value = '';
-                descriptionInput.value = '';
-                categoryInput.value = '';
-                delete nameInput.dataset.editingId;
-                
-                const submitBtn = document.querySelector('#itemForm button[type="submit"]');
-                if (submitBtn) submitBtn.textContent = 'Adicionar Item';
-                
-                renderItemsList();
-                alert('Item atualizado com sucesso!');
-            } else {
-                alert('Erro ao atualizar item');
+            // Atualizar na lista local
+            const index = items.findIndex(i => i.id === editingId);
+            if (index !== -1) {
+                items[index] = updatedItem;
             }
+            
+            // Limpar campos e resetar modo
+            nameInput.value = '';
+            descriptionInput.value = '';
+            categoryInput.value = '';
+            delete nameInput.dataset.editingId;
+            
+            const submitBtn = document.querySelector('#itemForm button[type="submit"]');
+            if (submitBtn) submitBtn.textContent = 'Adicionar Item';
+            
+            renderItemsList();
+            alert('Item atualizado com sucesso!');
         } catch (error) {
             console.error('Erro ao atualizar item:', error);
             alert('Erro ao conectar com o servidor!');
@@ -572,25 +510,15 @@ async function addItem() {
         };
         
         try {
-            const response = await fetch(itemsApiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(newItem)
-            });
+            await api.createItem(newItem);
             
-            if (response.ok) {
-                items.push(newItem);
-                nameInput.value = '';
-                descriptionInput.value = '';
-                categoryInput.value = '';
-                renderItemsList();
-                updateDistributionSelects();
-                alert('Item adicionado com sucesso!');
-            } else {
-                alert('Erro ao adicionar item');
-            }
+            items.push(newItem);
+            nameInput.value = '';
+            descriptionInput.value = '';
+            categoryInput.value = '';
+            renderItemsList();
+            updateDistributionSelects();
+            alert('Item adicionado com sucesso!');
         } catch (error) {
             console.error('Erro ao salvar item:', error);
             alert('Erro ao conectar com o servidor!');
@@ -676,13 +604,7 @@ async function deleteItem(id) {
 }
 
 async function deleteItemAPI(id) {
-    const response = await fetch(`${itemsApiUrl}/${id}`, {
-        method: 'DELETE'
-    });
-    
-    if (!response.ok) {
-        throw new Error('Erro ao excluir item');
-    }
+    await api.deleteItem(id);
 }
 
 function searchItems() {
@@ -739,15 +661,10 @@ const distributionApiUrl = '/api/distribution';
 
 async function loadDistributions() {
     try {
-        const response = await fetch(distributionApiUrl);
-        if (response.ok) {
-            distributions = await response.json();
-            renderDistributionHistory();
-        } else {
-            console.error('Erro ao carregar distribuições da API');
-        }
+        distributions = await api.getDistributions();
+        renderDistributionHistory();
     } catch (error) {
-        console.error('Erro ao conectar com a API:', error);
+        console.error('Erro ao carregar distribuições:', error);
     }
 }
 
@@ -770,37 +687,27 @@ async function distributeItem() {
     };
     
     try {
-        const response = await fetch(distributionApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(newDistribution)
-        });
+        await api.createDistribution(newDistribution);
         
-        if (response.ok) {
-            distributions.push(newDistribution);
-            
-            // Resetar status de participação IMEDIATAMENTE após distribuição
+        distributions.push(newDistribution);
+        
+        // Resetar status de participação IMEDIATAMENTE após distribuição
+        resetAllParticipationStatus();
+        
+        // Limpar formulário
+        document.getElementById('distributionPlayer').value = '';
+        document.getElementById('distributionItem').value = '';
+        document.getElementById('distributionQuantity').value = '1';
+        
+        // Atualizar interface
+        renderDistributionHistory();
+        
+        // Garantir que as sinalizações verdes sejam removidas
+        setTimeout(() => {
             resetAllParticipationStatus();
-            
-            // Limpar formulário
-            document.getElementById('distributionPlayer').value = '';
-            document.getElementById('distributionItem').value = '';
-            document.getElementById('distributionQuantity').value = '1';
-            
-            // Atualizar interface
-            renderDistributionHistory();
-            
-            // Garantir que as sinalizações verdes sejam removidas
-            setTimeout(() => {
-                resetAllParticipationStatus();
-            }, 500);
-            
-            alert('✅ Item distribuído com sucesso!\n🔄 Sinalizações verdes removidas para próxima distribuição.');
-        } else {
-            alert('❌ Erro ao distribuir item');
-        }
+        }, 500);
+        
+        alert('✅ Item distribuído com sucesso!\n🔄 Sinalizações verdes removidas para próxima distribuição.');
     } catch (error) {
         console.error('Erro ao distribuir item:', error);
         alert('Erro ao conectar com o servidor!');
@@ -1017,14 +924,11 @@ async function resetPlayers() {
     
     try {
         // Buscar todos os jogadores
-        const response = await fetch(playersApiUrl);
-        const allPlayers = await response.json();
+        const allPlayers = await api.getPlayers();
         
         // Deletar cada jogador
         for (const player of allPlayers) {
-            await fetch(`${playersApiUrl}/${player.id}`, {
-                method: 'DELETE'
-            });
+            await api.deletePlayer(player.id);
         }
         
         // Limpar array local e re-renderizar
@@ -1048,14 +952,11 @@ async function resetItems() {
     
     try {
         // Buscar todos os itens
-        const response = await fetch(itemsApiUrl);
-        const allItems = await response.json();
+        const allItems = await api.getItems();
         
         // Deletar cada item
         for (const item of allItems) {
-            await fetch(`${itemsApiUrl}/${item.id}`, {
-                method: 'DELETE'
-            });
+            await api.deleteItem(item.id);
         }
         
         // Limpar array local e re-renderizar
@@ -1079,14 +980,11 @@ async function resetDistributions() {
     
     try {
         // Buscar todas as distribuições
-        const response = await fetch(distributionApiUrl);
-        const allDistributions = await response.json();
+        const allDistributions = await api.getDistributions();
         
         // Deletar cada distribuição
         for (const distribution of allDistributions) {
-            await fetch(`${distributionApiUrl}/${distribution.id}`, {
-                method: 'DELETE'
-            });
+            await api.deleteDistribution(distribution.id);
         }
         
         // Limpar array local e re-renderizar
@@ -1112,24 +1010,21 @@ async function resetAll() {
     
     try {
         // Reset jogadores
-        const playersResponse = await fetch(playersApiUrl);
-        const allPlayers = await playersResponse.json();
+        const allPlayers = await api.getPlayers();
         for (const player of allPlayers) {
-            await fetch(`${playersApiUrl}/${player.id}`, { method: 'DELETE' });
+            await api.deletePlayer(player.id);
         }
         
         // Reset itens
-        const itemsResponse = await fetch(itemsApiUrl);
-        const allItems = await itemsResponse.json();
+        const allItems = await api.getItems();
         for (const item of allItems) {
-            await fetch(`${itemsApiUrl}/${item.id}`, { method: 'DELETE' });
+            await api.deleteItem(item.id);
         }
         
         // Reset distribuições
-        const distributionsResponse = await fetch(distributionApiUrl);
-        const allDistributions = await distributionsResponse.json();
+        const allDistributions = await api.getDistributions();
         for (const distribution of allDistributions) {
-            await fetch(`${distributionApiUrl}/${distribution.id}`, { method: 'DELETE' });
+            await api.deleteDistribution(distribution.id);
         }
         
         // Limpar arrays locais e re-renderizar tudo
@@ -1370,8 +1265,7 @@ async function loadParticipationsToday() {
     
     try {
         // Buscar todos os jogadores
-        const response = await fetch(playersApiUrl);
-        const allPlayers = await response.json();
+        const allPlayers = await api.getPlayers();
         
         // Filtrar jogadores que participaram hoje
         const participatedPlayers = allPlayers.filter(player => {
@@ -1523,29 +1417,19 @@ async function savePlayerEdit() {
     }
     
     try {
-        const response = await fetch(`${playersApiUrl}/${currentEditId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                id: currentEditId,
-                nick: nick,
-                class: playerClass,
-                level: level,
-                createdAt: new Date().toISOString()
-            })
+        await api.updatePlayer(currentEditId, {
+            id: currentEditId,
+            nick: nick,
+            class: playerClass,
+            level: level,
+            createdAt: new Date().toISOString()
         });
         
-        if (response.ok) {
-            await loadPlayers();
-            updateDistributionSelects();
-            renderDistributionHistory();
-            closeEditModal();
-            alert('Jogador atualizado com sucesso!');
-        } else {
-            alert('Erro ao atualizar jogador');
-        }
+        await loadPlayers();
+        updateDistributionSelects();
+        renderDistributionHistory();
+        closeEditModal();
+        alert('Jogador atualizado com sucesso!');
     } catch (error) {
         console.error('Erro ao salvar jogador:', error);
         alert('Erro ao atualizar jogador. Tente novamente.');
@@ -1563,29 +1447,19 @@ async function saveItemEdit() {
     }
     
     try {
-        const response = await fetch(`${itemsApiUrl}/${currentEditId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                id: currentEditId,
-                name: name,
-                description: description,
-                category: category,
-                createdAt: new Date().toISOString()
-            })
+        await api.updateItem(currentEditId, {
+            id: currentEditId,
+            name: name,
+            description: description,
+            category: category,
+            createdAt: new Date().toISOString()
         });
         
-        if (response.ok) {
-            await loadItems();
-            updateDistributionSelects();
-            renderDistributionHistory();
-            closeEditModal();
-            alert('Item atualizado com sucesso!');
-        } else {
-            throw new Error('Erro ao atualizar item');
-        }
+        await loadItems();
+        updateDistributionSelects();
+        renderDistributionHistory();
+        closeEditModal();
+        alert('Item atualizado com sucesso!');
     } catch (error) {
         console.error('Erro ao salvar item:', error);
         alert('Erro ao atualizar item. Tente novamente.');
