@@ -4,6 +4,7 @@
   "description": "Sistema de distribuição de itens",
   "main": "index.html",
   "scripts": {
+    "start": "python3 -m http.server 8000",
     "build": "echo 'Build completed'",
     "dev": "python3 -m http.server 8000",
     "test": "echo 'No tests specified'"
