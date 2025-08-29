@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Renascer Union</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="login-main">
+        <div class="login-container">
+            <!-- Header Section -->
+            <header class="login-header">
+                <div class="guild-info">
+                    <h1 class="guild-name">Renascer Union</h1>
+                    <div class="guild-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">47</span>
+                            <span class="stat-label">Membros</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">1,234</span>
+                            <span class="stat-label">Itens Distribuídos</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">89</span>
+                            <span class="stat-label">Eventos</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Login Section -->
+            <section class="login-section">
+                <div class="login-options">
+                    <!-- Admin Access -->
+                    <div class="access-panel admin-panel">
+                        <div class="panel-header">
+                            <div class="panel-icon">🛡️</div>
+                            <div class="panel-title">
+                                <h2>Administração</h2>
+                                <p>Controle total do sistema</p>
+                            </div>
+                        </div>
+                        
+                        <div class="panel-content">
+                            <form id="adminLoginForm" class="login-form">
+                                <div class="input-group">
+                                    <input type="password" id="adminPassword" placeholder="Senha de administrador" required>
+                                </div>
+                                <button type="submit" class="access-btn admin-btn">
+                                    <span>Acessar Painel</span>
+                                    <span class="btn-arrow">→</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Player Access -->
+                    <div class="access-panel player-panel">
+                        <div class="panel-header">
+                            <div class="panel-icon">⚔️</div>
+                            <div class="panel-title">
+                                <h2>Jogador</h2>
+                                <p>Seus itens e participação</p>
+                            </div>
+                        </div>
+                        
+                        <div class="panel-content">
+                            <form id="playerLoginForm" class="login-form">
+                                <div class="input-group">
+                                    <input type="text" id="playerNick" placeholder="Seu nick no jogo" required>
+                                </div>
+                                <button type="submit" class="access-btn player-btn">
+                                    <span>Entrar no Sistema</span>
+                                    <span class="btn-arrow">→</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <script src="login.js"></script>
+</body>
+</html>

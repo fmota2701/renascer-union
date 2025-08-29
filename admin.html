@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Renascer Union</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Navigation Sidebar -->
+        <nav class="admin-nav">
+            <button class="nav-toggle" onclick="toggleNavigation()">
+                <span class="nav-toggle-icon">☰</span>
+                <span class="nav-text">Minimizar Menu</span>
+            </button>
+            
+            <div class="nav-header">
+                <h2>Renascer Union</h2>
+                <p>Painel Admin</p>
+            </div>
+            
+            <div class="nav-menu">
+                <button class="nav-btn active" data-section="dashboard" onclick="switchToSection('dashboard')">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Dashboard</span>
+                </button>
+                <button class="nav-btn" data-section="players" onclick="switchToSection('players')">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Jogadores</span>
+                </button>
+                <button class="nav-btn" data-section="items" onclick="switchToSection('items')">
+                    <span class="nav-icon">📦</span>
+                    <span class="nav-text">Itens</span>
+                </button>
+                <button class="nav-btn" data-section="distribution" onclick="switchToSection('distribution')">
+                    <span class="nav-icon">🎁</span>
+                    <span class="nav-text">Distribuição</span>
+                </button>
+                <button class="nav-btn" data-section="reset" onclick="switchToSection('reset')">
+                    <span class="nav-icon">🗑️</span>
+                    <span class="nav-text">Reset</span>
+                </button>
+            </div>
+            
+            <div class="nav-footer">
+                <div class="user-info">
+                    <span class="user-name">Administrador</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="logoutBtn">Sair</button>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="admin-section active">
+                <div class="section-header">
+                    <h2>Dashboard</h2>
+                    <p class="section-subtitle">Visão geral do sistema Renascer Union</p>
+                </div>
+                
+                <div class="dashboard-cards">
+                    <div class="card dashboard-card" onclick="switchToSection('players')">
+                        <div class="card-content">
+                            <div class="card-icon">👥</div>
+                            <h3>Total de Jogadores</h3>
+                            <p class="card-number" id="totalPlayers">0</p>
+                            <p class="card-subtitle">Jogadores cadastrados</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card dashboard-card" onclick="switchToSection('items')">
+                        <div class="card-content">
+                            <div class="card-icon">📦</div>
+                            <h3>Total de Itens</h3>
+                            <p class="card-number" id="totalItems">0</p>
+                            <p class="card-subtitle">Itens disponíveis</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card dashboard-card" onclick="switchToSection('distribution')">
+                        <div class="card-content">
+                            <div class="card-icon">🎁</div>
+                            <h3>Distribuições Realizadas</h3>
+                            <p class="card-number" id="totalDistributions">0</p>
+                            <p class="card-subtitle">Itens distribuídos</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card dashboard-card" onclick="openParticipationModal()">
+                        <div class="card-content">
+                            <div class="card-icon">🎯</div>
+                            <h3>Participações Hoje</h3>
+                            <p class="card-number" id="participationsToday">0</p>
+                            <p class="card-subtitle">Jogadores ativos</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="card recent-activity-card">
+                        <div class="card-header">
+                            <h3>Atividade Recente</h3>
+                            <button class="btn btn-sm btn-secondary">Ver Todas</button>
+                        </div>
+                        <div id="recentActivity" class="activity-list">
+                            <div class="no-activity">
+                                <p>Nenhuma atividade recente</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card quick-actions-card">
+                        <div class="card-header">
+                            <h3>Ações Rápidas</h3>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="btn btn-primary btn-block" onclick="switchToSection('players')">
+                                <span class="btn-icon">👥</span>
+                                Gerenciar Jogadores
+                            </button>
+                            <button class="btn btn-primary btn-block" onclick="switchToSection('items')">
+                                <span class="btn-icon">📦</span>
+                                Gerenciar Itens
+                            </button>
+                            <button class="btn btn-primary btn-block" onclick="switchToSection('distribution')">
+                                <span class="btn-icon">🎁</span>
+                                Sistema de Distribuição
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Players Section -->
+            <section id="players" class="admin-section">
+                <div class="section-header">
+                    <h2>Gerenciamento de Jogadores</h2>
+                    <p class="section-subtitle">Cadastre e gerencie jogadores do sistema</p>
+                </div>
+                
+                <div class="card form-card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <h3>Cadastrar Novo Jogador</h3>
+                    </div>
+                    <form id="playerForm" class="player-form">
+                        <div class="form-group">
+                            <label for="playerNick">Nick do Jogador:</label>
+                            <input type="text" id="playerNick" name="nick" placeholder="Digite o nick do jogador" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="playerLevel">Nível:</label>
+                            <input type="number" id="playerLevel" name="level" placeholder="Nível do jogador" min="1" max="9999" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="playerClass">Classe:</label>
+                            <select id="playerClass" name="class">
+                                <option value="">Selecione uma classe</option>
+                                <option value="ELF">ELF</option>
+                                <option value="SM">SM</option>
+                                <option value="DK">DK</option>
+                                <option value="DL">DL</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <span class="btn-icon">👥</span>
+                            Cadastrar Jogador
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="card players-list-card">
+                    <div class="card-header">
+                        <h3>Jogadores Cadastrados</h3>
+                        <div class="search-box">
+                            <input type="text" id="playerSearch" placeholder="Buscar jogador...">
+                        </div>
+                    </div>
+                    <div class="players-list" id="playersList">
+                        <!-- Players will be loaded here -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Items Section -->
+            <section id="items" class="admin-section">
+                <div class="section-header">
+                    <h2>Gerenciamento de Itens</h2>
+                    <p class="section-subtitle">Cadastre e gerencie itens do sistema</p>
+                </div>
+                
+                <div class="card form-card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <h3>Cadastrar Novo Item</h3>
+                    </div>
+                    <form id="itemForm" class="item-form">
+                        <div class="form-group">
+                            <label for="itemName">Nome do Item:</label>
+                            <input type="text" id="itemName" name="name" placeholder="Digite o nome do item" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemCategory">Categoria:</label>
+                            <select id="itemCategory" name="category">
+                                <option value="material">Material</option>
+                                <option value="arma">Arma</option>
+                                <option value="armadura">Armadura</option>
+                                <option value="acessorio">Acessório</option>
+                                <option value="consumivel">Consumível</option>
+                                <option value="quest">Quest</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <span class="btn-icon">📦</span>
+                            Cadastrar Item
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="card items-list-card">
+                    <div class="card-header">
+                        <h3>Itens Cadastrados</h3>
+                        <div class="search-box">
+                            <input type="text" id="itemSearch" placeholder="Buscar item...">
+                        </div>
+                    </div>
+                    <div class="items-list" id="itemsList">
+                        <!-- Items will be loaded here -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Distribution Section -->
+            <section id="distribution" class="admin-section">
+                <div class="section-header">
+                    <h2>Sistema de Distribuição</h2>
+                    <p class="section-subtitle">Distribua itens para jogadores</p>
+                </div>
+                
+                <div class="card form-card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <h3>Distribuir Item</h3>
+                    </div>
+                    <form id="distributionForm" class="distribution-form">
+                        <div class="form-group">
+                            <label for="distributionPlayer">Jogador:</label>
+                            <select id="distributionPlayer" name="player" required>
+                                <option value="">Selecione um jogador</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="distributionItem">Item:</label>
+                            <select id="distributionItem" name="item" required>
+                                <option value="">Selecione um item</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="distributionQuantity">Quantidade:</label>
+                            <input type="number" id="distributionQuantity" name="quantity" placeholder="Quantidade a distribuir" min="1" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="distributionReason">Motivo:</label>
+                            <select id="distributionReason" name="reason">
+                                <option value="">Selecione o motivo</option>
+                                <option value="Recompensa">Recompensa</option>
+                                <option value="Compensação">Compensação</option>
+                                <option value="Evento">Evento</option>
+                                <option value="Teste">Teste</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <span class="btn-icon">🎁</span>
+                            Distribuir Item
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="card distribution-history-card">
+                    <div class="card-header">
+                        <h3>Tabela de Distribuição</h3>
+                        <div class="filter-box">
+                            <select id="distributionFilter">
+                                <option value="all">Todas</option>
+                                <option value="pending">Pendentes</option>
+                                <option value="delivered">Entregues</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="distribution-table-container">
+                        <table class="distribution-table" id="distributionTable">
+                            <thead>
+                                <tr>
+                                    <th>NICK</th>
+                                    <!-- Item columns will be dynamically added here -->
+                                </tr>
+                            </thead>
+                            <tbody id="distributionTableBody">
+                                <!-- Distribution data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reset Section -->
+            <section id="reset" class="admin-section" style="display: none;">
+                <div class="section-header">
+                    <h2>Reset do Sistema</h2>
+                    <p class="section-subtitle">Atenção: Estas ações são irreversíveis e apagarão todos os dados!</p>
+                </div>
+                
+                <div class="reset-cards">
+                    <div class="card reset-card">
+                        <div class="card-content">
+                            <div class="card-icon">🎮</div>
+                            <h3>Reset de Jogadores</h3>
+                            <p class="card-description">Apagar todos os jogadores cadastrados do sistema</p>
+                            <button class="btn btn-danger btn-block" onclick="resetPlayers()">
+                                <span class="btn-icon">🗑️</span>
+                                Apagar Todos os Jogadores
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card reset-card">
+                        <div class="card-content">
+                            <div class="card-icon">📦</div>
+                            <h3>Reset de Itens</h3>
+                            <p class="card-description">Apagar todos os itens cadastrados do sistema</p>
+                            <button class="btn btn-danger btn-block" onclick="resetItems()">
+                                <span class="btn-icon">🗑️</span>
+                                Apagar Todos os Itens
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card reset-card">
+                        <div class="card-content">
+                            <div class="card-icon">🎁</div>
+                            <h3>Reset de Distribuição</h3>
+                            <p class="card-description">Apagar todo o histórico de distribuição de itens</p>
+                            <button class="btn btn-danger btn-block" onclick="resetDistributions()">
+                                <span class="btn-icon">🗑️</span>
+                                Apagar Histórico de Distribuição
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card reset-card reset-all">
+                        <div class="card-content">
+                            <div class="card-icon">💥</div>
+                            <h3>Reset Geral</h3>
+                            <p class="card-description">Apagar TODOS os dados do sistema (jogadores, itens e distribuições)</p>
+                            <button class="btn btn-danger btn-block" onclick="resetAll()">
+                                <span class="btn-icon">💥</span>
+                                RESET COMPLETO
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Modal de Edição -->
+    <div id="editModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Editar</h3>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <div id="editFormFields">
+                        <!-- Campos serão inseridos dinamicamente -->
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="saveEditBtn">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Participações Hoje -->
+    <div id="participationModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Participações de Hoje</h3>
+                <button class="modal-close" onclick="closeParticipationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="participationList" class="participation-list">
+                    <!-- Lista de jogadores que participaram hoje será carregada aqui -->
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeParticipationModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

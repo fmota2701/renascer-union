@@ -1,0 +1,15 @@
+{
+  "name": "renascer-union",
+  "version": "1.0.0",
+  "description": "Sistema de distribuição de itens",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Build completed'",
+    "dev": "python3 -m http.server 8000",
+    "test": "echo 'No tests specified'"
+  },
+  "dependencies": {},
+  "keywords": ["distribuição", "itens", "guild", "netlify"],
+  "author": "Renascer Union",
+  "license": "MIT"
+}

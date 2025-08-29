@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Jogador - Renascer Union</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="player-styles.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Navigation Sidebar -->
+        <nav class="admin-nav">
+            <button class="nav-toggle" onclick="toggleNavigation()">
+                <span class="nav-toggle-icon">☰</span>
+                <span class="nav-text">Minimizar Menu</span>
+            </button>
+            
+            <div class="nav-header">
+                <h2>Renascer Union</h2>
+                <p>Painel Jogador</p>
+            </div>
+            
+            <div class="nav-menu">
+                <button class="nav-btn active" data-section="dashboard" onclick="switchToSection('dashboard')">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Dashboard</span>
+                </button>
+            </div>
+            
+            <div class="nav-footer">
+                <div class="user-info">
+                    <span class="user-name" id="playerName">Jogador</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="logoutBtn">Sair</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="section-header">
+                    <h2>Dashboard</h2>
+                    <p class="section-subtitle">Painel do Jogador - Renascer Union</p>
+                </div>
+                
+                <div class="dashboard-cards">
+                    <div class="card dashboard-card" onclick="document.getElementById('participateBtn').click()">
+                        <div class="card-content">
+                            <div class="card-icon">✓</div>
+                            <h3>Participação</h3>
+                            <p class="card-subtitle">Confirmar presença na distribuição</p>
+                            <button id="participateBtn" class="btn btn-primary participate-btn-card">
+                                <span class="btn-text">Confirmar Participação</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card dashboard-card">
+                        <div class="card-content">
+                            <div class="card-icon">📦</div>
+                            <h3>Itens Disponíveis</h3>
+                            <p class="card-number" id="playerTotalItems">0</p>
+                            <p class="card-subtitle">Itens na distribuição</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card dashboard-card">
+                        <div class="card-content">
+                            <div class="card-icon">🎁</div>
+                            <h3>Minha Posição</h3>
+                            <p class="card-number" id="playerPosition">-</p>
+                            <p class="card-subtitle">Na fila de distribuição</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card dashboard-card">
+                        <div class="card-content">
+                            <div class="card-icon">👥</div>
+                            <h3>Participantes</h3>
+                            <p class="card-number" id="totalParticipants">0</p>
+                            <p class="card-subtitle">Jogadores na fila</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Distribution Items Grid -->
+                <div class="distribution-grid" id="distributionGrid">
+                    <!-- Item blocks will be populated by JavaScript -->
+                </div>
+            </section>
+
+
+        </main>
+    </div>
+
+    <script src="player.js?v=2024"></script>
+</body>
+</html>

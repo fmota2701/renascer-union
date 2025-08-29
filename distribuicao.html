@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distribuição - Renascer Union</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <script>
+        // Redirect to login if not authenticated as admin
+        const userType = sessionStorage.getItem('userType');
+        if (userType !== 'admin') {
+            window.location.href = 'login.html';
+        }
+    </script>
+    
+    <div class="container">
+        <header>
+            <h1>🎮 Renascer Union - Distribuição</h1>
+            <div class="navigation">
+                <a href="index.html" class="nav-link">Jogadores</a>
+                <a href="itens.html" class="nav-link">Itens</a>
+                <a href="distribuicao.html" class="nav-link active">Distribuição</a>
+            </div>
+        </header>
+
+        <main>
+            <section class="distribution-section">
+                <h2>📊 Painel de Distribuição</h2>
+                <p>Visualize e gerencie a distribuição de itens para os jogadores</p>
+                
+                <div class="distribution-controls">
+                    <!-- Distribuição Individual -->
+                    <div class="distribution-mode single-mode">
+                        <h3>📦 Distribuição Individual</h3>
+                        <div class="item-selector">
+                            <label for="itemSelect">Selecionar Item para Distribuição:</label>
+                            <select id="itemSelect" class="item-select">
+                                <option value="">Escolha um item...</option>
+                            </select>
+                            <button id="distributeItem" class="distribute-btn" disabled>📦 Distribuir Item</button>
+                        </div>
+                    </div>
+
+                    <!-- Distribuição Múltipla -->
+                    <div class="distribution-mode multiple-mode">
+                        <h3>📦📦 Distribuição Múltipla</h3>
+                        <div class="multiple-selector">
+                            <label>Selecionar Múltiplos Itens:</label>
+                            <div id="multipleItemsContainer" class="multiple-items-container">
+                                <!-- Checkboxes dos itens serão inseridos aqui -->
+                            </div>
+                            <div class="multiple-controls">
+                                <button id="selectAllItems" class="select-all-btn">✅ Selecionar Todos</button>
+                                <button id="clearAllItems" class="clear-all-btn">❌ Limpar Seleção</button>
+                                <button id="distributeMultiple" class="distribute-multiple-btn" disabled>🚀 Distribuir Múltiplos</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button id="refreshDistribution" class="refresh-btn">🔄 Atualizar Dados</button>
+                        <button id="exportDistribution" class="export-btn">📤 Exportar</button>
+                    </div>
+                </div>
+
+                <div class="distribution-table-container">
+                    <table id="distributionTable" class="distribution-table">
+                        <thead>
+                            <tr id="tableHeader">
+                                <th class="player-column">NICK</th>
+                                <!-- Colunas dos itens serão inseridas dinamicamente -->
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Linhas dos jogadores serão inseridas dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="noDataMessage" class="no-data-message" style="display: none;">
+                    <p>📝 Nenhum jogador ou item cadastrado ainda.</p>
+                    <p>Cadastre jogadores e itens primeiro para visualizar a distribuição.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="distribuicao.js"></script>
+</body>
+</html>

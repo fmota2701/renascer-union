@@ -1,0 +1,119 @@
+{
+  "players": [
+    {
+      "id": "mew68nq9irlbjllwma",
+      "nick": "Iago",
+      "class": "SM",
+      "level": 400,
+      "createdAt": "2025-08-29T04:23:13.481Z",
+      "order": 0
+    },
+    {
+      "id": "mew68uabo6msqh12zo",
+      "nick": "Rayska",
+      "createdAt": "2025-08-29T01:46:10.643Z",
+      "order": 2
+    },
+    {
+      "id": "mew68y2hipu63oib8z9",
+      "nick": "F2P",
+      "createdAt": "2025-08-29T01:46:15.545Z",
+      "order": 3
+    },
+    {
+      "id": "mew693l048kw2hhqnfj",
+      "nick": "Bolonhesa",
+      "createdAt": "2025-08-29T01:46:22.692Z",
+      "order": 1
+    },
+    {
+      "id": "mew698bgz3jy90786t",
+      "nick": "Laine",
+      "createdAt": "2025-08-29T01:46:28.828Z",
+      "order": 4
+    },
+    {
+      "id": "mew69cd9c08kydh93j",
+      "nick": "LeblancDrina",
+      "createdAt": "2025-08-29T01:46:34.077Z",
+      "order": 5
+    },
+    {
+      "id": "mew69nlzj9rbbe7qlz",
+      "nick": "Wevzzn",
+      "createdAt": "2025-08-29T01:46:48.647Z",
+      "order": 6
+    },
+    {
+      "id": "mew69s32cemw5w9xyr8",
+      "nick": "LordCrazyn",
+      "createdAt": "2025-08-29T01:46:54.446Z",
+      "order": 7
+    },
+    {
+      "id": "mew69wj6ci64j8chx0u",
+      "nick": "Igooth",
+      "createdAt": "2025-08-29T01:47:00.210Z",
+      "order": 8
+    },
+    {
+      "id": "mewa75dplbp6tvcxu1",
+      "nick": "Naassiin",
+      "level": 400,
+      "class": "ELF",
+      "createdAt": "2025-08-29T03:36:50.173Z",
+      "order": 9
+    }
+  ],
+  "items": [
+    {
+      "id": "item1",
+      "name": "Cristal do Caos",
+      "description": "",
+      "category": "material",
+      "createdAt": "2025-08-28T22:00:00.000Z",
+      "updatedAt": "2025-08-29T01:44:54.630Z",
+      "order": 0
+    },
+    {
+      "id": "mew671mmv69o1pw83b",
+      "name": "Pena do Condor",
+      "description": "",
+      "category": "material",
+      "createdAt": "2025-08-29T01:44:46.846Z",
+      "order": 1
+    },
+    {
+      "id": "mew67l81qqkl3e2a81",
+      "name": "Chama do Condor",
+      "description": "",
+      "category": "material",
+      "createdAt": "2025-08-29T01:45:12.241Z",
+      "order": 3
+    },
+    {
+      "id": "mew67vu2o3mgl5dajne",
+      "name": "Despertar",
+      "description": "",
+      "category": "material",
+      "createdAt": "2025-08-29T01:45:25.994Z",
+      "order": 2
+    }
+  ],
+  "distribution": [
+    {
+      "id": "1756442760988aocv2qk7t",
+      "playerId": "mew68y2hipu63oib8z9",
+      "itemId": "item1",
+      "quantity": 1,
+      "createdAt": "2025-08-29T04:46:00.988Z"
+    },
+    {
+      "id": "1756442800560polf8f2sx",
+      "playerId": "mew68y2hipu63oib8z9",
+      "itemId": "mew67l81qqkl3e2a81",
+      "quantity": 1,
+      "createdAt": "2025-08-29T04:46:40.560Z"
+    }
+  ]
+}

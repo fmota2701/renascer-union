@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cadastro de Jogadores - Renascer Union</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <script>
+        // Redirect to login if not authenticated
+        const userType = sessionStorage.getItem('userType');
+        if (!userType) {
+            window.location.href = 'login.html';
+        } else if (userType === 'player') {
+            window.location.href = 'player.html';
+        }
+    </script>
+    
+    <div class="container">
+        <header>
+            <h1>🏰 Renascer Union - Gerenciamento de Jogadores</h1>
+            <h2>Sistema de Cadastro de Jogadores</h2>
+            <div class="navigation">
+                 <a href="index.html" class="nav-link active">Jogadores</a>
+                 <a href="itens.html" class="nav-link">Itens</a>
+                 <a href="distribuicao.html" class="nav-link">Distribuição</a>
+             </div>
+        </header>
+
+        <main>
+            <div class="form-section">
+                <h3>Cadastrar Novo Jogador</h3>
+                <form id="playerForm">
+                    <div class="input-group">
+                        <label for="playerNick">Nick do Jogador:</label>
+                        <input type="text" id="playerNick" name="playerNick" required placeholder="Digite o nick do jogador">
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit">Cadastrar Jogador</button>
+                        <button type="button" id="cancelEditBtn" class="cancel-btn" style="display: none;" onclick="playerManager.cancelEdit()">Cancelar Edição</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="players-section">
+                <h3>Jogadores Cadastrados</h3>
+                <div id="playersList" class="players-list">
+                    <p class="no-players">Nenhum jogador cadastrado ainda.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
