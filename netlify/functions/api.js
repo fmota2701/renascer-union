@@ -1,87 +1,25 @@
-// Base de dados inicial (será sobrescrita pelos dados do localStorage)
-let database = {
-  players: [
-    {
-      "id": "1",
-      "name": "João Silva",
-      "level": 85,
-      "class": "Guerreiro",
-      "guild": "Dragões de Ferro",
-      "status": "online",
-      "lastLogin": "2024-01-15T10:30:00Z"
-    },
-    {
-      "id": "2",
-      "name": "Maria Santos",
-      "level": 92,
-      "class": "Mago",
-      "guild": "Círculo Arcano",
-      "status": "offline",
-      "lastLogin": "2024-01-14T22:15:00Z"
-    },
-    {
-      "id": "3",
-      "name": "Pedro Costa",
-      "level": 78,
-      "class": "Arqueiro",
-      "guild": "Caçadores Sombrios",
-      "status": "online",
-      "lastLogin": "2024-01-15T09:45:00Z"
-    }
-  ],
-  items: [
-    {
-      "id": "1",
-      "name": "Espada Flamejante",
-      "type": "Arma",
-      "rarity": "Épico",
-      "level": 80,
-      "description": "Uma espada forjada nas chamas do dragão ancião"
-    },
-    {
-      "id": "2",
-      "name": "Armadura de Cristal",
-      "type": "Armadura",
-      "rarity": "Lendário",
-      "level": 90,
-      "description": "Armadura feita com cristais mágicos raros"
-    },
-    {
-      "id": "3",
-      "name": "Poção de Cura Maior",
-      "type": "Consumível",
-      "rarity": "Comum",
-      "level": 1,
-      "description": "Restaura 500 pontos de vida instantaneamente"
-    }
-  ],
-  distribution: [
-    {
-      "id": "1",
-      "playerId": "1",
-      "playerName": "João Silva",
-      "itemId": "1",
-      "itemName": "Espada Flamejante",
-      "date": "2024-01-15T10:30:00Z",
-      "status": "entregue"
-    }
-  ]
-};
-
-// Função para ler o banco de dados (retorna dados padrão)
-function readDB() {
-  return database;
-}
-
-// Função para escrever no banco de dados (não faz nada no serverless)
-function writeDB(data) {
-  database = data;
-  return true;
-}
+// API com Firebase Firestore
+const { db } = require('./firebase-admin');
 
 // Função para gerar ID único
 function generateId() {
   return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+}
+
+// Função para converter Timestamp do Firestore para ISO string
+function convertTimestamp(doc) {
+  const data = doc.data();
+  const result = { id: doc.id, ...data };
+  
+  // Converter timestamps para strings ISO
+  if (data.createdAt && data.createdAt.toDate) {
+    result.createdAt = data.createdAt.toDate().toISOString();
+  }
+  if (data.updatedAt && data.updatedAt.toDate) {
+    result.updatedAt = data.updatedAt.toDate().toISOString();
+  }
+  
+  return result;
 }
 
 exports.handler = async (event, context) => {
@@ -104,7 +42,6 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const db = readDB();
     const pathParts = requestPath.split('/').filter(part => part !== '' && part !== 'api');
     const resource = pathParts[0];
     const id = pathParts[1];
@@ -115,11 +52,50 @@ exports.handler = async (event, context) => {
     switch (httpMethod) {
       case 'GET':
         if (resource === 'players') {
-          responseBody = id ? db.players.find(p => p.id === id) : db.players;
+          if (id) {
+            // Buscar jogador específico
+            const playerDoc = await db.collection('players').doc(id).get();
+            if (playerDoc.exists) {
+              responseBody = convertTimestamp(playerDoc);
+            } else {
+              statusCode = 404;
+              responseBody = { error: 'Player not found' };
+            }
+          } else {
+            // Buscar todos os jogadores ordenados por 'order'
+            const playersSnapshot = await db.collection('players').orderBy('order').get();
+            responseBody = playersSnapshot.docs.map(doc => convertTimestamp(doc));
+          }
         } else if (resource === 'items') {
-          responseBody = id ? db.items.find(i => i.id === id) : db.items;
+          if (id) {
+            // Buscar item específico
+            const itemDoc = await db.collection('items').doc(id).get();
+            if (itemDoc.exists) {
+              responseBody = convertTimestamp(itemDoc);
+            } else {
+              statusCode = 404;
+              responseBody = { error: 'Item not found' };
+            }
+          } else {
+            // Buscar todos os itens ordenados por 'order'
+            const itemsSnapshot = await db.collection('items').orderBy('order').get();
+            responseBody = itemsSnapshot.docs.map(doc => convertTimestamp(doc));
+          }
         } else if (resource === 'distribution') {
-          responseBody = id ? db.distribution.find(d => d.id === id) : db.distribution;
+          if (id) {
+            // Buscar distribuição específica
+            const distDoc = await db.collection('distribution').doc(id).get();
+            if (distDoc.exists) {
+              responseBody = convertTimestamp(distDoc);
+            } else {
+              statusCode = 404;
+              responseBody = { error: 'Distribution not found' };
+            }
+          } else {
+            // Buscar todas as distribuições ordenadas por data de criação
+            const distSnapshot = await db.collection('distribution').orderBy('createdAt', 'desc').get();
+            responseBody = distSnapshot.docs.map(doc => convertTimestamp(doc));
+          }
         } else {
           statusCode = 404;
           responseBody = { error: 'Resource not found' };
@@ -129,22 +105,32 @@ exports.handler = async (event, context) => {
       case 'POST':
         const postData = JSON.parse(body);
         if (resource === 'players') {
-          const newPlayer = { ...postData, id: generateId() };
-          db.players.push(newPlayer);
-          writeDB(db);
-          responseBody = newPlayer;
+          const newPlayer = {
+            ...postData,
+            createdAt: new Date()
+          };
+          const docRef = await db.collection('players').add(newPlayer);
+          const newDoc = await docRef.get();
+          responseBody = convertTimestamp(newDoc);
           statusCode = 201;
         } else if (resource === 'items') {
-          const newItem = { ...postData, id: generateId() };
-          db.items.push(newItem);
-          writeDB(db);
-          responseBody = newItem;
+          const newItem = {
+            ...postData,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          const docRef = await db.collection('items').add(newItem);
+          const newDoc = await docRef.get();
+          responseBody = convertTimestamp(newDoc);
           statusCode = 201;
         } else if (resource === 'distribution') {
-          const newDistribution = { ...postData, id: generateId() };
-          db.distribution.push(newDistribution);
-          writeDB(db);
-          responseBody = newDistribution;
+          const newDistribution = {
+            ...postData,
+            createdAt: new Date()
+          };
+          const docRef = await db.collection('distribution').add(newDistribution);
+          const newDoc = await docRef.get();
+          responseBody = convertTimestamp(newDoc);
           statusCode = 201;
         } else {
           statusCode = 404;
@@ -155,21 +141,29 @@ exports.handler = async (event, context) => {
       case 'PUT':
         const putData = JSON.parse(body);
         if (resource === 'players' && id) {
-          const playerIndex = db.players.findIndex(p => p.id === id);
-          if (playerIndex !== -1) {
-            db.players[playerIndex] = { ...db.players[playerIndex], ...putData };
-            writeDB(db);
-            responseBody = db.players[playerIndex];
+          const playerRef = db.collection('players').doc(id);
+          const playerDoc = await playerRef.get();
+          if (playerDoc.exists) {
+            await playerRef.update({
+              ...putData,
+              updatedAt: new Date()
+            });
+            const updatedDoc = await playerRef.get();
+            responseBody = convertTimestamp(updatedDoc);
           } else {
             statusCode = 404;
             responseBody = { error: 'Player not found' };
           }
         } else if (resource === 'items' && id) {
-          const itemIndex = db.items.findIndex(i => i.id === id);
-          if (itemIndex !== -1) {
-            db.items[itemIndex] = { ...db.items[itemIndex], ...putData };
-            writeDB(db);
-            responseBody = db.items[itemIndex];
+          const itemRef = db.collection('items').doc(id);
+          const itemDoc = await itemRef.get();
+          if (itemDoc.exists) {
+            await itemRef.update({
+              ...putData,
+              updatedAt: new Date()
+            });
+            const updatedDoc = await itemRef.get();
+            responseBody = convertTimestamp(updatedDoc);
           } else {
             statusCode = 404;
             responseBody = { error: 'Item not found' };
@@ -182,24 +176,34 @@ exports.handler = async (event, context) => {
 
       case 'DELETE':
         if (resource === 'players' && id) {
-          const playerIndex = db.players.findIndex(p => p.id === id);
-          if (playerIndex !== -1) {
-            db.players.splice(playerIndex, 1);
-            writeDB(db);
+          const playerRef = db.collection('players').doc(id);
+          const playerDoc = await playerRef.get();
+          if (playerDoc.exists) {
+            await playerRef.delete();
             responseBody = { message: 'Player deleted successfully' };
           } else {
             statusCode = 404;
             responseBody = { error: 'Player not found' };
           }
         } else if (resource === 'items' && id) {
-          const itemIndex = db.items.findIndex(i => i.id === id);
-          if (itemIndex !== -1) {
-            db.items.splice(itemIndex, 1);
-            writeDB(db);
+          const itemRef = db.collection('items').doc(id);
+          const itemDoc = await itemRef.get();
+          if (itemDoc.exists) {
+            await itemRef.delete();
             responseBody = { message: 'Item deleted successfully' };
           } else {
             statusCode = 404;
             responseBody = { error: 'Item not found' };
+          }
+        } else if (resource === 'distribution' && id) {
+          const distRef = db.collection('distribution').doc(id);
+          const distDoc = await distRef.get();
+          if (distDoc.exists) {
+            await distRef.delete();
+            responseBody = { message: 'Distribution deleted successfully' };
+          } else {
+            statusCode = 404;
+            responseBody = { error: 'Distribution not found' };
           }
         } else {
           statusCode = 404;
@@ -229,7 +233,7 @@ exports.handler = async (event, context) => {
         ...headers,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ error: 'Internal server error' })
+      body: JSON.stringify({ error: 'Internal server error', details: error.message })
     };
   }
 };

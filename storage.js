@@ -164,20 +164,13 @@ class LocalStorage {
 // Instância global do sistema de storage
 const storage = new LocalStorage();
 
-// API wrapper que usa localStorage em vez de requisições HTTP
+// API wrapper que usa Firebase Firestore
 class LocalAPI {
   constructor() {
-    this.baseURL = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '/api';
-    this.useLocalStorage = window.location.hostname !== 'localhost';
+    this.baseURL = '/api';
   }
 
   async request(method, endpoint, data = null) {
-    // Se estiver em produção (Netlify), usar localStorage
-    if (this.useLocalStorage) {
-      return this.handleLocalRequest(method, endpoint, data);
-    }
-    
-    // Se estiver em desenvolvimento local, usar API real
     try {
       const options = {
         method,
@@ -191,6 +184,11 @@ class LocalAPI {
       }
       
       const response = await fetch(`${this.baseURL}${endpoint}`, options);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       return await response.json();
     } catch (error) {
       console.error('Erro na requisição:', error);

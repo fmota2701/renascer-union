@@ -1,4 +1,83 @@
-# Sistema de Distribuição Renascer Union
+# 🎮 Renascer Union - Sistema de Distribuição de Itens
+
+Sistema web completo para gerenciamento de distribuição de itens e controle de participações em jogos online.
+
+## 🚀 Início Rápido
+
+### 1. Instalar Dependências
+```bash
+npm install
+```
+
+### 2. Executar o Sistema
+```bash
+# Windows
+StartRenascer.bat
+
+# Mac/Linux
+./StartRenascer.sh
+```
+
+### 3. Acessar o Sistema
+- **Página Principal**: http://localhost:8000
+- **Login**: http://localhost:8000/login.html
+
+### 4. Credenciais Padrão
+- **Admin**: admin / admin123
+- **Jogador**: player1 / pass1
+
+## 📋 Funcionalidades
+
+### Para Administradores
+- ✅ Gerenciar jogadores e itens
+- ✅ Distribuir itens para jogadores
+- ✅ Controlar participações diárias
+- ✅ Visualizar estatísticas e relatórios
+- ✅ Interface moderna e responsiva
+
+### Para Jogadores
+- ✅ Visualizar itens recebidos
+- ✅ Acompanhar histórico de participações
+- ✅ Ver estatísticas pessoais
+- ✅ Dashboard personalizado
+
+## 🔧 Configuração Avançada
+
+Para configuração completa com Firebase e deploy, consulte:
+- 📖 **[INSTRUCOES-USO.md](./INSTRUCOES-USO.md)** - Guia completo de instalação e uso
+- 🔥 **[README-Firebase.md](./README-Firebase.md)** - Configuração do Firebase
+- 🚀 **[README-Deploy.md](./README-Deploy.md)** - Instruções de deploy
+
+## 💻 Tecnologias
+
+- **Frontend**: HTML5, CSS3, JavaScript
+- **Backend**: Node.js, Express.js
+- **Banco**: Firebase Firestore
+- **Deploy**: Netlify
+- **Funções**: Netlify Functions
+
+## 📁 Estrutura Principal
+
+```
+├── admin.html          # Dashboard administrativo
+├── player.html         # Dashboard do jogador
+├── login.html          # Sistema de login
+├── distribuicao.html   # Distribuição de itens
+├── styles.css          # Estilos principais
+├── firebase-config.js  # Configuração Firebase
+├── netlify/functions/  # API serverless
+└── INSTRUCOES-USO.md  # Guia completo
+```
+
+## 🆘 Problemas Comuns
+
+- **Porta em uso**: Mude as portas no `package.json`
+- **Firebase erro**: Verifique credenciais no `.env`
+- **Permissão negada**: Execute `chmod +x StartRenascer.sh`
+
+---
+
+**Sistema pronto para uso! 🎯**
 
 ## Deploy no Netlify
 

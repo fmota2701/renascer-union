@@ -3,14 +3,14 @@
 /* Import San Francisco Font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ===== CSS VARIABLES - Dark Red Theme ===== */
+/* ===== CSS VARIABLES - Dark Theme (igual ao admin) ===== */
 :root {
-  /* Colors - Dark Red Theme */
-  --macos-bg-primary: #1a0f0f;
-  --macos-bg-secondary: #2d1515;
-  --macos-bg-tertiary: #3d1f1f;
-  --macos-surface: rgba(45, 21, 21, 0.8);
-  --macos-surface-elevated: rgba(61, 31, 31, 0.95);
+  /* Colors - Dark Theme Palette */
+  --macos-bg-primary: #0a0a0a;
+  --macos-bg-secondary: #1a1a1a;
+  --macos-bg-tertiary: #2a2a2a;
+  --macos-surface: rgba(26, 26, 26, 0.8);
+  --macos-surface-elevated: rgba(42, 42, 42, 0.95);
   
   /* Text Colors */
   --macos-text-primary: #ffffff;
@@ -28,9 +28,9 @@
   --macos-divider: rgba(255, 255, 255, 0.15);
   
   /* Shadows */
-  --macos-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --macos-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
-  --macos-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --macos-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --macos-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+  --macos-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
   
   /* Blur Effects */
   --macos-blur: blur(20px);
@@ -119,10 +119,7 @@ body {
   transition: all 0.3s ease;
 }
 
-.welcome-section:hover {
 
-  box-shadow: var(--macos-shadow-md);
-}
 
 .participate-btn {
   background: var(--macos-green);
@@ -138,10 +135,7 @@ body {
   font-family: var(--macos-font-family);
 }
 
-.participate-btn:hover {
-  background: #28a745;
-  box-shadow: var(--macos-shadow-md);
-}
+
 
 /* Removed admin-nav styles - not needed for new player layout */
 
@@ -181,10 +175,7 @@ body {
 
 }
 
-.nav-toggle:hover {
-    background: #5a67d8;
 
-}
 
 .nav-menu {
     padding: 1rem 0;
@@ -205,10 +196,7 @@ body {
     position: relative;
 }
 
-.nav-btn:hover {
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
-}
+
 
 .nav-btn.active {
     background: linear-gradient(135deg, #667eea, #764ba2);
@@ -291,10 +279,7 @@ body {
 
 }
 
-.logout-btn:hover {
-    background: #c53030;
 
-}
 
 /* Main content area */
 .player-main {
@@ -375,10 +360,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.dashboard-card:hover {
 
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-}
 
 /* Participation Main Card */
 .participation-main-card {
@@ -445,10 +427,7 @@ body {
     cursor: pointer;
 }
 
-.participate-btn-main:hover {
-  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-  background: linear-gradient(135deg, #45a049, #3d8b40);
-}
+
 
 .participate-btn-main .btn-icon {
     margin-right: 0.5rem;
@@ -564,11 +543,7 @@ body {
   box-sizing: border-box !important;
 }
 
-.item-block:hover {
 
-  box-shadow: var(--macos-shadow-md) !important;
-  border-color: var(--macos-border) !important;
-}
 
 /* Ensure item blocks are visible */
 .distribution-grid .item-block {
@@ -583,11 +558,7 @@ body {
   flex-direction: column !important;
 }
 
-.distribution-grid .item-block:hover {
 
-  box-shadow: var(--macos-shadow-md) !important;
-  border-color: var(--macos-border) !important;
-}
 
 /* ===== ITEM HEADERS - macOS Style ===== */
 .item-header {
@@ -685,12 +656,7 @@ body {
   flex-shrink: 0;
 }
 
-.queue-player:hover {
-  background: var(--macos-surface-elevated);
 
-  box-shadow: var(--macos-shadow-md);
-  border-color: var(--macos-border);
-}
 
 .queue-player.current-player {
   background: rgba(48, 209, 88, 0.1);
@@ -1003,10 +969,7 @@ body {
     position: relative;
 }
 
-.queue-item:hover {
-    background: rgba(255, 255, 255, 0.1);
 
-}
 
 .queue-item.current-player {
     background: rgba(76, 175, 80, 0.15);
@@ -1233,10 +1196,7 @@ body {
     align-items: center;
 }
 
-.item-card:hover {
 
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-}
 
 .item-icon {
     font-size: 2.5rem;
@@ -1308,11 +1268,7 @@ body {
 
 }
 
-.participation-status-card:hover,
-.participation-action-card:hover {
 
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-}
 
 .card-header {
     display: flex;
@@ -1415,9 +1371,7 @@ body {
     justify-content: center;
 }
 
-.participate-btn:hover:not(:disabled) {
-  box-shadow: 0 8px 25px rgba(72, 187, 120, 0.3);
-}
+
 
 .participate-btn:disabled {
     opacity: 0.6;
@@ -1429,9 +1383,7 @@ body {
 
 }
 
-.participate-btn.participating:hover {
-  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
-}
+
 
 
 
@@ -1588,9 +1540,7 @@ body {
     width: 100%;
 }
 
-.participate-btn-card:hover {
-  box-shadow: var(--macos-shadow-md);
-}
+
 
 .participate-btn-card:disabled {
     background: var(--macos-text-tertiary);
@@ -1963,11 +1913,7 @@ main {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
 }
 
-.participate-btn-card:hover {
-    background: linear-gradient(135deg, #059669, #047857);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-}
+
 
 .participate-btn-card:active {
     transform: translateY(0);
@@ -1978,11 +1924,7 @@ main {
     cursor: not-allowed;
 }
 
-.participate-btn-card.participated:hover {
-    background: linear-gradient(135deg, #6b7280, #4b5563);
-    transform: none;
-    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
-}
+
 
 /* Responsive design for new layout */
 @media (max-width: 768px) {

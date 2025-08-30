@@ -170,10 +170,7 @@ h4 {
   transition: all 0.2s ease;
 }
 
-.modal-close:hover {
-  background: var(--macos-bg-tertiary);
-  color: var(--macos-text-primary);
-}
+
 
 .modal-body {
   padding: var(--macos-space-lg);
@@ -248,9 +245,7 @@ p {
   box-shadow: var(--macos-shadow-sm);
 }
 
-.btn-primary:hover {
-  background: var(--macos-accent-hover);
-}
+
 
 .btn-secondary {
   background: var(--macos-surface);
@@ -258,18 +253,14 @@ p {
   border: 1px solid var(--macos-border);
 }
 
-.btn-secondary:hover {
-  background: var(--macos-surface-elevated);
-}
+
 
 .btn-danger {
   background: var(--macos-red);
   color: white;
 }
 
-.btn-danger:hover {
-  background: #dc2626;
-}
+
 
 /* ===== CARDS - macOS Style ===== */
 .card {
@@ -282,10 +273,7 @@ p {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--macos-shadow-md);
-}
+
 
 .card-header {
   margin-bottom: var(--macos-space-lg);
@@ -391,9 +379,7 @@ input:focus, select:focus, textarea:focus {
     transition: transform 0.3s ease;
 }
 
-.stat-item:hover {
-    transform: translateY(-5px);
-}
+
 
 .stat-number {
     display: block;
@@ -447,29 +433,19 @@ input:focus, select:focus, textarea:focus {
     transition: opacity 0.3s ease;
 }
 
-.access-panel:hover::before {
-    opacity: 1;
-}
+
 
 .admin-panel {
     color: #dc2626;
 }
 
-.admin-panel:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.2);
-    border-color: rgba(102, 126, 234, 0.3);
-}
+
 
 .player-panel {
     color: #dc2626;
 }
 
-.player-panel:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 60px rgba(72, 187, 120, 0.2);
-    border-color: rgba(72, 187, 120, 0.3);
-}
+
 
 .panel-header {
     display: flex;
@@ -544,24 +520,20 @@ input:focus, select:focus, textarea:focus {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.admin-btn:hover {
-}
+
 
 .player-btn {
     background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
 }
 
-.player-btn:hover {
-}
+
 
 .btn-arrow {
     font-size: 1.5rem;
     transition: transform 0.3s ease;
 }
 
-.access-btn:hover .btn-arrow {
-    transform: translateX(5px);
-}
+
 
 /* Responsive design */
 @media (max-width: 768px) {
@@ -663,10 +635,7 @@ input:focus, select:focus, textarea:focus {
     padding: 12px;
 }
 
-.nav-toggle:hover {
-    background: rgba(255,255,255,0.2);
-    transform: translateY(-1px);
-}
+
 
 .nav-toggle-icon {
   font-size: 18px;
@@ -720,10 +689,7 @@ input:focus, select:focus, textarea:focus {
   padding: 12px;
 }
 
-.nav-btn:hover {
-  background: var(--macos-bg-tertiary);
-  color: var(--macos-text-primary);
-}
+
 
 .nav-btn.active {
   background: var(--macos-accent);
@@ -803,10 +769,7 @@ input:focus, select:focus, textarea:focus {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.dashboard-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--macos-shadow-md);
-}
+
 
 .dashboard-card h3 {
   font-size: 1rem;
@@ -859,10 +822,7 @@ input:focus, select:focus, textarea:focus {
   transition: all 0.3s ease;
 }
 
-.action-card:hover, .distribution-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--macos-shadow-md);
-}
+
 
 .participate-btn {
   background: var(--macos-accent);
@@ -876,9 +836,7 @@ input:focus, select:focus, textarea:focus {
   transition: all 0.2s ease;
 }
 
-.participate-btn:hover {
-  background: var(--macos-accent-hover);
-}
+
 
 /* ===== TABLES ===== */
 .table-container {
@@ -912,9 +870,7 @@ td {
   font-size: 0.9rem;
 }
 
-tr:hover {
-  background: var(--macos-bg-tertiary);
-}
+
 
 /* ===== MESSAGES ===== */
 .success-message, .error-message, .info-message, .warning-message {
@@ -1008,10 +964,7 @@ tr:hover {
   transition: all 0.2s ease;
 }
 
-.dashboard-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
+
 
 .dashboard-card .card-content {
   text-align: center;
@@ -1038,9 +991,7 @@ tr:hover {
   transition: background-color 0.2s ease;
 }
 
-.activity-item:hover {
-  background: var(--macos-bg-tertiary);
-}
+
 
 .activity-icon {
   width: 40px;
@@ -1106,9 +1057,7 @@ tr:hover {
   transition: background-color 0.2s ease;
 }
 
-.player-item:hover {
-  background: var(--macos-bg-tertiary);
-}
+
 
 .player-avatar {
   width: 50px;
@@ -1184,11 +1133,7 @@ tr:hover {
   backdrop-filter: var(--macos-blur);
 }
 
-.player-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--macos-shadow-md);
-  border-color: var(--macos-accent);
-}
+
 
 .player-nick {
   font-size: 1.1rem;
@@ -1223,9 +1168,7 @@ tr:hover {
   gap: 4px;
 }
 
-.edit-btn:hover {
-  background: var(--macos-accent-hover);
-}
+
 
 .delete-btn {
   background: var(--macos-red);
@@ -1242,9 +1185,7 @@ tr:hover {
   gap: 4px;
 }
 
-.delete-btn:hover {
-  background: #dc2626;
-}
+
 
 /* ===== DRAG AND DROP STYLES ===== */
 .drag-handle {
@@ -1258,9 +1199,7 @@ tr:hover {
   transition: color 0.2s ease;
 }
 
-.drag-handle:hover {
-  color: var(--macos-accent);
-}
+
 
 .drag-handle:active {
   cursor: grabbing;
@@ -1317,11 +1256,7 @@ tr:hover {
   position: relative;
 }
 
-.player-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--macos-shadow-md);
-  border-color: var(--macos-accent);
-}
+
 
 /* ===== ITEM CARDS ===== */
 .item-card {
@@ -1338,11 +1273,7 @@ tr:hover {
   position: relative;
 }
 
-.item-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--macos-shadow-md);
-  border-color: var(--macos-accent);
-}
+
 
 .item-name {
   font-size: 1.1rem;
@@ -1362,10 +1293,7 @@ tr:hover {
   transition: all 0.2s ease;
 }
 
-.clickable:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
+
 
 .clickable .item-actions,
 .clickable .player-actions {
@@ -1390,11 +1318,7 @@ tr:hover {
     transition: all 0.2s ease;
 }
 
-.participation-item:hover {
-    background: var(--macos-bg-tertiary);
-    transform: translateY(-1px);
-    box-shadow: var(--macos-shadow-sm);
-}
+
 
 .player-avatar {
     position: relative;
@@ -1610,9 +1534,7 @@ tr:hover {
   transition: background-color 0.2s ease;
 }
 
-.item-card:hover {
-  background: var(--macos-bg-tertiary);
-}
+
 
 .item-icon {
   width: 50px;
@@ -1719,9 +1641,7 @@ tr:hover {
   background: rgba(255, 255, 255, 0.04);
 }
 
-.distribution-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
+
 
 .distribution-table tbody tr.participated-today {
   background: rgba(220, 38, 38, 0.1) !important;
@@ -1729,9 +1649,7 @@ tr:hover {
   transition: all 0.3s ease;
 }
 
-.distribution-table tbody tr.participated-today:hover {
-  background: rgba(220, 38, 38, 0.2) !important;
-}
+
 
 .distribution-table .nick-column {
   font-weight: 600;
@@ -1940,9 +1858,7 @@ tr:hover {
   transition: left 0.5s;
 }
 
-.btn:hover::before {
-  left: 100%;
-}
+
 
 .btn:active {
   transform: translateY(0);
@@ -1969,10 +1885,7 @@ input:focus, select:focus, textarea:focus {
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.nav-button:hover::after,
-.nav-button.active::after {
-  width: 100%;
-}
+
 
 /* Tab button animations */
 .tab-btn::before {
@@ -2095,9 +2008,7 @@ html {
     transition: background-color 0.2s;
 }
 
-.item-checkbox:hover {
-    background-color: var(--macos-bg-tertiary);
-}
+
 
 .item-checkbox input[type="checkbox"] {
     margin: 0;
@@ -2123,18 +2034,14 @@ html {
     color: white;
 }
 
-.select-all-btn:hover {
-    background: #b91c1c;
-}
+
 
 .clear-all-btn {
     background: var(--macos-red);
     color: white;
 }
 
-.clear-all-btn:hover {
-    background: #dc2626;
-}
+
 
 .distribute-multiple-btn {
     padding: 0.75rem 1.5rem;
@@ -2149,9 +2056,7 @@ html {
     margin-left: auto;
 }
 
-.distribute-multiple-btn:hover:not(:disabled) {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
+
 
 .distribute-multiple-btn:disabled {
     background: var(--macos-text-tertiary);
@@ -2324,11 +2229,7 @@ html {
   overflow: hidden;
 }
 
-.reset-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(255, 59, 48, 0.15);
-  border-color: #dc2626;
-}
+
 
 .reset-card.reset-all {
   border-color: var(--macos-red);
@@ -2368,10 +2269,7 @@ html {
   font-weight: 600;
 }
 
-.btn-danger:hover {
-  background: #dc2626;
-  box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
-}
+
 
 .btn-danger:active {
   transform: translateY(0);

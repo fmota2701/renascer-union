@@ -9,8 +9,17 @@
     "dev": "python3 -m http.server 8000",
     "test": "echo 'No tests specified'"
   },
-  "dependencies": {},
-  "keywords": ["distribuição", "itens", "guild", "netlify"],
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "firebase": "^12.2.1",
+    "firebase-admin": "^13.5.0"
+  },
+  "keywords": [
+    "distribuição",
+    "itens",
+    "guild",
+    "netlify"
+  ],
   "author": "Renascer Union",
   "license": "MIT"
 }
