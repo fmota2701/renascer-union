@@ -915,6 +915,240 @@ function updateDistributionSelects() {
     }
 }
 
+// ===== MULTI DISTRIBUTION FUNCTIONS =====
+
+let isMultiDistributionMode = false;
+let selectedItems = new Map(); // Map to store selected items and their quantities
+
+function toggleDistributionMode() {
+    const singleCard = document.querySelector('.card.form-card:not(#multiDistributionCard)');
+    const multiCard = document.getElementById('multiDistributionCard');
+    
+    isMultiDistributionMode = !isMultiDistributionMode;
+    
+    if (isMultiDistributionMode) {
+        singleCard.style.display = 'none';
+        multiCard.style.display = 'block';
+        loadMultiDistributionItems();
+        updateMultiDistributionSelects();
+    } else {
+        singleCard.style.display = 'block';
+        multiCard.style.display = 'none';
+        clearMultiDistributionForm();
+    }
+}
+
+function loadMultiDistributionItems() {
+    const container = document.getElementById('multiItemsContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (items.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Nenhum item cadastrado</p>';
+        return;
+    }
+    
+    items.forEach(item => {
+        const itemRow = document.createElement('div');
+        itemRow.className = 'multi-item-row';
+        itemRow.dataset.itemId = item.id;
+        
+        itemRow.innerHTML = `
+            <input type="checkbox" class="multi-item-checkbox" id="item_${item.id}" 
+                   onchange="toggleItemSelection('${item.id}')">
+            <div class="multi-item-info">
+                <div class="multi-item-name">${item.name}</div>
+                <div class="multi-item-category">${item.category}</div>
+            </div>
+            <div class="multi-item-quantity">
+                <label for="quantity_${item.id}">Qtd:</label>
+                <input type="number" id="quantity_${item.id}" min="1" value="1" 
+                       disabled onchange="updateItemQuantity('${item.id}', this.value)">
+            </div>
+        `;
+        
+        container.appendChild(itemRow);
+    });
+}
+
+function toggleItemSelection(itemId) {
+    const checkbox = document.getElementById(`item_${itemId}`);
+    const quantityInput = document.getElementById(`quantity_${itemId}`);
+    const itemRow = document.querySelector(`[data-item-id="${itemId}"]`);
+    
+    if (checkbox.checked) {
+        // Item selected
+        quantityInput.disabled = false;
+        itemRow.classList.add('selected');
+        selectedItems.set(itemId, parseInt(quantityInput.value) || 1);
+    } else {
+        // Item deselected
+        quantityInput.disabled = true;
+        itemRow.classList.remove('selected');
+        selectedItems.delete(itemId);
+    }
+    
+    updateMultiDistributionSummary();
+    updateMultiDistributeButton();
+}
+
+function updateItemQuantity(itemId, quantity) {
+    const qty = parseInt(quantity) || 1;
+    if (selectedItems.has(itemId)) {
+        selectedItems.set(itemId, qty);
+        updateMultiDistributionSummary();
+    }
+}
+
+function updateMultiDistributionSummary() {
+    const summaryDiv = document.getElementById('multiDistributionSummary');
+    const summaryContent = document.getElementById('summaryContent');
+    
+    if (selectedItems.size === 0) {
+        summaryDiv.style.display = 'none';
+        return;
+    }
+    
+    summaryDiv.style.display = 'block';
+    summaryContent.innerHTML = '';
+    
+    selectedItems.forEach((quantity, itemId) => {
+        const item = items.find(i => i.id === itemId);
+        if (item) {
+            const summaryItem = document.createElement('div');
+            summaryItem.className = 'summary-item';
+            summaryItem.innerHTML = `
+                <span class="summary-item-name">${item.name}</span>
+                <span class="summary-item-quantity">${quantity}x</span>
+            `;
+            summaryContent.appendChild(summaryItem);
+        }
+    });
+}
+
+function updateMultiDistributeButton() {
+    const button = document.getElementById('multiDistributeBtn');
+    const playerSelect = document.getElementById('multiDistributionPlayer');
+    
+    const hasSelectedItems = selectedItems.size > 0;
+    const hasSelectedPlayer = playerSelect && playerSelect.value;
+    
+    button.disabled = !(hasSelectedItems && hasSelectedPlayer);
+}
+
+function updateMultiDistributionSelects() {
+    const playerSelect = document.getElementById('multiDistributionPlayer');
+    
+    if (playerSelect) {
+        // Copy options from single distribution select
+        const singlePlayerSelect = document.getElementById('distributionPlayer');
+        playerSelect.innerHTML = singlePlayerSelect.innerHTML;
+        
+        // Add event listener to update button state
+        playerSelect.addEventListener('change', updateMultiDistributeButton);
+    }
+}
+
+function clearMultiDistributionForm() {
+    selectedItems.clear();
+    
+    // Clear all checkboxes and reset quantities
+    document.querySelectorAll('.multi-item-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    document.querySelectorAll('.multi-item-quantity input').forEach(input => {
+        input.value = '1';
+        input.disabled = true;
+    });
+    
+    document.querySelectorAll('.multi-item-row').forEach(row => {
+        row.classList.remove('selected');
+    });
+    
+    // Clear form fields
+    const playerSelect = document.getElementById('multiDistributionPlayer');
+    const reasonSelect = document.getElementById('multiDistributionReason');
+    
+    if (playerSelect) playerSelect.value = '';
+    if (reasonSelect) reasonSelect.value = '';
+    
+    // Hide summary and disable button
+    document.getElementById('multiDistributionSummary').style.display = 'none';
+    document.getElementById('multiDistributeBtn').disabled = true;
+}
+
+async function distributeMultipleItems() {
+    const playerId = document.getElementById('multiDistributionPlayer').value;
+    const reason = document.getElementById('multiDistributionReason').value;
+    
+    if (!playerId || selectedItems.size === 0) {
+        alert('Por favor, selecione um jogador e pelo menos um item.');
+        return;
+    }
+    
+    const player = players.find(p => p.id === playerId);
+    if (!player) {
+        alert('Jogador não encontrado.');
+        return;
+    }
+    
+    try {
+        const distributionPromises = [];
+        const distributionSummary = [];
+        
+        // Create distribution for each selected item
+        selectedItems.forEach((quantity, itemId) => {
+            const item = items.find(i => i.id === itemId);
+            if (item) {
+                const newDistribution = {
+                    id: generateId(),
+                    playerId: playerId,
+                    itemId: itemId,
+                    quantity: quantity,
+                    reason: reason,
+                    createdAt: new Date().toISOString()
+                };
+                
+                distributionPromises.push(api.createDistribution(newDistribution));
+                distributions.push(newDistribution);
+                distributionSummary.push(`${item.name}: ${quantity}x`);
+            }
+        });
+        
+        // Execute all distributions
+        await Promise.all(distributionPromises);
+        
+        // Reset participation status
+        resetAllParticipationStatus();
+        
+        // Clear form and update interface
+        clearMultiDistributionForm();
+        renderDistributionHistory();
+        
+        // Show success message
+        const itemCount = selectedItems.size;
+        const totalQuantity = Array.from(selectedItems.values()).reduce((sum, qty) => sum + qty, 0);
+        
+        alert(`✅ Distribuição múltipla realizada com sucesso!\n` +
+              `👤 Jogador: ${player.nick}\n` +
+              `📦 ${itemCount} tipos de itens distribuídos\n` +
+              `🔢 Total: ${totalQuantity} itens\n` +
+              `📋 Itens: ${distributionSummary.join(', ')}\n\n` +
+              `🔄 Sinalizações verdes removidas para próxima distribuição.`);
+        
+        // Ensure participation status is reset
+        setTimeout(() => {
+            resetAllParticipationStatus();
+        }, 500);
+        
+    } catch (error) {
+        console.error('Erro ao distribuir itens:', error);
+        alert('Erro ao conectar com o servidor!');
+    }
+}
+
 // ===== RESET FUNCTIONS =====
 
 async function resetPlayers() {

@@ -239,9 +239,16 @@
                     <p class="section-subtitle">Distribua itens para jogadores</p>
                 </div>
                 
+                <!-- Distribuição Individual -->
                 <div class="card form-card" style="margin-bottom: 20px;">
                     <div class="card-header">
-                        <h3>Distribuir Item</h3>
+                        <h3>Distribuição Individual</h3>
+                        <div class="distribution-toggle">
+                            <button type="button" class="btn btn-sm btn-secondary" id="toggleDistributionMode" onclick="toggleDistributionMode()">
+                                <span class="btn-icon">📦</span>
+                                Distribuição Múltipla
+                            </button>
+                        </div>
                     </div>
                     <form id="distributionForm" class="distribution-form">
                         <div class="form-group">
@@ -273,6 +280,55 @@
                         <button type="submit" class="btn btn-primary btn-block">
                             <span class="btn-icon">🎁</span>
                             Distribuir Item
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Distribuição Múltipla -->
+                <div class="card form-card" id="multiDistributionCard" style="margin-bottom: 20px; display: none;">
+                    <div class="card-header">
+                        <h3>Distribuição Múltipla</h3>
+                        <div class="distribution-toggle">
+                            <button type="button" class="btn btn-sm btn-secondary" id="toggleSingleMode" onclick="toggleDistributionMode()">
+                                <span class="btn-icon">🎁</span>
+                                Distribuição Individual
+                            </button>
+                        </div>
+                    </div>
+                    <form id="multiDistributionForm" class="multi-distribution-form">
+                        <div class="form-group">
+                            <label for="multiDistributionPlayer">Jogador:</label>
+                            <select id="multiDistributionPlayer" name="player" required>
+                                <option value="">Selecione um jogador</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Itens para Distribuir:</label>
+                            <div class="multi-items-container" id="multiItemsContainer">
+                                <!-- Items will be dynamically loaded here -->
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="multiDistributionReason">Motivo:</label>
+                            <select id="multiDistributionReason" name="reason">
+                                <option value="">Selecione o motivo</option>
+                                <option value="Recompensa">Recompensa</option>
+                                <option value="Compensação">Compensação</option>
+                                <option value="Evento">Evento</option>
+                                <option value="Teste">Teste</option>
+                            </select>
+                        </div>
+                        
+                        <div class="multi-distribution-summary" id="multiDistributionSummary" style="display: none;">
+                            <h4>Resumo da Distribuição:</h4>
+                            <div class="summary-content" id="summaryContent"></div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block" id="multiDistributeBtn" disabled>
+                            <span class="btn-icon">📦</span>
+                            Distribuir Itens Selecionados
                         </button>
                     </form>
                 </div>
