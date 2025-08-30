@@ -42,9 +42,16 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    // Debug logs
+    console.log('Request path:', requestPath);
+    console.log('HTTP method:', httpMethod);
+    
     const pathParts = requestPath.split('/').filter(part => part !== '' && part !== 'api');
+    console.log('Path parts:', pathParts);
+    
     const resource = pathParts[0];
     const id = pathParts[1];
+    console.log('Resource:', resource, 'ID:', id);
 
     let responseBody;
     let statusCode = 200;
