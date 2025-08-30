@@ -49,9 +49,7 @@ class PlayerPanel {
         }
     }
 
-    switchToSection(sectionName) {
-        this.currentSection = sectionName;
-    }
+    // Removed switchToSection - no longer needed without sidebar
 
     async loadPlayerData() {
         try {
@@ -301,12 +299,7 @@ class PlayerPanel {
     }
 }
 
-// Global function for backward compatibility
-function switchToSection(sectionName) {
-    if (window.playerPanel) {
-        window.playerPanel.switchToSection(sectionName);
-    }
-}
+// Navigation functions removed - no longer needed without sidebar
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {

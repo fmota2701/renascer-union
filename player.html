@@ -3,46 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Jogador - Renascer Union</title>
+    <title>Renascer Union - Painel do Jogador</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="player-styles.css">
 </head>
 <body>
-    <div class="admin-container">
-        <!-- Navigation Sidebar -->
-        <nav class="admin-nav">
-            <button class="nav-toggle" onclick="toggleNavigation()">
-                <span class="nav-toggle-icon">☰</span>
-                <span class="nav-text">Minimizar Menu</span>
-            </button>
-            
-            <div class="nav-header">
-                <h2>Renascer Union</h2>
-                <p>Painel Jogador</p>
-            </div>
-            
-            <div class="nav-menu">
-                <button class="nav-btn active" data-section="dashboard" onclick="switchToSection('dashboard')">
-                    <span class="nav-icon">🏠</span>
-                    <span class="nav-text">Dashboard</span>
-                </button>
-            </div>
-            
-            <div class="nav-footer">
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>🎮 Renascer Union</h1>
                 <div class="user-info">
                     <span class="user-name" id="playerName">Jogador</span>
+                    <button class="btn btn-secondary btn-sm" id="logoutBtn">Sair</button>
                 </div>
-                <button class="btn btn-secondary btn-sm" id="logoutBtn">Sair</button>
             </div>
-        </nav>
+        </header>
 
-        <!-- Main Content -->
-        <main class="admin-main">
-            <!-- Dashboard Section -->
-            <section id="dashboard" class="content-section active">
+        <main>
+            <section class="dashboard-section">
                 <div class="section-header">
-                    <h2>Dashboard</h2>
-                    <p class="section-subtitle">Painel do Jogador - Renascer Union</p>
+                    <h2>📊 Dashboard do Jogador</h2>
+                    <p class="section-subtitle">Bem-vindo ao sistema de distribuição da Renascer Union</p>
                 </div>
                 
                 <div class="dashboard-cards">
@@ -90,8 +71,6 @@
                     <!-- Item blocks will be populated by JavaScript -->
                 </div>
             </section>
-
-
         </main>
     </div>
 

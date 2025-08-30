@@ -85,18 +85,7 @@ body {
 }
 
 /* ===== ADMIN CONTAINER - macOS Style ===== */
-.admin-container {
-  display: flex !important;
-  min-height: 100vh !important;
-  background: var(--macos-bg-primary) !important;
-}
-
-.admin-main {
-  flex: 1 !important;
-  padding: var(--macos-space-xl) !important;
-  background: transparent !important;
-  overflow-y: auto !important;
-}
+/* Removed conflicting admin styles for new player layout */
 
 /* ===== PLAYER DASHBOARD ===== */
 .player-container {
@@ -154,20 +143,7 @@ body {
   box-shadow: var(--macos-shadow-md);
 }
 
-/* Navigation sidebar */
-.admin-nav {
-    width: 280px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
-
-    position: relative;
-    z-index: 1000;
-}
-
-.admin-nav.collapsed {
-    width: 80px;
-}
+/* Removed admin-nav styles - not needed for new player layout */
 
 .nav-header {
     padding: 2rem 1.5rem;
@@ -1885,4 +1861,149 @@ body {
   .sidebar.active {
     transform: translateX(0) !important;
   }
+}
+
+/* ===== PLAYER-SPECIFIC STYLES - New Layout (Admin Theme) ===== */
+.container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+}
+
+header {
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header-content h1 {
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+}
+
+.header-content .user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-content .user-name {
+    color: #e2e8f0;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+}
+
+main {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard-section {
+    width: 100%;
+}
+
+.dashboard-section .section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.dashboard-section .section-header h2 {
+    color: #ffffff;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+}
+
+.dashboard-section .section-subtitle {
+    color: #94a3b8;
+    font-size: 1.1rem;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+}
+
+/* Player-specific button styles (Admin Theme) */
+.participate-btn-card {
+    margin-top: 10px;
+    width: 100%;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+}
+
+.participate-btn-card:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.participate-btn-card:active {
+    transform: translateY(0);
+}
+
+.participate-btn-card.participated {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    cursor: not-allowed;
+}
+
+.participate-btn-card.participated:hover {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    transform: none;
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+/* Responsive design for new layout */
+@media (max-width: 768px) {
+    header {
+        padding: 1rem;
+    }
+    
+    .header-content h1 {
+        font-size: 1.5rem;
+    }
+    
+    main {
+        padding: 1rem;
+    }
+    
+    .dashboard-section .section-header h2 {
+        font-size: 2rem;
+    }
+    
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
 }

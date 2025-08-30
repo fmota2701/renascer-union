@@ -1696,20 +1696,31 @@ tr:hover {
 .distribution-table td {
   padding: var(--macos-space-sm) var(--macos-space-md);
   text-align: left;
-  border-bottom: 1px solid var(--macos-divider);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: white;
 }
 
 .distribution-table th {
-  background: var(--macos-bg-secondary);
+  background: #dc2626;
   font-weight: 600;
   position: sticky;
   top: 0;
   z-index: 10;
   text-align: center;
+  color: white;
+  border-bottom: 2px solid #b91c1c;
+}
+
+.distribution-table tbody tr {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.distribution-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .distribution-table tbody tr:hover {
-  background: var(--macos-bg-tertiary);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .distribution-table tbody tr.participated-today {
@@ -2187,18 +2198,21 @@ html {
 }
 
 .distribution-table th {
-    background-color: #f8f9fa;
+    background: #dc2626;
     font-weight: 600;
     padding: 12px;
     text-align: center;
-    border: 1px solid #dee2e6;
+    border: 1px solid #b91c1c;
+    color: white;
 }
 
 .distribution-table td {
     padding: 8px 12px;
     text-align: center;
-    border: 1px solid #dee2e6;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     vertical-align: middle;
+    color: white;
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .distribution-table .player-name {
