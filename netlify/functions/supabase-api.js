@@ -663,7 +663,7 @@ async function handleCheckUpdates() {
     // Construir o estado no formato esperado pelo frontend
     const state = {
       players: playersData.players || [],
-      items: itemsData.items || [],
+      items: (itemsData.items || []).map(item => item.name), // Extrair apenas os nomes dos itens
       history: historyData.history || [],
       rotation: {},
       ui: { editUnlocked: false },
