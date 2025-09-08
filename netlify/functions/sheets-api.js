@@ -26,11 +26,10 @@ exports.handler = async (event, context) => {
     // Verificar variáveis de ambiente
     const {
       GOOGLE_SPREADSHEET_ID,
-      GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      GOOGLE_PRIVATE_KEY
+      GOOGLE_SERVICE_ACCOUNT_KEY
     } = process.env;
 
-    if (!GOOGLE_SPREADSHEET_ID || !GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_PRIVATE_KEY) {
+    if (!GOOGLE_SPREADSHEET_ID || !GOOGLE_SERVICE_ACCOUNT_KEY) {
       return {
         statusCode: 500,
         headers,
@@ -40,10 +39,24 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // Parse das credenciais do service account
+    let serviceAccountCredentials;
+    try {
+      serviceAccountCredentials = JSON.parse(GOOGLE_SERVICE_ACCOUNT_KEY);
+    } catch (error) {
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({
+          error: 'Formato inválido das credenciais do Google Service Account'
+        })
+      };
+    }
+
     // Configurar autenticação
     const serviceAccountAuth = new JWT({
-      email: GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      key: GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      email: serviceAccountCredentials.client_email,
+      key: serviceAccountCredentials.private_key,
       scopes: ['https://www.googleapis.com/auth/spreadsheets']
     });
 

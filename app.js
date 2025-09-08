@@ -53,26 +53,49 @@ async function syncStateToSheets(state) {
   updateSyncIndicator('syncing', 'Sincronizando dados...');
   
   try {
-    const response = await fetch('/.netlify/functions/sheets-api/sync', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        state: state,
-        timestamp: new Date().toISOString()
-      })
-    });
-
-    if (response.ok) {
+    // Para desenvolvimento local, simular sincronização
+    // Em produção, isso usará a API do Netlify Functions
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      // Simular delay de rede
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Salvar localmente
+      saveState(state);
+      
       realTimeSync.lastSync = new Date();
-      updateSyncIndicator('success', `Sincronizado às ${realTimeSync.lastSync.toLocaleTimeString('pt-BR')}`);
+      updateSyncIndicator('success', `Dados salvos localmente às ${realTimeSync.lastSync.toLocaleTimeString('pt-BR')}`);
+      
+      // Mostrar aviso sobre configuração do Google Sheets
+      if (!localStorage.getItem('sheets-warning-shown')) {
+        showToast('💡 Para sincronizar com Google Sheets, configure as credenciais e faça deploy no Netlify', 'info');
+        localStorage.setItem('sheets-warning-shown', 'true');
+      }
     } else {
-      throw new Error('Erro na resposta do servidor');
+      // Em produção, usar a API do Netlify Functions
+      const response = await fetch('/.netlify/functions/sheets-api/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          state: state,
+          timestamp: new Date().toISOString()
+        })
+      });
+
+      if (response.ok) {
+        realTimeSync.lastSync = new Date();
+        updateSyncIndicator('success', `Sincronizado às ${realTimeSync.lastSync.toLocaleTimeString('pt-BR')}`);
+      } else {
+        throw new Error('Erro na resposta do servidor');
+      }
     }
   } catch (error) {
     console.error('Erro ao sincronizar:', error);
     updateSyncIndicator('error', 'Erro na sincronização - dados salvos localmente');
+    
+    // Sempre salvar localmente em caso de erro
+    saveState(state);
   } finally {
     realTimeSync.syncInProgress = false;
   }
@@ -83,6 +106,13 @@ async function checkForUpdates() {
   if (realTimeSync.syncInProgress) return;
   
   try {
+    // Para desenvolvimento local, não verificar mudanças externas
+    // Em produção, isso verificará mudanças na planilha
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      // Em desenvolvimento local, não há mudanças externas para verificar
+      return;
+    }
+    
     const response = await fetch('/.netlify/functions/sheets-api/check-updates', {
       method: 'GET',
       headers: {
