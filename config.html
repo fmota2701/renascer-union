@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - Sistema de Distribuição</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container header-inner">
+            <h1>⚙️ Configurações</h1>
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="goToMain()">← Voltar</button>
+                <button class="btn btn-primary" onclick="saveSettings()">💾 Salvar</button>
+            </div>
+        </div>
+    </header>
+    <div class="container subheader">
+        <div class="breadcrumbs">Home / Configurações</div>
+    </div>
+    <aside id="sidebar">
+        <div class="brand">Guilda</div>
+        <nav>
+            <button class="side-link" onclick="goToMain()"><span class="icon">🏠</span><span>Dashboard</span></button>
+            <button class="side-link active"><span class="icon">⚙️</span><span>Configurações</span></button>
+        </nav>
+    </aside>
+    <div id="content">
+        <div class="container">
+            <!-- Preferências -->
+            <div class="config-section">
+                <h2 class="config-title">Preferências</h2>
+                <div class="config-card">
+                    <div class="config-item">
+                        <label class="config-label">
+                            <input type="checkbox" id="soundEnabled" class="config-checkbox">
+                            <span class="config-text">Sons habilitados</span>
+                        </label>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">
+                            <input type="checkbox" id="autoSaveNick" class="config-checkbox">
+                            <span class="config-text">Salvar nick automaticamente</span>
+                        </label>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">
+                            <input type="checkbox" id="showAnimations" class="config-checkbox">
+                            <span class="config-text">Mostrar animações</span>
+                        </label>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">
+                            <input type="checkbox" id="darkMode" class="config-checkbox">
+                            <span class="config-text">Modo escuro</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resetar Dados -->
+            <div class="config-section">
+                <h2 class="config-title">Resetar Dados</h2>
+                <div class="config-card">
+                    <div class="config-warning">
+                        ⚠️ Atenção: Essas ações são irreversíveis e requerem confirmação do admin.
+                    </div>
+                    <div class="config-actions">
+                        <button class="btn btn-warning" onclick="resetPresences()">🔄 Resetar Presenças</button>
+                        <button class="btn btn-warning" onclick="resetItems()">📦 Resetar Itens Recebidos</button>
+                        <button class="btn btn-warning" onclick="resetFaults()">⚠️ Resetar Faltas</button>
+                        <button class="btn btn-warning" onclick="resetHistory()">📜 Resetar Histórico</button>
+                        <button class="btn btn-warning" onclick="resetDistributedItems()">✅ Itens já Distribuídos</button>
+                        <button class="btn btn-danger" onclick="resetPlayers()">👥 Resetar Jogadores</button>
+                        <button class="btn btn-danger" onclick="resetAll()">🗑️ Resetar Todos os Itens</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sistema -->
+            <div class="config-section">
+                <h2 class="config-title">Sistema</h2>
+                <div class="config-card">
+                    <div class="config-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Jogadores cadastrados:</span>
+                            <span class="stat-value" id="totalPlayers">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Jogadores presentes:</span>
+                            <span class="stat-value" id="presentPlayers">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total de distribuições:</span>
+                            <span class="stat-value" id="totalDistributions">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup e Exportação -->
+            <div class="config-section">
+                <h2 class="config-title">Backup e Exportação</h2>
+                <div class="config-card">
+                    <div class="config-actions">
+                        <button class="btn btn-secondary" onclick="exportData()">📤 Exportar Dados</button>
+                        <button class="btn btn-secondary" onclick="importData()">📥 Importar Dados</button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(event)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script src="config.js"></script>
+</body>
+</html>

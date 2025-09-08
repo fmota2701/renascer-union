@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Distribuição de Itens da Guilda</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="container header-inner">
+        <h1>Distribuição de Itens da Guilda</h1>
+        <div class="actions">
+          <label class="theme-switch" title="Tema claro/escuro">
+            <input type="checkbox" id="theme-switch" />
+            <span class="slider"></span>
+          </label>
+          <button id="btn-export-json" class="ghost">Exportar JSON</button>
+          <button id="btn-export-csv" class="ghost">Exportar CSV</button>
+          <label class="import-label">
+            Importar JSON/CSV
+            <input type="file" id="file-input" accept=".json,.csv" />
+          </label>
+          <button id="btn-reset" class="danger" title="Limpa os dados salvos">Resetar</button>
+        </div>
+      </div>
+    </header>
+    <div class="container subheader">
+      <div class="breadcrumbs" id="breadcrumbs">Home / Distribuição</div>
+      <div class="search">
+        <input id="search-input" placeholder="Buscar jogador..." />
+      </div>
+    </div>
+    <aside id="sidebar">
+      <div class="brand">Guilda</div>
+      <nav>
+        <button class="side-link active" data-target="#section-dashboard"><span class="icon">🏠</span><span>Dashboard</span></button>
+        <button class="side-link" data-target="#section-distribuir"><span class="icon">🎯</span><span>Distribuição</span></button>
+        <button class="side-link" data-target="#section-cadastros"><span class="icon">🧾</span><span>Cadastros</span></button>
+        <button class="side-link" data-target="#section-historico"><span class="icon">📜</span><span>Histórico</span></button>
+        <button class="side-link" onclick="goToConfig()"><span class="icon">⚙️</span><span>Configurações</span></button>
+      </nav>
+    </aside>
+    <div id="content">
+    
+
+    <section id="section-cadastros" class="panel container hidden">
+      <h2>Cadastros</h2>
+      <div class="grid-two">
+        <div class="card">
+          <h3>Jogadores</h3>
+          <form id="add-player-form" class="row-controls">
+            <input id="player-name" placeholder="Nome do jogador" required />
+            <button type="submit" class="primary">Adicionar</button>
+          </form>
+          <div id="players-manager" class="list-manager"></div>
+        </div>
+        <div class="card">
+          <h3>Itens</h3>
+          <form id="add-item-form" class="row-controls">
+            <input id="item-name" placeholder="Novo item" />
+            <button id="btn-add-item" type="submit" class="primary">Adicionar item</button>
+          </form>
+          <div id="items-manager" class="items-manager"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-dashboard" class="panel container">
+      <h2>Dashboard</h2>
+      <div id="dash-stats" class="summary-cards"></div>
+      <div class="dashboard-actions">
+        <button id="btn-copy-winners" class="primary">📋 Copiar Ganhadores</button>
+      </div>
+      <h3>Ranking de Jogadores por Item</h3>
+      <div id="ranking-container" class="ranking-container"></div>
+    </section>
+
+    <section id="section-distribuir" class="panel container hidden">
+      <h2>Distribuir</h2>
+      <div class="card">
+        <div class="distribute-new">
+          <p>Clique no botão abaixo para abrir o modal de distribuição interativa.</p>
+          <button id="btn-open-distribute-modal" class="primary large">🎯 Distribuir Itens</button>
+          <button id="btn-undo" type="button" class="ghost" title="Desfaz o último lote distribuído">Desfazer última</button>
+        </div>
+      </div>
+      <div class="row-controls">
+        <button type="button" id="btn-toggle-edit" class="secondary" title="Alterna entre edição manual e +/− nas células">Destravar edição</button>
+        <button type="button" id="btn-lock-order" class="secondary" title="Ordenar apenas visual, sem mexer na rotação">Travar ordem</button>
+        <span class="spacer"></span>
+        <button type="button" id="btn-mark-all" class="secondary">Marcar todos</button>
+        <button type="button" id="btn-unmark-all" class="secondary">Desmarcar todos</button>
+        <label class="inline">
+          <input type="checkbox" id="only-active" /> Só participantes
+        </label>
+        <label class="inline">
+          Focar em:
+          <select id="focus-select"><option value="">Todos</option></select>
+        </label>
+      </div>
+      <div class="table-wrap">
+        <table id="players-table">
+          <thead id="table-head"></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <details>
+        <summary>Regras de sugestão</summary>
+        <ol>
+          <li>Por item, prioriza quem tem menos daquele item.</li>
+          <li>Empate: segue a ordem da lista a partir do próximo da última entrega.</li>
+        </ol>
+      </details>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="section-historico" class="panel container hidden">
+      <h2>Histórico</h2>
+      <div class="table-wrap">
+        <table id="history-table">
+          <thead>
+            <tr><th>Data</th><th>Jogador</th><th>Item</th><th>Qtd</th><th>Ação</th></tr>
+          </thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <small>Funciona 100% local (dados no seu navegador). Importe/exporte para backup.</small>
+    </footer>
+
+    <div id="toast-container"></div>
+
+    <!-- Modal de Distribuição -->
+    <div id="distribute-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>🎯 Distribuição Interativa</h3>
+          <button class="modal-close" id="close-distribute-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="distribute-grid">
+            <!-- Coluna de Jogadores -->
+            <div class="players-column">
+              <div class="column-header">
+                <h4>👥 Jogadores</h4>
+                <div class="search-box">
+                  <input type="text" id="search-players" placeholder="🔍 Buscar jogadores..." />
+                </div>
+                <div class="control-buttons">
+                  <button id="select-all-players" class="btn-small secondary">Marcar Todos</button>
+                  <button id="deselect-all-players" class="btn-small secondary">Desmarcar Todos</button>
+                </div>
+              </div>
+              <div class="players-list" id="players-list">
+                <!-- Lista de jogadores será gerada dinamicamente -->
+              </div>
+            </div>
+
+            <!-- Coluna de Itens -->
+            <div class="items-column">
+              <div class="column-header">
+                <h4>📦 Itens</h4>
+                <div class="search-box">
+                  <input type="text" id="search-items" placeholder="🔍 Buscar itens..." />
+                </div>
+                <div class="control-buttons">
+                  <button id="select-all-items" class="btn-small secondary">Marcar Todos</button>
+                  <button id="deselect-all-items" class="btn-small secondary">Desmarcar Todos</button>
+                </div>
+              </div>
+              <div class="items-list" id="items-list">
+                <!-- Lista de itens será gerada dinamicamente -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Prévia de Distribuição -->
+          <div class="distribution-preview" id="distribution-preview">
+            <h4>📋 Prévia de Distribuição</h4>
+            <div class="preview-content" id="preview-content">
+              <p class="preview-empty">Selecione jogadores e itens para ver a prévia</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-preview-distribution" class="secondary">📋 Gerar Prévia</button>
+          <button id="btn-confirm-distribution" class="primary" disabled>✅ Confirmar Distribuição</button>
+          <button id="btn-cancel-distribution" class="ghost">❌ Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Resultados -->
+    <div id="results-modal" class="modal">
+      <div class="modal-content results-modal-content">
+        <div class="modal-header">
+          <h3>🏆 Resultados da Distribuição</h3>
+          <button class="modal-close" id="close-results-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="results-content" class="results-content">
+            <!-- Conteúdo será gerado dinamicamente -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-copy-results" class="secondary">📋 Copiar Texto</button>
+          <button id="btn-close-results" class="primary">✅ Fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Prévia dos Ganhadores -->
+    <div id="winners-preview-modal" class="modal">
+      <div class="modal-content results-modal-content">
+        <div class="modal-header">
+          <h3>🏆 Prévia dos Ganhadores</h3>
+          <button class="modal-close" id="close-winners-preview-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="winners-preview-content" class="results-content">
+            <!-- Conteúdo será gerado dinamicamente -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-copy-winners-text" class="secondary">📋 Copiar Texto</button>
+          <button id="btn-close-winners-preview" class="primary">✅ Fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="realtime-client.js"></script>
+    <script src="app.js?v=1735737600"></script>
+  </div> <!-- content -->
+  </body>
+  </html>
