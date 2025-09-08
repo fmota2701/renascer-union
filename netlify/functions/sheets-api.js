@@ -5,7 +5,7 @@ const { JWT } = require('google-auth-library');
 
 // Cache simples para reduzir chamadas à API
 const cache = new Map();
-const CACHE_TTL = 30000; // 30 segundos
+const CACHE_TTL = 300000; // 5 minutos para reduzir drasticamente as chamadas
 
 function getCacheKey(operation, params = '') {
   return `${operation}_${params}`;
@@ -27,7 +27,7 @@ function setCache(key, data) {
 }
 
 // Função para retry com delay exponencial
-async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 5000) {
+async function retryWithBackoff(fn, maxRetries = 2, baseDelay = 10000) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
@@ -313,6 +313,13 @@ async function getItems(doc) {
 
 async function getItemsData(doc) {
   try {
+    // Verificar cache primeiro
+    const cacheKey = getCacheKey('items');
+    const cachedData = getFromCache(cacheKey);
+    if (cachedData) {
+      return cachedData;
+    }
+
     const sheet = doc.sheetsByTitle['Configuracao'] || await doc.addSheet({ title: 'Configuracao' });
     const rows = await retryWithBackoff(async () => {
       return await sheet.getRows();
@@ -320,12 +327,15 @@ async function getItemsData(doc) {
     
     const items = rows.map(row => row.get('Item')).filter(item => item && item.trim());
     
-    // Se não houver itens, retornar lista padrão
-    if (items.length === 0) {
-      return ['Cristal do Caos', 'Pena do Condor', 'Chama do Condor', 'Despertar', 'Arcanjo'];
-    }
+    // Se não houver itens, usar lista padrão
+    const finalItems = items.length === 0 ? 
+      ['Cristal do Caos', 'Pena do Condor', 'Chama do Condor', 'Despertar', 'Arcanjo'] : 
+      items;
     
-    return items;
+    // Salvar no cache
+    setCache(cacheKey, finalItems);
+    
+    return finalItems;
   } catch (error) {
     console.error('Erro ao buscar itens:', error);
     return ['Cristal do Caos', 'Pena do Condor', 'Chama do Condor', 'Despertar', 'Arcanjo'];
@@ -550,6 +560,9 @@ async function writeToSheet(doc, data) {
 // Função para sincronização em tempo real
 async function handleSync(doc, data) {
   try {
+    // Limpar cache para forçar atualização na próxima leitura
+    cache.clear();
+    
     const { state, timestamp } = data;
     
     // Salvar estado completo
@@ -559,14 +572,25 @@ async function handleSync(doc, data) {
     });
     
     return {
-      success: true,
-      message: 'Sincronização realizada com sucesso',
-      timestamp: new Date().toISOString()
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        success: true,
+        message: 'Sincronização realizada com sucesso',
+        timestamp: new Date().toISOString()
+      })
     };
     
   } catch (error) {
     console.error('Erro na sincronização:', error);
-    throw new Error(`Erro na sincronização: ${error.message}`);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        error: 'Erro ao sincronizar com Google Sheets',
+        message: error.message
+      })
+    };
   }
 }
 
