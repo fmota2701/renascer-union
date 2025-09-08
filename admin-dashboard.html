@@ -559,62 +559,29 @@
         
         // Função para carregar conteúdo das seções
         function loadSectionContent(sectionName) {
-            const section = document.getElementById(sectionName + '-section');
+            // As seções já estão definidas no HTML, não precisamos criar dinamicamente
+            // Apenas inicializar o conteúdo específico se necessário
             
             switch(sectionName) {
                 case 'players':
-                    section.innerHTML += `
-                        <div class="section-header">
-                            <h2>👥 Gerenciamento de Jogadores</h2>
-                            <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
-                        </div>
-                        <div id="players-content"></div>
-                    `;
-                    // Carregar conteúdo de jogadores do sistema original
+                    // Inicializar gerenciamento de jogadores se necessário
                     break;
                     
                 case 'items':
-                    section.innerHTML += `
-                        <div class="section-header">
-                            <h2>📦 Gerenciamento de Itens</h2>
-                            <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
-                        </div>
-                        <div id="items-content"></div>
-                    `;
-                    // Carregar conteúdo de itens do sistema original
+                    // Inicializar gerenciamento de itens se necessário
                     break;
                     
                 case 'distribute':
-                    section.innerHTML += `
-                        <div class="section-header">
-                            <h2>🎯 Distribuição de Itens</h2>
-                            <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
-                        </div>
-                        <div id="distribute-content"></div>
-                    `;
-                    // Carregar conteúdo de distribuição do sistema original
+                    // Inicializar distribuição se necessário
                     break;
                     
                 case 'stats':
-                    section.innerHTML += `
-                        <div class="section-header">
-                            <h2>📊 Relatórios e Estatísticas</h2>
-                            <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
-                        </div>
-                        <div id="stats-content"></div>
-                    `;
-                    // Carregar conteúdo de estatísticas do sistema original
+                    // Inicializar estatísticas se necessário
                     break;
                     
                 case 'config':
-                    section.innerHTML += `
-                        <div class="section-header">
-                            <h2>⚙️ Configurações</h2>
-                            <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
-                        </div>
-                        <div id="config-content"></div>
-                    `;
-                    // Carregar conteúdo de configurações do sistema original
+                    // Redirecionar para a página de configurações
+                    window.location.href = 'config.html';
                     break;
             }
         }
