@@ -18,7 +18,9 @@
   "author": "Guild Management",
   "license": "MIT",
   "dependencies": {
-    "google-spreadsheet": "^4.1.2"
+    "google-spreadsheet": "^4.1.2",
+    "google-auth-library": "^9.0.0",
+    "googleapis": "^128.0.0"
   },
   "devDependencies": {
     "netlify-cli": "^17.0.0"
