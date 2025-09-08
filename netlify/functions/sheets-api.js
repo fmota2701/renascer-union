@@ -3,16 +3,43 @@
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { JWT } = require('google-auth-library');
 
+// Cache simples para reduzir chamadas à API
+const cache = new Map();
+const CACHE_TTL = 30000; // 30 segundos
+
+function getCacheKey(operation, params = '') {
+  return `${operation}_${params}`;
+}
+
+function getFromCache(key) {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  return null;
+}
+
+function setCache(key, data) {
+  cache.set(key, {
+    data,
+    timestamp: Date.now()
+  });
+}
+
 // Função para retry com delay exponencial
-async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
+async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 5000) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
     } catch (error) {
-      // Se é erro 429 (rate limit) e ainda temos tentativas
-      if (error.response?.status === 429 && attempt < maxRetries) {
+      // Se é erro 429 (rate limit) ou erro de quota e ainda temos tentativas
+      const isRateLimit = error.response?.status === 429 || 
+                         error.message?.includes('Quota exceeded') ||
+                         error.message?.includes('429');
+      
+      if (isRateLimit && attempt < maxRetries) {
         const delay = baseDelay * Math.pow(2, attempt - 1);
-        console.log(`Rate limit atingido. Tentativa ${attempt}/${maxRetries}. Aguardando ${delay}ms...`);
+        console.log(`Rate limit/quota atingido. Tentativa ${attempt}/${maxRetries}. Aguardando ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
@@ -232,6 +259,13 @@ async function getPlayers(doc) {
 
 async function getPlayersData(doc) {
   try {
+    // Verificar cache primeiro
+    const cacheKey = getCacheKey('players');
+    const cachedData = getFromCache(cacheKey);
+    if (cachedData) {
+      return cachedData;
+    }
+
     const sheet = doc.sheetsByTitle['Jogadores'] || await doc.addSheet({ title: 'Jogadores' });
     const rows = await retryWithBackoff(async () => {
       return await sheet.getRows();
@@ -256,6 +290,9 @@ async function getPlayersData(doc) {
       
       return player;
     });
+    
+    // Salvar no cache
+    setCache(cacheKey, players);
     
     return players;
   } catch (error) {
