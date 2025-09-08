@@ -1156,11 +1156,16 @@ async function main() {
       console.log('Dados carregados do Supabase');
       showToast('Dados carregados do Supabase!', 'success');
     } else {
-      console.log('Usando estado padrão - nenhum dado encontrado no Supabase');
+      // Se não há dados no Supabase, inicializar com itens padrão
+      console.log('Nenhum dado encontrado no Supabase - inicializando com itens padrão');
+      state.items = [...DEFAULT_ITEMS];
+      showToast('Inicializado com itens padrão', 'info');
     }
   } catch (error) {
     console.warn('Erro ao carregar dados do Supabase:', error);
-    showToast('Erro ao carregar dados. Usando dados padrão.', 'warning');
+    // Em caso de erro, também inicializar com itens padrão
+    state.items = [...DEFAULT_ITEMS];
+    showToast('Erro ao carregar dados. Usando itens padrão.', 'warning');
   }
 
   renderItemsSelect();
