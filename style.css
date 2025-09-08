@@ -64,6 +64,29 @@ label.import-label input{display:none}
 .list-manager .name{font-weight:500}
 .list-manager .actions button{margin-left:6px}
 
+/* Gerenciadores de jogadores e itens */
+#players-manager .row, #items-manager .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: #fff;
+}
+
+#players-manager .actions, #items-manager .actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+#players-manager .player-info, #items-manager .item-info {
+  flex: 1;
+  min-width: 0;
+}
+
 /* Cards-resumo */
 .summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
 .summary-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.05)}

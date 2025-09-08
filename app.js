@@ -499,31 +499,50 @@ function renderItemsSelect() {
 function renderItemsManager() {
   const wrap = document.getElementById('items-manager');
   if (!wrap) return;
-  const rows = state.items.map((name, idx) => {
+  
+  // Mapear emojis dos itens
+  const itemEmojis = {
+    'Cristal do Caos': '💎',
+    'Pena do Condor': '🪶',
+    'Chama do Condor': '🔥',
+    'Despertar': '⚡',
+    'Arcanjo': '⭐'
+  };
+  
+  wrap.innerHTML = state.items.map(name => {
+    const emoji = itemEmojis[name] || '🎁';
     return `
-      <div class="item-row">
-        <input class="item-name" data-old="${name}" value="${name}" />
-        <button class="secondary btn-save" data-old="${name}">Salvar nome</button>
-        <button class="danger btn-remove" data-name="${name}">Remover</button>
+      <div class="row" data-name="${name}" style="border-left: 4px solid #ff9800; margin-bottom: 10px; padding: 10px;">
+        <div class="item-info">
+          <span class="name" style="font-weight: bold; font-size: 16px;">${emoji} ${name}</span>
+          <div class="item-meta" style="font-size: 12px; color: #666; margin-top: 5px;">
+            <div>🎯 Item do sistema</div>
+          </div>
+        </div>
+        <span class="actions">
+          <button class="secondary btn-edit">✏️ Editar</button>
+          <button class="danger btn-delete">🗑️ Excluir</button>
+        </span>
       </div>
     `;
-  }).join("");
-  wrap.innerHTML = rows || '<em>Nenhum item cadastrado.</em>';
-
-  wrap.querySelectorAll('.btn-save').forEach(btn => {
+  }).join("") || '<em>Nenhum item cadastrado.</em>';
+  
+  wrap.querySelectorAll('.btn-edit').forEach(btn => {
     btn.addEventListener('click', () => {
-      const oldName = btn.dataset.old;
-      const input = wrap.querySelector(`input.item-name[data-old="${CSS.escape(oldName)}"]`);
-      if (!input) return;
-      const newName = input.value.trim();
+      const row = btn.closest('.row');
+      const oldName = row?.dataset.name;
+      const newName = prompt('Novo nome do item:', oldName || '');
       if (!newName || newName === oldName) return;
       renameItem(oldName, newName);
     });
   });
-  wrap.querySelectorAll('.btn-remove').forEach(btn => {
+  
+  wrap.querySelectorAll('.btn-delete').forEach(btn => {
     btn.addEventListener('click', () => {
-      const name = btn.dataset.name;
-      if (!confirm(`Remover o item "${name}"? Isso não apaga o histórico.`)) return;
+      const row = btn.closest('.row');
+      const name = row?.dataset.name;
+      if (!name) return;
+      if (!confirm(`Excluir item "${name}"? Isso não apaga o histórico.`)) return;
       removeItem(name);
     });
   });
