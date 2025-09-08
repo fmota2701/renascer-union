@@ -3,7 +3,25 @@
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { JWT } = require('google-auth-library');
 
-// Configuração de CORS
+// Função para retry com delay exponencial
+async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      // Se é erro 429 (rate limit) e ainda temos tentativas
+      if (error.response?.status === 429 && attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        console.log(`Rate limit atingido. Tentativa ${attempt}/${maxRetries}. Aguardando ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
+// Headers CORS
 const headers = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
@@ -60,9 +78,11 @@ exports.handler = async (event, context) => {
       scopes: ['https://www.googleapis.com/auth/spreadsheets']
     });
 
-    // Conectar à planilha
+    // Conectar à planilha com retry
     const doc = new GoogleSpreadsheet(GOOGLE_SPREADSHEET_ID, serviceAccountAuth);
-    await doc.loadInfo();
+    await retryWithBackoff(async () => {
+      await doc.loadInfo();
+    });
 
     const { httpMethod, path, body } = event;
     const pathParts = path.split('/').filter(p => p);
@@ -213,7 +233,9 @@ async function getPlayers(doc) {
 async function getPlayersData(doc) {
   try {
     const sheet = doc.sheetsByTitle['Jogadores'] || await doc.addSheet({ title: 'Jogadores' });
-    const rows = await sheet.getRows();
+    const rows = await retryWithBackoff(async () => {
+      return await sheet.getRows();
+    });
     
     const players = rows.map(row => {
       const player = {
@@ -255,7 +277,9 @@ async function getItems(doc) {
 async function getItemsData(doc) {
   try {
     const sheet = doc.sheetsByTitle['Configuracao'] || await doc.addSheet({ title: 'Configuracao' });
-    const rows = await sheet.getRows();
+    const rows = await retryWithBackoff(async () => {
+      return await sheet.getRows();
+    });
     
     const items = rows.map(row => row.get('Item')).filter(item => item && item.trim());
     
@@ -284,7 +308,9 @@ async function getHistory(doc) {
 async function getHistoryData(doc) {
   try {
     const sheet = doc.sheetsByTitle['Historico'] || await doc.addSheet({ title: 'Historico' });
-    const rows = await sheet.getRows();
+    const rows = await retryWithBackoff(async () => {
+      return await sheet.getRows();
+    });
     
     const history = rows.map(row => ({
       date: row.get('Data') || '',
@@ -307,7 +333,9 @@ async function addPlayer(doc, playerData) {
     const sheet = doc.sheetsByTitle['Jogadores'] || await doc.addSheet({ title: 'Jogadores' });
     
     // Verificar se o jogador já existe
-    const rows = await sheet.getRows();
+    const rows = await retryWithBackoff(async () => {
+      return await sheet.getRows();
+    });
     const existingPlayer = rows.find(row => row.get('Nome') === playerData.name);
     
     if (existingPlayer) {
@@ -331,7 +359,9 @@ async function addPlayer(doc, playerData) {
       });
     }
     
-    await sheet.addRow(newRow);
+    await retryWithBackoff(async () => {
+      await sheet.addRow(newRow);
+    });
     
     return {
       statusCode: 201,
@@ -445,8 +475,10 @@ async function writeToSheet(doc, data) {
       stateSheet = await doc.addSheet({ title: 'Estado' });
     }
 
-    // Limpar conteúdo existente
-    await stateSheet.clear();
+    // Limpar conteúdo existente e escrever dados com retry
+    await retryWithBackoff(async () => {
+      await stateSheet.clear();
+    });
 
     // Preparar dados para escrita
     const rows = [];
@@ -461,8 +493,10 @@ async function writeToSheet(doc, data) {
       new Date().toISOString()
     ]);
 
-    // Escrever dados
-    await stateSheet.addRows(rows);
+    // Escrever dados com retry
+    await retryWithBackoff(async () => {
+      await stateSheet.addRows(rows);
+    });
 
     return {
       success: true,
