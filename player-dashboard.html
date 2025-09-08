@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Jogador - Renascer Union</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .player-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .player-details h2 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .player-details p {
+            margin: 8px 0 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .dashboard-nav {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-button {
+            background: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #333;
+        }
+
+        .nav-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-button:hover:not(.active) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .content-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .history-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .history-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .history-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .item-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .date-badge {
+            background: #e9ecef;
+            color: #666;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .player-header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .dashboard-nav {
+                justify-content: center;
+            }
+            
+            .nav-button {
+                flex: 1;
+                min-width: 120px;
+                justify-content: center;
+            }
+            
+            .history-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="player-header">
+            <div class="player-info">
+                <div class="player-avatar">🎮</div>
+                <div class="player-details">
+                    <h2 id="player-name">Carregando...</h2>
+                    <p>Dashboard do Jogador</p>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                🚪 Sair
+            </button>
+        </div>
+        
+        <div class="dashboard-nav">
+            <button class="nav-button active" onclick="showSection('overview')">
+                📊 Visão Geral
+            </button>
+            <button class="nav-button" onclick="showSection('history-general')">
+                📋 Histórico Geral
+            </button>
+            <button class="nav-button" onclick="showSection('history-personal')">
+                👤 Meu Histórico
+            </button>
+        </div>
+
+        <!-- Seção Visão Geral -->
+        <div id="overview-section" class="content-section active">
+            <h2 class="section-title">
+                📊 Visão Geral
+            </h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="my-items-count">0</div>
+                    <div class="stat-label">Meus Itens</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-players">0</div>
+                    <div class="stat-label">Total de Jogadores</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-items">0</div>
+                    <div class="stat-label">Total de Itens</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="last-item-date">-</div>
+                    <div class="stat-label">Último Item</div>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>🎯 Meus Últimos Itens</h3>
+                <button class="refresh-btn" onclick="loadOverviewData()">
+                    🔄 Atualizar
+                </button>
+            </div>
+            
+            <div id="recent-items">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📦</div>
+                    <p>Carregando seus itens...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção Histórico Geral -->
+        <div id="history-general-section" class="content-section">
+            <h2 class="section-title">
+                📋 Histórico Geral de Itens
+            </h2>
+            
+            <div class="history-filters">
+                <div class="filter-group">
+                    <label>Jogador</label>
+                    <select id="filter-player-general">
+                        <option value="">Todos os jogadores</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Item</label>
+                    <input type="text" id="filter-item-general" placeholder="Nome do item">
+                </div>
+                <div class="filter-group">
+                    <label>Data</label>
+                    <input type="date" id="filter-date-general">
+                </div>
+                <button class="refresh-btn" onclick="loadGeneralHistory()">
+                    🔍 Filtrar
+                </button>
+            </div>
+            
+            <div id="general-history-content">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <p>Carregando histórico geral...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção Histórico Pessoal -->
+        <div id="history-personal-section" class="content-section">
+            <h2 class="section-title">
+                👤 Meu Histórico Pessoal
+            </h2>
+            
+            <div class="history-filters">
+                <div class="filter-group">
+                    <label>Item</label>
+                    <input type="text" id="filter-item-personal" placeholder="Nome do item">
+                </div>
+                <div class="filter-group">
+                    <label>Data</label>
+                    <input type="date" id="filter-date-personal">
+                </div>
+                <button class="refresh-btn" onclick="loadPersonalHistory()">
+                    🔍 Filtrar
+                </button>
+            </div>
+            
+            <div id="personal-history-content">
+                <div class="empty-state">
+                    <div class="empty-state-icon">👤</div>
+                    <p>Carregando seu histórico...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Verificar autenticação
+        if (sessionStorage.getItem('userType') !== 'player' || sessionStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+
+        // Obter nick do jogador
+        const playerNick = sessionStorage.getItem('playerNick');
+        document.getElementById('player-name').textContent = playerNick || 'Jogador';
+
+        // Função para logout
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        // Função para mostrar seção
+        function showSection(sectionName) {
+            // Remover classe active de todos os botões
+            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+            
+            // Remover classe active de todas as seções
+            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+            
+            // Adicionar classe active ao botão clicado
+            event.target.classList.add('active');
+            
+            // Mostrar seção correspondente
+            document.getElementById(sectionName + '-section').classList.add('active');
+            
+            // Carregar dados da seção
+            switch(sectionName) {
+                case 'overview':
+                    loadOverviewData();
+                    break;
+                case 'history-general':
+                    loadGeneralHistory();
+                    break;
+                case 'history-personal':
+                    loadPersonalHistory();
+                    break;
+            }
+        }
+
+        // Função para carregar dados da visão geral
+        async function loadOverviewData() {
+            try {
+                // Carregar histórico pessoal para contar itens
+                const historyResponse = await fetch('/.netlify/functions/supabase-api/history');
+                const historyData = await historyResponse.json();
+                
+                const myItems = historyData.history?.filter(entry => 
+                    entry.player?.toLowerCase() === playerNick.toLowerCase()
+                ) || [];
+                
+                document.getElementById('my-items-count').textContent = myItems.length;
+                
+                // Carregar total de jogadores
+                const playersResponse = await fetch('/.netlify/functions/supabase-api/players');
+                const playersData = await playersResponse.json();
+                document.getElementById('total-players').textContent = playersData.players?.length || 0;
+                
+                // Carregar total de itens
+                const itemsResponse = await fetch('/.netlify/functions/supabase-api/items');
+                const itemsData = await itemsResponse.json();
+                document.getElementById('total-items').textContent = itemsData.items?.length || 0;
+                
+                // Último item
+                if (myItems.length > 0) {
+                    const lastItem = myItems[myItems.length - 1];
+                    const lastDate = new Date(lastItem.date).toLocaleDateString('pt-BR');
+                    document.getElementById('last-item-date').textContent = lastDate;
+                } else {
+                    document.getElementById('last-item-date').textContent = 'Nenhum';
+                }
+                
+                // Mostrar últimos itens
+                const recentItemsContainer = document.getElementById('recent-items');
+                if (myItems.length > 0) {
+                    const recentItems = myItems.slice(-5).reverse();
+                    recentItemsContainer.innerHTML = `
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${recentItems.map(item => `
+                                    <tr>
+                                        <td><span class="item-badge">${item.item}</span></td>
+                                        <td><span class="date-badge">${new Date(item.date).toLocaleDateString('pt-BR')}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    recentItemsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📦</div>
+                            <p>Você ainda não recebeu nenhum item</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Erro ao carregar dados da visão geral:', error);
+            }
+        }
+
+        // Função para carregar histórico geral
+        async function loadGeneralHistory() {
+            try {
+                const response = await fetch('/.netlify/functions/supabase-api/history');
+                const data = await response.json();
+                
+                let history = data.history || [];
+                
+                // Aplicar filtros
+                const playerFilter = document.getElementById('filter-player-general').value;
+                const itemFilter = document.getElementById('filter-item-general').value.toLowerCase();
+                const dateFilter = document.getElementById('filter-date-general').value;
+                
+                if (playerFilter) {
+                    history = history.filter(entry => entry.player === playerFilter);
+                }
+                
+                if (itemFilter) {
+                    history = history.filter(entry => 
+                        entry.item.toLowerCase().includes(itemFilter)
+                    );
+                }
+                
+                if (dateFilter) {
+                    history = history.filter(entry => {
+                        const entryDate = new Date(entry.date).toISOString().split('T')[0];
+                        return entryDate === dateFilter;
+                    });
+                }
+                
+                // Carregar lista de jogadores para o filtro
+                const playersResponse = await fetch('/.netlify/functions/supabase-api/players');
+                const playersData = await playersResponse.json();
+                const playerSelect = document.getElementById('filter-player-general');
+                playerSelect.innerHTML = '<option value="">Todos os jogadores</option>';
+                playersData.players?.forEach(player => {
+                    playerSelect.innerHTML += `<option value="${player.name}">${player.name}</option>`;
+                });
+                
+                // Mostrar histórico
+                const container = document.getElementById('general-history-content');
+                if (history.length > 0) {
+                    container.innerHTML = `
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Jogador</th>
+                                    <th>Item</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${history.map(entry => `
+                                    <tr>
+                                        <td><strong>${entry.player}</strong></td>
+                                        <td><span class="item-badge">${entry.item}</span></td>
+                                        <td><span class="date-badge">${new Date(entry.date).toLocaleDateString('pt-BR')}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <p>Nenhum registro encontrado</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Erro ao carregar histórico geral:', error);
+            }
+        }
+
+        // Função para carregar histórico pessoal
+        async function loadPersonalHistory() {
+            try {
+                const response = await fetch('/.netlify/functions/supabase-api/history');
+                const data = await response.json();
+                
+                let history = data.history?.filter(entry => 
+                    entry.player?.toLowerCase() === playerNick.toLowerCase()
+                ) || [];
+                
+                // Aplicar filtros
+                const itemFilter = document.getElementById('filter-item-personal').value.toLowerCase();
+                const dateFilter = document.getElementById('filter-date-personal').value;
+                
+                if (itemFilter) {
+                    history = history.filter(entry => 
+                        entry.item.toLowerCase().includes(itemFilter)
+                    );
+                }
+                
+                if (dateFilter) {
+                    history = history.filter(entry => {
+                        const entryDate = new Date(entry.date).toISOString().split('T')[0];
+                        return entryDate === dateFilter;
+                    });
+                }
+                
+                // Mostrar histórico
+                const container = document.getElementById('personal-history-content');
+                if (history.length > 0) {
+                    container.innerHTML = `
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${history.map(entry => `
+                                    <tr>
+                                        <td><span class="item-badge">${entry.item}</span></td>
+                                        <td><span class="date-badge">${new Date(entry.date).toLocaleDateString('pt-BR')}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">👤</div>
+                            <p>Você ainda não possui histórico de itens</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Erro ao carregar histórico pessoal:', error);
+            }
+        }
+
+        // Carregar dados iniciais
+        loadOverviewData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Distribuição de Itens</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .admin-avatar {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .admin-details h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .admin-details p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .action-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .action-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .action-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .action-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .action-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .action-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .admin-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .dashboard-stats {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="admin-header">
+            <div class="admin-info">
+                <div class="admin-avatar">👑</div>
+                <div class="admin-details">
+                    <h2>Painel do Administrador</h2>
+                    <p>Acesso completo ao sistema</p>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                🚪 Sair
+            </button>
+        </div>
+        
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number" id="total-players">0</div>
+                <div class="stat-label">Jogadores</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-number" id="total-items">0</div>
+                <div class="stat-label">Itens</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-number" id="total-history">0</div>
+                <div class="stat-label">Histórico</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔄</div>
+                <div class="stat-number" id="last-sync">-</div>
+                <div class="stat-label">Última Sync</div>
+            </div>
+        </div>
+        
+        <div class="quick-actions">
+            <div class="action-card">
+                <div class="action-header">
+                    <div class="action-icon">👥</div>
+                    <div class="action-title">Gerenciar Jogadores</div>
+                </div>
+                <div class="action-description">
+                    Adicionar, editar ou remover jogadores do sistema
+                </div>
+                <button class="action-button" onclick="showSection('players')">
+                    Abrir Gerenciamento
+                </button>
+            </div>
+            
+            <div class="action-card">
+                <div class="action-header">
+                    <div class="action-icon">📦</div>
+                    <div class="action-title">Gerenciar Itens</div>
+                </div>
+                <div class="action-description">
+                    Cadastrar novos itens e gerenciar o inventário
+                </div>
+                <button class="action-button" onclick="showSection('items')">
+                    Abrir Inventário
+                </button>
+            </div>
+            
+            <div class="action-card">
+                <div class="action-header">
+                    <div class="action-icon">🎯</div>
+                    <div class="action-title">Distribuir Itens</div>
+                </div>
+                <div class="action-description">
+                    Distribuir itens para jogadores e gerenciar drops
+                </div>
+                <button class="action-button" onclick="showSection('distribute')">
+                    Abrir Distribuição
+                </button>
+            </div>
+            
+            <div class="action-card">
+                <div class="action-header">
+                    <div class="action-icon">📊</div>
+                    <div class="action-title">Relatórios</div>
+                </div>
+                <div class="action-description">
+                    Visualizar estatísticas e histórico completo
+                </div>
+                <button class="action-button" onclick="showSection('stats')">
+                    Ver Relatórios
+                </button>
+            </div>
+            
+            <div class="action-card">
+                <div class="action-header">
+                    <div class="action-icon">⚙️</div>
+                    <div class="action-title">Configurações</div>
+                </div>
+                <div class="action-description">
+                    Configurar sistema e preferências avançadas
+                </div>
+                <button class="action-button" onclick="showSection('config')">
+                    Abrir Configurações
+                </button>
+            </div>
+            
+            <div class="action-card">
+                <div class="action-header">
+                    <div class="action-icon">🔄</div>
+                    <div class="action-title">Sincronização</div>
+                </div>
+                <div class="action-description">
+                    Sincronizar dados e fazer backup do sistema
+                </div>
+                <button class="action-button" onclick="syncData()">
+                    Sincronizar Agora
+                </button>
+            </div>
+        </div>
+        
+        <div id="dash-stats" class="summary-cards"></div>
+        <div class="dashboard-actions">
+            <button id="btn-copy-winners" class="primary">📋 Copiar Ganhadores</button>
+        </div>
+        <h3>Ranking de Jogadores por Item</h3>
+        <div id="ranking-container" class="ranking-container"></div>
+        
+        <!-- Seções do sistema original -->
+        <div id="players-section" class="section" style="display: none;">
+            <div class="section-header">
+                <h2>👥 Gerenciamento de Jogadores</h2>
+                <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
+            </div>
+            <div class="card">
+                <h3>Jogadores</h3>
+                <form id="add-player-form" class="row-controls">
+                    <input id="player-name" placeholder="Nome do jogador" required />
+                    <button type="submit" class="primary">Adicionar</button>
+                </form>
+                <div id="players-manager" class="list-manager"></div>
+            </div>
+        </div>
+        
+        <div id="items-section" class="section" style="display: none;">
+            <div class="section-header">
+                <h2>📦 Gerenciamento de Itens</h2>
+                <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
+            </div>
+            <div class="card">
+                <h3>Itens</h3>
+                <form id="add-item-form" class="row-controls">
+                    <input id="item-name" placeholder="Novo item" />
+                    <button id="btn-add-item" type="submit" class="primary">Adicionar item</button>
+                </form>
+                <div id="items-manager" class="items-manager"></div>
+            </div>
+        </div>
+        
+        <div id="distribute-section" class="section" style="display: none;">
+            <div class="section-header">
+                <h2>🎯 Distribuição de Itens</h2>
+                <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
+            </div>
+            <div class="card">
+                <div class="distribute-new">
+                    <p>Clique no botão abaixo para abrir o modal de distribuição interativa.</p>
+                    <button id="btn-open-distribute-modal" class="primary large">🎯 Distribuir Itens</button>
+                    <button id="btn-undo" type="button" class="ghost" title="Desfaz o último lote distribuído">Desfazer última</button>
+                </div>
+            </div>
+            <div class="row-controls">
+                <button type="button" id="btn-toggle-edit" class="secondary" title="Alterna entre edição manual e +/− nas células">Destravar edição</button>
+                <button type="button" id="btn-lock-order" class="secondary" title="Ordenar apenas visual, sem mexer na rotação">Travar ordem</button>
+                <span class="spacer"></span>
+                <button type="button" id="btn-mark-all" class="secondary">Marcar todos</button>
+                <button type="button" id="btn-unmark-all" class="secondary">Desmarcar todos</button>
+                <label class="inline">
+                    <input type="checkbox" id="only-active" /> Só participantes
+                </label>
+                <label class="inline">
+                    Focar em:
+                    <select id="focus-select"><option value="">Todos</option></select>
+                </label>
+            </div>
+            <div class="table-wrap">
+                <table id="players-table">
+                    <thead id="table-head"></thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+            <details>
+                <summary>Regras de sugestão</summary>
+                <ol>
+                    <li>Por item, prioriza quem tem menos daquele item.</li>
+                    <li>Empate: segue a ordem da lista a partir do próximo da última entrega.</li>
+                </ol>
+            </details>
+        </div>
+        
+        <div id="stats-section" class="section" style="display: none;">
+            <div class="section-header">
+                <h2>📊 Relatórios e Estatísticas</h2>
+                <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
+            </div>
+            <div class="card">
+                <h3>Histórico</h3>
+                <div class="table-wrap">
+                    <table id="history-table">
+                        <thead>
+                            <tr><th>Data</th><th>Jogador</th><th>Item</th><th>Qtd</th><th>Ação</th></tr>
+                        </thead>
+                        <tbody id="history-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div id="config-section" class="section" style="display: none;">
+            <div class="section-header">
+                <h2>⚙️ Configurações</h2>
+                <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
+            </div>
+            <!-- Conteúdo será carregado do sistema original -->
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <!-- Modal de Distribuição -->
+    <div id="distribute-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🎯 Distribuição Interativa</h3>
+                <button class="modal-close" id="close-distribute-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="distribute-grid">
+                    <!-- Coluna de Jogadores -->
+                    <div class="players-column">
+                        <div class="column-header">
+                            <h4>👥 Jogadores</h4>
+                            <div class="search-box">
+                                <input type="text" id="search-players" placeholder="🔍 Buscar jogadores..." />
+                            </div>
+                            <div class="control-buttons">
+                                <button id="select-all-players" class="btn-small secondary">Marcar Todos</button>
+                                <button id="deselect-all-players" class="btn-small secondary">Desmarcar Todos</button>
+                            </div>
+                        </div>
+                        <div class="players-list" id="players-list">
+                            <!-- Lista de jogadores será gerada dinamicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Coluna de Itens -->
+                    <div class="items-column">
+                        <div class="column-header">
+                            <h4>📦 Itens</h4>
+                            <div class="search-box">
+                                <input type="text" id="search-items" placeholder="🔍 Buscar itens..." />
+                            </div>
+                            <div class="control-buttons">
+                                <button id="select-all-items" class="btn-small secondary">Marcar Todos</button>
+                                <button id="deselect-all-items" class="btn-small secondary">Desmarcar Todos</button>
+                            </div>
+                        </div>
+                        <div class="items-list" id="items-list">
+                            <!-- Lista de itens será gerada dinamicamente -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prévia de Distribuição -->
+                <div class="distribution-preview" id="distribution-preview">
+                    <h4>📋 Prévia de Distribuição</h4>
+                    <div class="preview-content" id="preview-content">
+                        <p class="preview-empty">Selecione jogadores e itens para ver a prévia</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-preview-distribution" class="secondary">📋 Gerar Prévia</button>
+                <button id="btn-confirm-distribution" class="primary" disabled>✅ Confirmar Distribuição</button>
+                <button id="btn-cancel-distribution" class="ghost">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Resultados -->
+    <div id="results-modal" class="modal">
+        <div class="modal-content results-modal-content">
+            <div class="modal-header">
+                <h3>🏆 Resultados da Distribuição</h3>
+                <button class="modal-close" id="close-results-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="results-content" class="results-content">
+                    <!-- Conteúdo será gerado dinamicamente -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-copy-results" class="secondary">📋 Copiar Texto</button>
+                <button id="btn-close-results" class="primary">✅ Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Prévia dos Ganhadores -->
+    <div id="winners-preview-modal" class="modal">
+        <div class="modal-content results-modal-content">
+            <div class="modal-header">
+                <h3>🏆 Prévia dos Ganhadores</h3>
+                <button class="modal-close" id="close-winners-preview-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="winners-preview-content" class="results-content">
+                    <!-- Conteúdo será gerado dinamicamente -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-copy-winners-text" class="secondary">📋 Copiar Texto</button>
+                <button id="btn-close-winners-preview" class="primary">✅ Fechar</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="src/config/config.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Verificar autenticação
+        if (!sessionStorage.getItem('adminAuth')) {
+            window.location.href = 'login.html';
+        }
+        
+        // Função para logout
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+        
+        // Função para mostrar seção específica
+        function showSection(sectionName) {
+            // Esconder dashboard
+            document.querySelector('.dashboard-stats').style.display = 'none';
+            document.querySelector('.quick-actions').style.display = 'none';
+            
+            // Esconder todas as seções
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Mostrar seção específica
+            const section = document.getElementById(sectionName + '-section');
+            if (section) {
+                section.style.display = 'block';
+                loadSectionContent(sectionName);
+            }
+        }
+        
+        // Função para voltar ao dashboard
+        function showDashboard() {
+            // Mostrar dashboard
+            document.querySelector('.dashboard-stats').style.display = 'grid';
+            document.querySelector('.quick-actions').style.display = 'grid';
+            
+            // Esconder todas as seções
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+        }
+        
+        // Função para carregar conteúdo das seções
+        function loadSectionContent(sectionName) {
+            const section = document.getElementById(sectionName + '-section');
+            
+            switch(sectionName) {
+                case 'players':
+                    section.innerHTML += `
+                        <div class="section-header">
+                            <h2>👥 Gerenciamento de Jogadores</h2>
+                            <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
+                        </div>
+                        <div id="players-content"></div>
+                    `;
+                    // Carregar conteúdo de jogadores do sistema original
+                    break;
+                    
+                case 'items':
+                    section.innerHTML += `
+                        <div class="section-header">
+                            <h2>📦 Gerenciamento de Itens</h2>
+                            <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
+                        </div>
+                        <div id="items-content"></div>
+                    `;
+                    // Carregar conteúdo de itens do sistema original
+                    break;
+                    
+                case 'distribute':
+                    section.innerHTML += `
+                        <div class="section-header">
+                            <h2>🎯 Distribuição de Itens</h2>
+                            <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
+                        </div>
+                        <div id="distribute-content"></div>
+                    `;
+                    // Carregar conteúdo de distribuição do sistema original
+                    break;
+                    
+                case 'stats':
+                    section.innerHTML += `
+                        <div class="section-header">
+                            <h2>📊 Relatórios e Estatísticas</h2>
+                            <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
+                        </div>
+                        <div id="stats-content"></div>
+                    `;
+                    // Carregar conteúdo de estatísticas do sistema original
+                    break;
+                    
+                case 'config':
+                    section.innerHTML += `
+                        <div class="section-header">
+                            <h2>⚙️ Configurações</h2>
+                            <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
+                        </div>
+                        <div id="config-content"></div>
+                    `;
+                    // Carregar conteúdo de configurações do sistema original
+                    break;
+            }
+        }
+        
+        // Função para sincronizar dados
+        async function syncData() {
+            try {
+                const response = await fetch('/.netlify/functions/supabase-api/sync', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        state: window.state || {},
+                        timestamp: new Date().toISOString()
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('✅ Sincronização realizada com sucesso!');
+                    loadDashboardStats();
+                } else {
+                    alert('❌ Erro na sincronização. Tente novamente.');
+                }
+            } catch (error) {
+                console.error('Erro na sincronização:', error);
+                alert('❌ Erro na sincronização. Verifique a conexão.');
+            }
+        }
+        
+        // Função para carregar estatísticas do dashboard
+        async function loadDashboardStats() {
+            try {
+                // Carregar jogadores
+                const playersResponse = await fetch('/.netlify/functions/supabase-api/players');
+                const playersData = await playersResponse.json();
+                document.getElementById('total-players').textContent = playersData.players?.length || 0;
+                
+                // Carregar itens
+                const itemsResponse = await fetch('/.netlify/functions/supabase-api/items');
+                const itemsData = await itemsResponse.json();
+                document.getElementById('total-items').textContent = itemsData.items?.length || 0;
+                
+                // Carregar histórico
+                const historyResponse = await fetch('/.netlify/functions/supabase-api/history');
+                const historyData = await historyResponse.json();
+                document.getElementById('total-history').textContent = historyData.history?.length || 0;
+                
+                // Última sincronização
+                const now = new Date();
+                document.getElementById('last-sync').textContent = now.toLocaleTimeString('pt-BR', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+        
+        // Carregar estatísticas ao inicializar
+        loadDashboardStats();
+        
+        // Atualizar estatísticas a cada 30 segundos
+        setInterval(loadDashboardStats, 30000);
+    </script>
+</body>
+</html>
