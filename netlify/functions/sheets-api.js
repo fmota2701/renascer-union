@@ -502,37 +502,24 @@ async function handleSync(doc, data) {
 // Função para verificar atualizações
 async function handleCheckUpdates(doc) {
   try {
-    // Obter aba "Estado"
-    let stateSheet;
-    try {
-      stateSheet = doc.sheetsByTitle['Estado'];
-    } catch (error) {
-      return {
-        hasUpdates: false,
-        message: 'Nenhum estado encontrado'
-      };
-    }
-
-    // Carregar dados da planilha
-    const rows = await stateSheet.getRows();
+    // Carregar dados das abas principais
+    const playersData = await getPlayersData(doc);
+    const itemsData = await getItemsData(doc);
+    const historyData = await getHistoryData(doc);
     
-    if (rows.length === 0) {
-      return {
-        hasUpdates: false,
-        message: 'Nenhum dado encontrado'
-      };
-    }
-
-    // Obter último estado salvo
-    const lastRow = rows[rows.length - 1];
-    const stateData = JSON.parse(lastRow.get('Dados') || '{}');
-    const lastUpdate = lastRow.get('Timestamp');
+    // Construir estado atual
+    const stateData = {
+      players: playersData,
+      items: itemsData,
+      history: historyData,
+      lastUpdate: new Date().toISOString()
+    };
     
     // Verificar se há atualizações (sempre retorna true para forçar sincronização)
     return {
       hasUpdates: true,
       state: stateData,
-      lastUpdate: lastUpdate,
+      lastUpdate: stateData.lastUpdate,
       message: 'Dados atualizados disponíveis'
     };
     
