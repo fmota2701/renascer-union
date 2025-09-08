@@ -7,7 +7,6 @@
   from = "/*"
   to = "/index.html"
   status = 200
-  conditions = {Role = ["admin", "editor"], Country = ["US"]}
 
 # Configurações de headers para segurança
 [[headers]]
@@ -35,10 +34,8 @@
 
 # Configurações de desenvolvimento
 [dev]
-  command = "npm run dev"
-  port = 3000
-  publish = "dist"
-  autoLaunch = true
+  port = 8888
+  autoLaunch = false
 
 # Configurações de contexto
 [context.production]
