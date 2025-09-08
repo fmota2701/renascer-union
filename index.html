@@ -1,241 +1,353 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Distribuição de Itens da Guilda</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <header>
-      <div class="container header-inner">
-        <h1>Distribuição de Itens da Guilda</h1>
-        <div class="actions">
-          <label class="theme-switch" title="Tema claro/escuro">
-            <input type="checkbox" id="theme-switch" />
-            <span class="slider"></span>
-          </label>
-          <button id="btn-export-json" class="ghost">Exportar JSON</button>
-          <button id="btn-export-csv" class="ghost">Exportar CSV</button>
-          <label class="import-label">
-            Importar JSON/CSV
-            <input type="file" id="file-input" accept=".json,.csv" />
-          </label>
-          <button id="btn-reset" class="danger" title="Limpa os dados salvos">Resetar</button>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Renascer Union</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .login-header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .login-content {
+            padding: 40px 30px;
+        }
+
+        .login-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            padding: 5px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c33;
+            display: none;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3c3;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 10px;
+            }
+            
+            .login-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🎮 Renascer Union</h1>
+            <p>Sistema de Gerenciamento de Itens</p>
         </div>
-      </div>
-    </header>
-    <div class="container subheader">
-      <div class="breadcrumbs" id="breadcrumbs">Home / Distribuição</div>
-      <div class="search">
-        <input id="search-input" placeholder="Buscar jogador..." />
-      </div>
-    </div>
-    <aside id="sidebar">
-      <div class="brand">Guilda</div>
-      <nav>
-        <button class="side-link active" data-target="#section-dashboard"><span class="icon">🏠</span><span>Dashboard</span></button>
-        <button class="side-link" data-target="#section-distribuir"><span class="icon">🎯</span><span>Distribuição</span></button>
-        <button class="side-link" data-target="#section-cadastros"><span class="icon">🧾</span><span>Cadastros</span></button>
-        <button class="side-link" data-target="#section-historico"><span class="icon">📜</span><span>Histórico</span></button>
-        <button class="side-link" onclick="goToConfig()"><span class="icon">⚙️</span><span>Configurações</span></button>
-      </nav>
-    </aside>
-    <div id="content">
-    
-
-    <section id="section-cadastros" class="panel container hidden">
-      <h2>Cadastros</h2>
-      <div class="grid-two">
-        <div class="card">
-          <h3>Jogadores</h3>
-          <form id="add-player-form" class="row-controls">
-            <input id="player-name" placeholder="Nome do jogador" required />
-            <button type="submit" class="primary">Adicionar</button>
-          </form>
-          <div id="players-manager" class="list-manager"></div>
-        </div>
-        <div class="card">
-          <h3>Itens</h3>
-          <form id="add-item-form" class="row-controls">
-            <input id="item-name" placeholder="Novo item" />
-            <button id="btn-add-item" type="submit" class="primary">Adicionar item</button>
-          </form>
-          <div id="items-manager" class="items-manager"></div>
-        </div>
-      </div>
-    </section>
-
-    <section id="section-dashboard" class="panel container">
-      <h2>Dashboard</h2>
-      <div id="dash-stats" class="summary-cards"></div>
-      <div class="dashboard-actions">
-        <button id="btn-copy-winners" class="primary">📋 Copiar Ganhadores</button>
-      </div>
-      <h3>Ranking de Jogadores por Item</h3>
-      <div id="ranking-container" class="ranking-container"></div>
-    </section>
-
-    <section id="section-distribuir" class="panel container hidden">
-      <h2>Distribuir</h2>
-      <div class="card">
-        <div class="distribute-new">
-          <p>Clique no botão abaixo para abrir o modal de distribuição interativa.</p>
-          <button id="btn-open-distribute-modal" class="primary large">🎯 Distribuir Itens</button>
-          <button id="btn-undo" type="button" class="ghost" title="Desfaz o último lote distribuído">Desfazer última</button>
-        </div>
-      </div>
-      <div class="row-controls">
-        <button type="button" id="btn-toggle-edit" class="secondary" title="Alterna entre edição manual e +/− nas células">Destravar edição</button>
-        <button type="button" id="btn-lock-order" class="secondary" title="Ordenar apenas visual, sem mexer na rotação">Travar ordem</button>
-        <span class="spacer"></span>
-        <button type="button" id="btn-mark-all" class="secondary">Marcar todos</button>
-        <button type="button" id="btn-unmark-all" class="secondary">Desmarcar todos</button>
-        <label class="inline">
-          <input type="checkbox" id="only-active" /> Só participantes
-        </label>
-        <label class="inline">
-          Focar em:
-          <select id="focus-select"><option value="">Todos</option></select>
-        </label>
-      </div>
-      <div class="table-wrap">
-        <table id="players-table">
-          <thead id="table-head"></thead>
-          <tbody id="table-body"></tbody>
-        </table>
-      </div>
-      <details>
-        <summary>Regras de sugestão</summary>
-        <ol>
-          <li>Por item, prioriza quem tem menos daquele item.</li>
-          <li>Empate: segue a ordem da lista a partir do próximo da última entrega.</li>
-        </ol>
-      </details>
-        </div>
-
-      </div>
-    </section>
-
-    <section id="section-historico" class="panel container hidden">
-      <h2>Histórico</h2>
-      <div class="table-wrap">
-        <table id="history-table">
-          <thead>
-            <tr><th>Data</th><th>Jogador</th><th>Item</th><th>Qtd</th><th>Ação</th></tr>
-          </thead>
-          <tbody id="history-body"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <footer>
-      <small>Funciona 100% local (dados no seu navegador). Importe/exporte para backup.</small>
-    </footer>
-
-    <div id="toast-container"></div>
-
-    <!-- Modal de Distribuição -->
-    <div id="distribute-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>🎯 Distribuição Interativa</h3>
-          <button class="modal-close" id="close-distribute-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div class="distribute-grid">
-            <!-- Coluna de Jogadores -->
-            <div class="players-column">
-              <div class="column-header">
-                <h4>👥 Jogadores</h4>
-                <div class="search-box">
-                  <input type="text" id="search-players" placeholder="🔍 Buscar jogadores..." />
-                </div>
-                <div class="control-buttons">
-                  <button id="select-all-players" class="btn-small secondary">Marcar Todos</button>
-                  <button id="deselect-all-players" class="btn-small secondary">Desmarcar Todos</button>
-                </div>
-              </div>
-              <div class="players-list" id="players-list">
-                <!-- Lista de jogadores será gerada dinamicamente -->
-              </div>
+        
+        <div class="login-content">
+            <div class="login-tabs">
+                <button class="tab-button active" onclick="switchTab('admin')">👑 Admin</button>
+                <button class="tab-button" onclick="switchTab('player')">🎯 Jogador</button>
             </div>
 
-            <!-- Coluna de Itens -->
-            <div class="items-column">
-              <div class="column-header">
-                <h4>📦 Itens</h4>
-                <div class="search-box">
-                  <input type="text" id="search-items" placeholder="🔍 Buscar itens..." />
-                </div>
-                <div class="control-buttons">
-                  <button id="select-all-items" class="btn-small secondary">Marcar Todos</button>
-                  <button id="deselect-all-items" class="btn-small secondary">Desmarcar Todos</button>
-                </div>
-              </div>
-              <div class="items-list" id="items-list">
-                <!-- Lista de itens será gerada dinamicamente -->
-              </div>
+            <div id="error-message" class="error-message"></div>
+            <div id="success-message" class="success-message"></div>
+
+            <!-- Admin Login -->
+            <div id="admin-tab" class="tab-content active">
+                <form id="admin-form">
+                    <div class="form-group">
+                        <label for="admin-password">Senha Master</label>
+                        <input type="password" id="admin-password" placeholder="Digite a senha master" required>
+                    </div>
+                    <button type="submit" class="login-button">🔐 Entrar como Admin</button>
+                </form>
             </div>
-          </div>
 
-          <!-- Prévia de Distribuição -->
-          <div class="distribution-preview" id="distribution-preview">
-            <h4>📋 Prévia de Distribuição</h4>
-            <div class="preview-content" id="preview-content">
-              <p class="preview-empty">Selecione jogadores e itens para ver a prévia</p>
+            <!-- Player Login -->
+            <div id="player-tab" class="tab-content">
+                <form id="player-form">
+                    <div class="form-group">
+                        <label for="player-nick">Seu Nick</label>
+                        <input type="text" id="player-nick" placeholder="Digite seu nick de jogador" required>
+                    </div>
+                    <button type="submit" class="login-button">🎮 Entrar como Jogador</button>
+                </form>
             </div>
-          </div>
         </div>
-        <div class="modal-footer">
-          <button id="btn-preview-distribution" class="secondary">📋 Gerar Prévia</button>
-          <button id="btn-confirm-distribution" class="primary" disabled>✅ Confirmar Distribuição</button>
-          <button id="btn-cancel-distribution" class="ghost">❌ Cancelar</button>
-        </div>
-      </div>
     </div>
 
-    <!-- Modal de Resultados -->
-    <div id="results-modal" class="modal">
-      <div class="modal-content results-modal-content">
-        <div class="modal-header">
-          <h3>🏆 Resultados da Distribuição</h3>
-          <button class="modal-close" id="close-results-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div id="results-content" class="results-content">
-            <!-- Conteúdo será gerado dinamicamente -->
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button id="btn-copy-results" class="secondary">📋 Copiar Texto</button>
-          <button id="btn-close-results" class="primary">✅ Fechar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal de Prévia dos Ganhadores -->
-    <div id="winners-preview-modal" class="modal">
-      <div class="modal-content results-modal-content">
-        <div class="modal-header">
-          <h3>🏆 Prévia dos Ganhadores</h3>
-          <button class="modal-close" id="close-winners-preview-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div id="winners-preview-content" class="results-content">
-            <!-- Conteúdo será gerado dinamicamente -->
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button id="btn-copy-winners-text" class="secondary">📋 Copiar Texto</button>
-          <button id="btn-close-winners-preview" class="primary">✅ Fechar</button>
-        </div>
-      </div>
-    </div>
-
-    <script src="src/config/config.js"></script>
-    
-    <script src="app.js"></script>
-  </div> <!-- content -->
-  </body>
-  </html>
+    <script>
+        // Constantes
+        const ADMIN_PASSWORD = 'f3l1p3';
+        
+        // Elementos DOM
+        const errorMessage = document.getElementById('error-message');
+        const successMessage = document.getElementById('success-message');
+        const adminForm = document.getElementById('admin-form');
+        const playerForm = document.getElementById('player-form');
+        
+        // Função para alternar entre abas
+        function switchTab(tab) {
+            // Remover classe active de todos os botões e conteúdos
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Adicionar classe active ao botão e conteúdo selecionado
+            event.target.classList.add('active');
+            document.getElementById(tab + '-tab').classList.add('active');
+            
+            // Limpar mensagens
+            hideMessages();
+        }
+        
+        // Função para mostrar erro
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+        }
+        
+        // Função para mostrar sucesso
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+        }
+        
+        // Função para esconder mensagens
+        function hideMessages() {
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+        }
+        
+        // Função para verificar se jogador existe
+        async function checkPlayerExists(nick) {
+            try {
+                const response = await fetch('/.netlify/functions/supabase-api/players');
+                const data = await response.json();
+                
+                if (data.players) {
+                    return data.players.some(player => 
+                        player.name.toLowerCase() === nick.toLowerCase()
+                    );
+                }
+                return false;
+            } catch (error) {
+                console.error('Erro ao verificar jogador:', error);
+                return false;
+            }
+        }
+        
+        // Login do Admin
+        adminForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const password = document.getElementById('admin-password').value;
+            
+            if (password === ADMIN_PASSWORD) {
+                showSuccess('Login realizado com sucesso! Redirecionando...');
+                
+                // Salvar sessão
+                localStorage.setItem('userType', 'admin');
+                localStorage.setItem('isLoggedIn', 'true');
+                
+                // Redirecionar após 1 segundo
+                setTimeout(() => {
+                    window.location.href = 'admin-dashboard.html';
+                }, 1000);
+            } else {
+                showError('Senha incorreta! Tente novamente.');
+                document.getElementById('admin-password').value = '';
+            }
+        });
+        
+        // Login do Jogador
+        playerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const nick = document.getElementById('player-nick').value.trim();
+            
+            if (!nick) {
+                showError('Por favor, digite seu nick.');
+                return;
+            }
+            
+            // Verificar se o jogador existe
+            const playerExists = await checkPlayerExists(nick);
+            
+            if (playerExists) {
+                showSuccess('Login realizado com sucesso! Redirecionando...');
+                
+                // Salvar sessão
+                localStorage.setItem('userType', 'player');
+                localStorage.setItem('playerNick', nick);
+                localStorage.setItem('isLoggedIn', 'true');
+                
+                // Redirecionar após 1 segundo
+                setTimeout(() => {
+                    window.location.href = 'player-dashboard.html';
+                }, 1000);
+            } else {
+                showError('Jogador não encontrado! Verifique se seu nick está cadastrado.');
+                document.getElementById('player-nick').value = '';
+            }
+        });
+        
+        // Verificar se já está logado
+        if (localStorage.getItem('isLoggedIn') === 'true') {
+            const userType = localStorage.getItem('userType');
+            if (userType === 'admin') {
+                window.location.href = 'admin-dashboard.html';
+            } else if (userType === 'player') {
+                window.location.href = 'player-dashboard.html';
+            }
+        }
+    </script>
+</body>
+</html>

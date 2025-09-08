@@ -286,6 +286,73 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
+        
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .history-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .history-item-player {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .history-item-date {
+            font-size: 12px;
+            color: #666;
+            background: #f8f9fa;
+            padding: 4px 10px;
+            border-radius: 15px;
+        }
+        
+        .history-item-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .history-item-icon {
+            font-size: 24px;
+        }
+        
+        .history-item-details {
+            flex: 1;
+        }
+        
+        .history-item-item {
+            font-weight: 500;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .history-item-description {
+            font-size: 14px;
+            color: #666;
+        }
 
         @media (max-width: 768px) {
             .player-header {
@@ -380,6 +447,20 @@
                     <p>Carregando seus itens...</p>
                 </div>
             </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 40px 0 20px 0;">
+                <h3>🏆 Ranking de Jogadores</h3>
+                <button class="refresh-btn" onclick="loadPlayersRanking()">
+                    🔄 Atualizar
+                </button>
+            </div>
+            
+            <div id="players-ranking">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🏆</div>
+                    <p>Carregando ranking...</p>
+                </div>
+            </div>
         </div>
 
         <!-- Seção Histórico Geral -->
@@ -447,18 +528,20 @@
 
     <script>
         // Verificar autenticação
-        if (sessionStorage.getItem('userType') !== 'player' || sessionStorage.getItem('isLoggedIn') !== 'true') {
-            window.location.href = 'login.html';
+        if (localStorage.getItem('userType') !== 'player' || localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'index.html';
         }
-
+        
         // Obter nick do jogador
-        const playerNick = sessionStorage.getItem('playerNick');
+        const playerNick = localStorage.getItem('playerNick');
         document.getElementById('player-name').textContent = playerNick || 'Jogador';
 
         // Função para logout
         function logout() {
-            sessionStorage.clear();
-            window.location.href = 'login.html';
+            if (confirm('Tem certeza que deseja sair?')) {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
         }
 
         // Função para mostrar seção
@@ -552,8 +635,91 @@
                     `;
                 }
                 
+                // Carregar ranking de jogadores
+                loadPlayersRanking();
+                
             } catch (error) {
                 console.error('Erro ao carregar dados da visão geral:', error);
+            }
+        }
+
+        // Função para carregar ranking de jogadores
+        async function loadPlayersRanking() {
+            try {
+                const historyResponse = await fetch('/.netlify/functions/supabase-api/history');
+                const historyData = await historyResponse.json();
+                const playersResponse = await fetch('/.netlify/functions/supabase-api/players');
+                const playersData = await playersResponse.json();
+                
+                const history = historyData.history || [];
+                const players = playersData.players || [];
+                
+                // Contar itens por jogador
+                const playerStats = {};
+                players.forEach(player => {
+                    playerStats[player.name] = {
+                        name: player.name,
+                        count: 0,
+                        lastItem: null
+                    };
+                });
+                
+                history.forEach(entry => {
+                    if (playerStats[entry.player]) {
+                        playerStats[entry.player].count++;
+                        if (!playerStats[entry.player].lastItem || 
+                            new Date(entry.date) > new Date(playerStats[entry.player].lastItem)) {
+                            playerStats[entry.player].lastItem = entry.date;
+                        }
+                    }
+                });
+                
+                // Ordenar por quantidade de itens
+                const sortedPlayers = Object.values(playerStats)
+                    .sort((a, b) => b.count - a.count);
+                
+                const container = document.getElementById('players-ranking');
+                if (sortedPlayers.length > 0) {
+                    container.innerHTML = `
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Posição</th>
+                                    <th>Jogador</th>
+                                    <th>Itens</th>
+                                    <th>Último Item</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${sortedPlayers.map((player, index) => `
+                                    <tr ${player.name.toLowerCase() === playerNick.toLowerCase() ? 'style="background: #e8f4fd; font-weight: bold;"' : ''}>
+                                        <td>
+                                            ${index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`}
+                                        </td>
+                                        <td><strong>${player.name}</strong></td>
+                                        <td><span class="item-badge">${player.count}</span></td>
+                                        <td>
+                                            ${player.lastItem ? 
+                                                `<span class="date-badge">${new Date(player.lastItem).toLocaleDateString('pt-BR')}</span>` : 
+                                                '<span class="date-badge">Nunca</span>'
+                                            }
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🏆</div>
+                            <p>Nenhum jogador encontrado</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Erro ao carregar ranking de jogadores:', error);
             }
         }
 
@@ -600,24 +766,23 @@
                 const container = document.getElementById('general-history-content');
                 if (history.length > 0) {
                     container.innerHTML = `
-                        <table class="history-table">
-                            <thead>
-                                <tr>
-                                    <th>Jogador</th>
-                                    <th>Item</th>
-                                    <th>Data</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${history.map(entry => `
-                                    <tr>
-                                        <td><strong>${entry.player}</strong></td>
-                                        <td><span class="item-badge">${entry.item}</span></td>
-                                        <td><span class="date-badge">${new Date(entry.date).toLocaleDateString('pt-BR')}</span></td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                        <div class="history-list">
+                            ${history.map(entry => `
+                                <div class="history-item">
+                                    <div class="history-item-header">
+                                        <div class="history-item-player">👤 ${entry.player}</div>
+                                        <div class="history-item-date">${new Date(entry.date).toLocaleDateString('pt-BR')}</div>
+                                    </div>
+                                    <div class="history-item-content">
+                                        <div class="history-item-icon">📦</div>
+                                        <div class="history-item-details">
+                                            <div class="history-item-item">${entry.item}</div>
+                                            <div class="history-item-description">Item recebido pelo jogador</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
                     `;
                 } else {
                     container.innerHTML = `
@@ -664,22 +829,23 @@
                 const container = document.getElementById('personal-history-content');
                 if (history.length > 0) {
                     container.innerHTML = `
-                        <table class="history-table">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Data</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${history.map(entry => `
-                                    <tr>
-                                        <td><span class="item-badge">${entry.item}</span></td>
-                                        <td><span class="date-badge">${new Date(entry.date).toLocaleDateString('pt-BR')}</span></td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                        <div class="history-list">
+                            ${history.map(entry => `
+                                <div class="history-item">
+                                    <div class="history-item-header">
+                                        <div class="history-item-player">🎯 Meu Item</div>
+                                        <div class="history-item-date">${new Date(entry.date).toLocaleDateString('pt-BR')}</div>
+                                    </div>
+                                    <div class="history-item-content">
+                                        <div class="history-item-icon">📦</div>
+                                        <div class="history-item-details">
+                                            <div class="history-item-item">${entry.item}</div>
+                                            <div class="history-item-description">Item recebido por você</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
                     `;
                 } else {
                     container.innerHTML = `

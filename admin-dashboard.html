@@ -514,14 +514,16 @@
     <script src="app.js"></script>
     <script>
         // Verificar autenticação
-        if (!sessionStorage.getItem('adminAuth')) {
-            window.location.href = 'login.html';
+        if (localStorage.getItem('isLoggedIn') !== 'true' || localStorage.getItem('userType') !== 'admin') {
+            window.location.href = 'index.html';
         }
         
         // Função para logout
         function logout() {
-            sessionStorage.clear();
-            window.location.href = 'login.html';
+            if (confirm('Tem certeza que deseja sair?')) {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
         }
         
         // Função para mostrar seção específica
