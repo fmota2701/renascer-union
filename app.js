@@ -9,16 +9,29 @@ const DEFAULT_ITEMS = [
 
 // Integração com Google Sheets via Netlify Functions
 
-function loadState() {
+async function loadState() {
   try {
-    // Tentar carregar do localStorage primeiro (cache local)
-    const raw = localStorage.getItem("guildLootState.cache");
-    if (raw) {
-      console.log('Carregando dados do cache local...');
-      return JSON.parse(raw);
+    // Sempre carregar do Google Sheets em produção
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      console.log('Carregando dados do Google Sheets...');
+      const response = await fetch('/.netlify/functions/sheets-api/check-updates', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.state) {
+          console.log('Dados carregados do Google Sheets');
+          return data.state;
+        }
+      }
     }
     return null;
-  } catch (_) {
+  } catch (error) {
+    console.error('Erro ao carregar dados do Google Sheets:', error);
     return null;
   }
 }
@@ -33,10 +46,7 @@ let realTimeSync = {
 
 function saveState(state) {
   try {
-    // Salvar localmente como cache
-    localStorage.setItem("guildLootState.cache", JSON.stringify(state));
-    
-    // Sincronização automática em tempo real
+    // Sincronização direta com Google Sheets (sem cache local)
     if (realTimeSync.enabled && !realTimeSync.syncInProgress) {
       syncStateToSheets(state);
     }
@@ -50,52 +60,32 @@ async function syncStateToSheets(state) {
   if (realTimeSync.syncInProgress) return;
   
   realTimeSync.syncInProgress = true;
-  updateSyncIndicator('syncing', 'Sincronizando dados...');
+  updateSyncIndicator('syncing', 'Sincronizando com Google Sheets...');
   
   try {
-    // Para desenvolvimento local, simular sincronização
-    // Em produção, isso usará a API do Netlify Functions
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      // Simular delay de rede
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Salvar localmente
-      saveState(state);
-      
-      realTimeSync.lastSync = new Date();
-      updateSyncIndicator('success', `Dados salvos localmente às ${realTimeSync.lastSync.toLocaleTimeString('pt-BR')}`);
-      
-      // Mostrar aviso sobre configuração do Google Sheets
-      if (!localStorage.getItem('sheets-warning-shown')) {
-        showToast('💡 Para sincronizar com Google Sheets, configure as credenciais e faça deploy no Netlify', 'info');
-        localStorage.setItem('sheets-warning-shown', 'true');
-      }
-    } else {
-      // Em produção, usar a API do Netlify Functions
-      const response = await fetch('/.netlify/functions/sheets-api/sync', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          state: state,
-          timestamp: new Date().toISOString()
-        })
-      });
+    // Sempre usar a API do Google Sheets (mesmo em desenvolvimento)
+    const response = await fetch('/.netlify/functions/sheets-api/sync', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        state: state,
+        timestamp: new Date().toISOString()
+      })
+    });
 
-      if (response.ok) {
-        realTimeSync.lastSync = new Date();
-        updateSyncIndicator('success', `Sincronizado às ${realTimeSync.lastSync.toLocaleTimeString('pt-BR')}`);
-      } else {
-        throw new Error('Erro na resposta do servidor');
-      }
+    if (response.ok) {
+      realTimeSync.lastSync = new Date();
+      updateSyncIndicator('success', `Sincronizado com Google Sheets às ${realTimeSync.lastSync.toLocaleTimeString('pt-BR')}`);
+      showToast('Dados salvos no Google Sheets!', 'success');
+    } else {
+      throw new Error('Erro na resposta do servidor');
     }
   } catch (error) {
-    console.error('Erro ao sincronizar:', error);
-    updateSyncIndicator('error', 'Erro na sincronização - dados salvos localmente');
-    
-    // Sempre salvar localmente em caso de erro
-    saveState(state);
+    console.error('Erro ao sincronizar com Google Sheets:', error);
+    updateSyncIndicator('error', 'Erro na sincronização com Google Sheets');
+    showToast('Erro ao salvar no Google Sheets. Verifique a conexão.', 'error');
   } finally {
     realTimeSync.syncInProgress = false;
   }
@@ -106,13 +96,7 @@ async function checkForUpdates() {
   if (realTimeSync.syncInProgress) return;
   
   try {
-    // Para desenvolvimento local, não verificar mudanças externas
-    // Em produção, isso verificará mudanças na planilha
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      // Em desenvolvimento local, não há mudanças externas para verificar
-      return;
-    }
-    
+    // Sempre verificar mudanças no Google Sheets
     const response = await fetch('/.netlify/functions/sheets-api/check-updates', {
       method: 'GET',
       headers: {
@@ -123,9 +107,8 @@ async function checkForUpdates() {
     if (response.ok) {
       const data = await response.json();
       if (data.hasUpdates && data.state) {
-        // Atualizar estado local com dados do servidor
+        // Atualizar estado global com dados do Google Sheets
         const newState = data.state;
-        localStorage.setItem("guildLootState.cache", JSON.stringify(newState));
         
         // Atualizar estado global
         Object.assign(state, newState);
@@ -137,12 +120,12 @@ async function checkForUpdates() {
         renderHistory();
         renderDashboard();
         
-        updateSyncIndicator('success', 'Dados atualizados do servidor');
+        updateSyncIndicator('success', 'Dados atualizados do Google Sheets');
         showToast('Dados sincronizados do Google Sheets!', 'info');
       }
     }
   } catch (error) {
-    console.error('Erro ao verificar atualizações:', error);
+    console.error('Erro ao verificar atualizações do Google Sheets:', error);
   }
 }
 
@@ -228,14 +211,10 @@ function createEmptyState() {
   };
 }
 
-let state = loadState() || createEmptyState();
-// migração leve
+// Inicializar com estado vazio - será carregado do Google Sheets na função main
+let state = createEmptyState();
+// Garantir que o estado tenha todas as propriedades necessárias
 if (!state.rotation) state.rotation = {};
-// garante flag active e inicializa faltas
-if (state.players) state.players.forEach((p) => { 
-  if (typeof p.active === 'undefined') p.active = true;
-  if (typeof p.faults === 'undefined') p.faults = 0;
-});
 if (!state.ui) state.ui = { editUnlocked: false };
 
 // Utilidades
@@ -1274,21 +1253,27 @@ async function main() {
   const themeSwitch = document.getElementById('theme-switch');
   if (themeSwitch) themeSwitch.checked = document.body.classList.contains('dark');
 
-  // Inicializar Google Sheets service
+  // Carregar dados do Google Sheets
   try {
-    if (typeof GoogleSheetsService !== 'undefined') {
-      window.googleSheetsService = GoogleSheetsService.getInstance();
-      await window.googleSheetsService.init();
-      
-      // Tentar carregar dados do Google Sheets
-      const sheetsData = await window.googleSheetsService.loadData();
-      if (sheetsData && sheetsData.players && sheetsData.players.length > 0) {
-        state = sheetsData;
-        console.log('Dados carregados do Google Sheets');
-      }
+    const loadedState = await loadState();
+    if (loadedState) {
+      state = loadedState;
+      // Garantir propriedades necessárias após carregar
+      if (!state.rotation) state.rotation = {};
+      if (!state.ui) state.ui = { editUnlocked: false };
+      // Garantir flag active e inicializar faltas
+      if (state.players) state.players.forEach((p) => { 
+        if (typeof p.active === 'undefined') p.active = true;
+        if (typeof p.faults === 'undefined') p.faults = 0;
+      });
+      console.log('Dados carregados do Google Sheets');
+      showToast('Dados carregados do Google Sheets!', 'success');
+    } else {
+      console.log('Usando estado padrão - nenhum dado encontrado no Google Sheets');
     }
   } catch (error) {
-    console.warn('Erro ao inicializar Google Sheets:', error);
+    console.warn('Erro ao carregar dados do Google Sheets:', error);
+    showToast('Erro ao carregar dados. Usando dados padrão.', 'warning');
   }
 
   renderItemsSelect();
