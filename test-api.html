@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste API Supabase</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste da API Supabase</h1>
+    
+    <div class="test-section">
+        <h2>📋 Teste de Cadastro de Jogador</h2>
+        <input type="text" id="playerName" placeholder="Nome do jogador" value="Teste Jogador">
+        <button onclick="testCreatePlayer()">Criar Jogador</button>
+        <div id="playerResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎒 Teste de Cadastro de Item</h2>
+        <input type="text" id="itemName" placeholder="Nome do item" value="Teste Item">
+        <input type="text" id="itemCategory" placeholder="Categoria" value="Geral">
+        <button onclick="testCreateItem()">Criar Item</button>
+        <div id="itemResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>👥 Teste de Listagem de Jogadores</h2>
+        <button onclick="testGetPlayers()">Listar Jogadores</button>
+        <div id="playersResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎯 Teste de Listagem de Itens</h2>
+        <button onclick="testGetItems()">Listar Itens</button>
+        <div id="itemsResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://renascer-union.netlify.app/.netlify/functions/supabase-api';
+        
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = JSON.stringify(data, null, 2);
+            element.className = `result ${isError ? 'error' : 'success'}`;
+        }
+        
+        async function testCreatePlayer() {
+            const name = document.getElementById('playerName').value;
+            if (!name) {
+                showResult('playerResult', { error: 'Nome é obrigatório' }, true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/players`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name })
+                });
+                
+                const data = await response.json();
+                showResult('playerResult', data, !response.ok);
+            } catch (error) {
+                showResult('playerResult', { error: error.message }, true);
+            }
+        }
+        
+        async function testCreateItem() {
+            const name = document.getElementById('itemName').value;
+            const category = document.getElementById('itemCategory').value;
+            
+            if (!name) {
+                showResult('itemResult', { error: 'Nome é obrigatório' }, true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/items`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, category })
+                });
+                
+                const data = await response.json();
+                showResult('itemResult', data, !response.ok);
+            } catch (error) {
+                showResult('itemResult', { error: error.message }, true);
+            }
+        }
+        
+        async function testGetPlayers() {
+            try {
+                const response = await fetch(`${API_BASE}/players`);
+                const data = await response.json();
+                showResult('playersResult', data, !response.ok);
+            } catch (error) {
+                showResult('playersResult', { error: error.message }, true);
+            }
+        }
+        
+        async function testGetItems() {
+            try {
+                const response = await fetch(`${API_BASE}/items`);
+                const data = await response.json();
+                showResult('itemsResult', data, !response.ok);
+            } catch (error) {
+                showResult('itemsResult', { error: error.message }, true);
+            }
+        }
+        
+        // Carregar dados iniciais
+        window.onload = function() {
+            testGetPlayers();
+            testGetItems();
+        };
+    </script>
+</body>
+</html>
