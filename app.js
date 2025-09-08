@@ -2272,8 +2272,8 @@ let isCheckingUpdates = false;
 function initRealtimeSync() {
   console.log('Iniciando sincronização em tempo real...');
   
-  // Verificar mudanças a cada 3 segundos
-  syncInterval = setInterval(checkForUpdates, 3000);
+  // Verificar mudanças a cada 5 segundos
+  syncInterval = setInterval(checkForUpdates, 5000);
   
   // Verificação inicial
   setTimeout(checkForUpdates, 1000);
@@ -2326,8 +2326,21 @@ async function checkForUpdates() {
           renderTable();
           renderHistory();
           
-          // Mostrar notificação discreta
-          showToast('Dados atualizados automaticamente', 'success');
+          // Mostrar notificação discreta apenas se houve mudanças significativas
+          const hasSignificantChanges = (
+            JSON.stringify(state.players) !== JSON.stringify(window.lastKnownPlayers) ||
+            JSON.stringify(state.items) !== JSON.stringify(window.lastKnownItems) ||
+            state.history.length !== (window.lastKnownHistoryLength || 0)
+          );
+          
+          if (hasSignificantChanges) {
+            showToast('Dados atualizados automaticamente', 'success');
+            
+            // Armazenar estado atual para próxima comparação
+            window.lastKnownPlayers = JSON.parse(JSON.stringify(state.players));
+            window.lastKnownItems = JSON.parse(JSON.stringify(state.items));
+            window.lastKnownHistoryLength = state.history.length;
+          }
         }
         
         lastSyncTimestamp = data.last_updated;
