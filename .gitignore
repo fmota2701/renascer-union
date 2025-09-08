@@ -7,3 +7,4 @@
 .env.production
 .env.development
 renascer-union.json
+node_modules

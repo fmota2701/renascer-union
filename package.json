@@ -18,8 +18,10 @@
   "author": "Guild Management",
   "license": "MIT",
   "dependencies": {
-    "google-spreadsheet": "^4.1.2",
+    "@supabase/supabase-js": "^2.57.2",
+    "dotenv": "^17.2.2",
     "google-auth-library": "^9.0.0",
+    "google-spreadsheet": "^4.1.2",
     "googleapis": "^128.0.0"
   },
   "devDependencies": {
