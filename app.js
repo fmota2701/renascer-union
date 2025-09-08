@@ -604,9 +604,27 @@ function renamePlayer(oldName, newName) {
   renderHistory();
 }
 
-function deletePlayer(name) {
+async function deletePlayer(name) {
   const idx = state.players.findIndex(p=>p.name===name);
   if (idx<0) return;
+  
+  // Sincronizar com Supabase primeiro
+  try {
+    const response = await fetch(`/.netlify/functions/supabase-api/players?name=${encodeURIComponent(name)}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) {
+      console.error('Erro ao deletar jogador do Supabase:', await response.text());
+      showToast('Erro ao sincronizar remoção do jogador', 'error');
+      return;
+    }
+  } catch (error) {
+    console.error('Erro ao deletar jogador:', error);
+    showToast('Erro ao sincronizar remoção do jogador', 'error');
+    return;
+  }
+  
   state.players.splice(idx,1);
   // Recalcula rotação por item devido à mudança de índices
   const order = state.players.map(p=>p.name);
@@ -619,15 +637,34 @@ function deletePlayer(name) {
   saveState(state);
   renderPlayersManager();
   renderTable();
+  showToast(`Jogador "${name}" removido com sucesso!`, 'success');
 }
 
-function addItem(name) {
+async function addItem(name) {
   const n = name.trim();
   if (!n) return alert('Informe um nome.');
   if (state.items.includes(n)) return alert('Já existe um item com esse nome.');
   state.items.push(n);
   for (const p of state.players) p.counts[n] = p.counts[n] || 0;
   saveState(state);
+  
+  // Sincronizar com Supabase
+  try {
+    const response = await fetch('/.netlify/functions/supabase-api/items', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name: n })
+    });
+    
+    if (!response.ok) {
+      console.error('Erro ao sincronizar item com Supabase:', await response.text());
+    }
+  } catch (error) {
+    console.error('Erro ao sincronizar item:', error);
+  }
+  
   renderItemsSelect();
   renderItemsManager();
   renderTable();
@@ -661,9 +698,27 @@ function renameItem(oldName, newName) {
   initFocusControls(); initQueuePanel(); renderQueuePanel();
 }
 
-function removeItem(name) {
+async function removeItem(name) {
   const i = state.items.indexOf(name);
   if (i < 0) return;
+  
+  // Sincronizar com Supabase primeiro
+  try {
+    const response = await fetch(`/.netlify/functions/supabase-api/items?name=${encodeURIComponent(name)}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) {
+      console.error('Erro ao deletar item do Supabase:', await response.text());
+      showToast('Erro ao sincronizar remoção do item', 'error');
+      return;
+    }
+  } catch (error) {
+    console.error('Erro ao deletar item:', error);
+    showToast('Erro ao sincronizar remoção do item', 'error');
+    return;
+  }
+  
   state.items.splice(i, 1);
   for (const p of state.players) delete p.counts[name];
   delete state.rotation[name];
@@ -673,6 +728,7 @@ function removeItem(name) {
   renderItemsManager();
   renderTable();
   initFocusControls(); initQueuePanel(); renderQueuePanel();
+  showToast(`Item "${name}" removido com sucesso!`, 'success');
 }
 
 function renderHistory() {

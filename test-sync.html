@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Sync API</title>
+</head>
+<body>
+    <h1>Teste da API de Sincronização</h1>
+    <button onclick="testSync()">Testar Sync</button>
+    <div id="result"></div>
+
+    <script>
+        async function testSync() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testando...';
+            
+            try {
+                const response = await fetch('https://renascer-union.netlify.app/.netlify/functions/supabase-api/sync', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        state: {
+                            players: [{name: 'Teste Player', counts: {}}],
+                            items: ['Teste Item'],
+                            history: []
+                        },
+                        timestamp: new Date().toISOString()
+                    })
+                });
+                
+                const data = await response.json();
+                resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                resultDiv.innerHTML = 'Erro: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

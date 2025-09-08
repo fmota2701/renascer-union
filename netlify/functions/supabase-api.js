@@ -49,6 +49,9 @@ exports.handler = async (event, context) => {
       case 'POST':
         result = await handlePost(path, JSON.parse(body || '{}'));
         break;
+      case 'DELETE':
+        result = await handleDelete(path, params);
+        break;
       default:
         throw new Error(`Método ${httpMethod} não suportado`);
     }
@@ -118,6 +121,19 @@ async function handlePost(path, data) {
       return await createItem(data);
     default:
       throw new Error(`Endpoint POST ${endpoint} não encontrado`);
+  }
+}
+
+async function handleDelete(path, params) {
+  const endpoint = path.replace('/.netlify/functions/supabase-api', '');
+  
+  switch (endpoint) {
+    case '/players':
+      return await deletePlayer(params);
+    case '/items':
+      return await deleteItem(params);
+    default:
+      throw new Error(`Endpoint DELETE ${endpoint} não encontrado`);
   }
 }
 
@@ -699,6 +715,68 @@ async function handleCheckUpdates() {
       timestamp: new Date().toISOString(),
       error: error.message
     };
+  }
+}
+
+async function deletePlayer(params) {
+  console.log('deletePlayer chamado com params:', params);
+  
+  const { name } = params;
+  if (!name) {
+    throw new Error('Nome do jogador é obrigatório');
+  }
+  
+  // Limpar cache
+  clearCache();
+  
+  try {
+    const { error } = await supabase
+      .from('players')
+      .delete()
+      .eq('name', name);
+    
+    if (error) {
+      throw new Error(`Erro ao deletar jogador: ${error.message}`);
+    }
+    
+    return {
+      message: `Jogador "${name}" deletado com sucesso`,
+      timestamp: new Date().toISOString()
+    };
+  } catch (err) {
+    console.error('Erro ao deletar jogador:', err);
+    throw err;
+  }
+}
+
+async function deleteItem(params) {
+  console.log('deleteItem chamado com params:', params);
+  
+  const { name } = params;
+  if (!name) {
+    throw new Error('Nome do item é obrigatório');
+  }
+  
+  // Limpar cache
+  clearCache();
+  
+  try {
+    const { error } = await supabase
+      .from('items')
+      .delete()
+      .eq('name', name);
+    
+    if (error) {
+      throw new Error(`Erro ao deletar item: ${error.message}`);
+    }
+    
+    return {
+      message: `Item "${name}" deletado com sucesso`,
+      timestamp: new Date().toISOString()
+    };
+  } catch (err) {
+    console.error('Erro ao deletar item:', err);
+    throw err;
   }
 }
 
