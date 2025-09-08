@@ -28,23 +28,7 @@ h1{font-size:22px;margin:0;letter-spacing:.2px;color:var(--dark)}
 .container{max-width:1100px;margin:0 auto;padding:0 20px}
 .subheader{display:flex;align-items:center;justify-content:space-between;padding:10px 20px}
 .breadcrumbs{color:#64748b;font-weight:500}
-.search{position:relative}
-.search input{padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:#fff;color:var(--dark);min-width:220px;transition:all 0.2s ease}
-.search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(60,145,230,0.2);min-width:250px}
-
-/* Contador de resultados de busca */
-.search-results-count{position:absolute;top:100%;left:0;right:0;background:var(--panel);padding:8px 12px;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-size:12px;color:var(--muted);z-index:10;animation:slideDown 0.2s ease}
-
-@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-
-/* Destacar termos de busca */
-mark{background:rgba(60,145,230,0.2);color:var(--accent);padding:1px 2px;border-radius:2px;font-weight:600}
-
-/* Indicador de busca ativa */
-.search input:not(:placeholder-shown){border-color:var(--accent);background:rgba(60,145,230,0.05)}
-
-/* Placeholder melhorado */
-.search input::placeholder{color:var(--muted);opacity:0.7}
+.search input{padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:#fff;color:var(--dark);min-width:220px}
 
 .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 button,input,select,label.import-label{background:var(--light);color:var(--dark);border:1px solid var(--border);border-radius:10px;padding:9px 12px;transition:.15s ease}
@@ -95,7 +79,39 @@ label.import-label input{display:none}
 
 /* Toast */
 #toast-container{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:9999}
-.toast{background:#111827;color:#fff;border-radius:8px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.toast{background:#111827;color:#fff;border-radius:8px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:flex;align-items:center;gap:8px;min-width:300px}
+
+.toast-success{background:#4caf50;border-left:4px solid #2e7d32}
+
+.toast-error{background:#f44336;border-left:4px solid #c62828}
+
+.toast-warning{background:#ff9800;border-left:4px solid #ef6c00;color:#000}
+
+.toast-info{background:#2196f3;border-left:4px solid #1565c0}
+
+.toast-icon{font-size:18px;flex-shrink:0}
+
+.toast-message{flex:1;font-weight:500}
+
+.sync-status{margin-bottom:15px;padding:12px;background:#e8f5e8;border-radius:8px;border-left:4px solid #4caf50;display:flex;align-items:center;justify-content:space-between}
+
+.sync-indicator{font-weight:500;display:flex;align-items:center;gap:8px}
+
+.sync-success{color:#2e7d32}
+
+.sync-error{color:#c62828}
+
+.sync-syncing{color:#1565c0;animation:pulse 1.5s infinite}
+
+.sync-warning{color:#ef6c00}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+.player-info{flex:1}
+
+.player-meta{font-size:12px;color:#666;margin-top:5px}
+
+.player-meta div{margin-bottom:2px}
 
 /* Flash cells */
 @keyframes flash-bg{0%{background:#fff7cc}100%{background:transparent}}
@@ -993,398 +1009,4 @@ body.dark{
     padding: 2px 8px;
     border-radius: 12px;
     font-size: 12px;
-}
-
-/* Feedback de shortcuts de teclado */
-.keyboard-feedback {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--accent);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    z-index: 10000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    animation: fadeInOut 1.5s ease-in-out;
-}
-
-@keyframes fadeInOut {
-    0% {
-        opacity: 0;
-        transform: translateY(-10px) scale(0.9);
-    }
-    20%, 80% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(-10px) scale(0.9);
-    }
-}
-
-/* Melhorias na busca com shortcuts */
-.search input.active-search {
-    border-color: var(--accent);
-    background: rgba(60, 145, 230, 0.05);
-    box-shadow: 0 0 0 2px rgba(60, 145, 230, 0.1);
-}
-
-.search-results-counter {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: var(--panel);
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-top: none;
-    border-radius: 0 0 8px 8px;
-    font-size: 12px;
-    color: var(--muted);
-    z-index: 10;
-    display: none;
-    animation: slideDown 0.2s ease;
-}
-
-.search-results-counter.show {
-    display: block;
-}
-
-/* Sistema de notificações */
-.notifications-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 10000;
-    pointer-events: none;
-}
-
-.notification {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 8px;
-    min-width: 300px;
-    max-width: 400px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    pointer-events: auto;
-    transform: translateX(100%);
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.notification-show {
-    transform: translateX(0);
-    opacity: 1;
-}
-
-.notification-hide {
-    transform: translateX(100%);
-    opacity: 0;
-}
-
-.notification-content {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    gap: 8px;
-}
-
-.notification-icon {
-    font-size: 16px;
-    font-weight: bold;
-    flex-shrink: 0;
-}
-
-.notification-message {
-    flex: 1;
-    font-size: 14px;
-    line-height: 1.4;
-}
-
-.notification-close {
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 0;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: background-color 0.2s ease;
-    flex-shrink: 0;
-}
-
-.notification-close:hover {
-    background: rgba(0, 0, 0, 0.1);
-}
-
-/* Tipos de notificação */
-.notification-success {
-    border-left: 4px solid #10b981;
-}
-
-.notification-success .notification-icon {
-    color: #10b981;
-}
-
-.notification-error {
-    border-left: 4px solid var(--danger);
-}
-
-.notification-error .notification-icon {
-    color: var(--danger);
-}
-
-.notification-warning {
-    border-left: 4px solid var(--yellow);
-}
-
-.notification-warning .notification-icon {
-    color: #f59e0b;
-}
-
-.notification-info {
-    border-left: 4px solid var(--accent);
-}
-
-.notification-info .notification-icon {
-    color: var(--accent);
-}
-
-/* Sistema de drag-and-drop */
-.draggable-row {
-    cursor: grab;
-    transition: all 0.2s ease;
-}
-
-.draggable-row:hover {
-    background: rgba(60, 145, 230, 0.05);
-}
-
-.draggable-row.dragging {
-    cursor: grabbing;
-    transform: rotate(2deg);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-}
-
-.drag-over {
-    background: rgba(60, 145, 230, 0.1) !important;
-    border-top: 2px solid var(--accent);
-    border-bottom: 2px solid var(--accent);
-}
-
-.drag-placeholder {
-    background: rgba(60, 145, 230, 0.1);
-    border: 2px dashed var(--accent);
-    height: 40px;
-}
-
-.placeholder-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: var(--accent);
-    font-weight: 500;
-    font-size: 14px;
-}
-
-/* Indicador de drag handle */
-.drag-handle {
-    cursor: grab;
-    color: var(--muted);
-    padding: 4px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-}
-
-.drag-handle:hover {
-    color: var(--accent);
-    background: rgba(60, 145, 230, 0.1);
-}
-
-.drag-handle:active {
-    cursor: grabbing;
-}
-
-/* Animações suaves para reordenação */
-.table-row-enter {
-    opacity: 0;
-    transform: translateY(-10px);
-}
-
-.table-row-enter-active {
-    opacity: 1;
-    transform: translateY(0);
-    transition: all 0.3s ease;
-}
-
-.table-row-exit {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.table-row-exit-active {
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
-}
-
-/* Melhorias na tabela para drag-and-drop */
-tbody tr {
-    position: relative;
-}
-
-tbody tr.dragging {
-    background: var(--panel);
-    border-radius: 8px;
-    margin: 4px 0;
-}
-
-/* Feedback visual durante o drag */
-.drag-ghost {
-    opacity: 0.5;
-    transform: rotate(5deg);
-    pointer-events: none;
-}
-
-/* Sistema de modo offline */
-.connection-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.connection-status.online {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-    border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.connection-status.offline {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.7;
-    }
-}
-
-.status-icon {
-    font-size: 8px;
-    animation: blink 1.5s infinite;
-}
-
-.connection-status.online .status-icon {
-    animation: none;
-}
-
-@keyframes blink {
-    0%, 50% {
-        opacity: 1;
-    }
-    51%, 100% {
-        opacity: 0.3;
-    }
-}
-
-.status-text {
-    font-weight: 600;
-}
-
-.pending-count {
-    background: var(--accent);
-    color: white;
-    border-radius: 10px;
-    padding: 2px 6px;
-    font-size: 10px;
-    font-weight: 700;
-    min-width: 16px;
-    text-align: center;
-    animation: bounce 0.5s ease;
-}
-
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
-    }
-    40% {
-        transform: translateY(-3px);
-    }
-    60% {
-        transform: translateY(-2px);
-    }
-}
-
-/* Indicador de sincronização */
-.sync-indicator {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 9999;
-    transform: translateY(100px);
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.sync-indicator.show {
-    transform: translateY(0);
-    opacity: 1;
-}
-
-.sync-spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid var(--border);
-    border-top: 2px solid var(--accent);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-/* Melhorias no header para acomodar o status */
-.header-inner {
-    position: relative;
-}
-
-.header-inner .connection-status {
-    margin-left: auto;
 }

@@ -1,188 +1,138 @@
-# Sistema de Loot de Guilda - Versão Online
+# Sistema de Distribuição de Itens da Guilda
+
+Sistema web para gerenciar a distribuição de itens entre membros de uma guilda, usando Google Sheets como banco de dados e hospedado no Netlify.
 
 ## 🚀 Funcionalidades
 
-### ✅ Sistema Completo de Loot
-- Gerenciamento de jogadores e classes
-- Sistema de sugestões inteligentes
-- Distribuição automática de loot
-- Histórico e estatísticas
+- ✅ Gerenciamento de jogadores e itens
+- ✅ Sistema de distribuição inteligente com rotação
+- ✅ Histórico completo de distribuições
+- ✅ Dashboard com estatísticas
+- ✅ Tema claro/escuro
+- ✅ Exportação/Importação de dados
+- ✅ Integração com Google Sheets
+- ✅ Deploy automático no Netlify
 
-### ✅ Otimizações de Performance
-- Lazy loading para tabelas grandes
-- Cache inteligente com invalidação automática
-- Algoritmos otimizados de sugestão
-- Busca em tempo real com debounce
+## 📋 Pré-requisitos
 
-### ✅ Funcionalidades Avançadas
-- Atalhos de teclado (Ctrl+S, Ctrl+E, etc.)
-- Sistema de notificações não-intrusivas
-- Drag-and-drop para reordenação
-- Modo offline com sincronização automática
+1. Conta no Google Cloud Platform
+2. Conta no Netlify
+3. Planilha do Google Sheets configurada
 
-### 🌐 **NOVO: Sistema Online em Tempo Real**
-- **Servidor Node.js** com Express e Socket.io
-- **Banco de dados SQLite** para persistência
-- **Sincronização em tempo real** entre múltiplos usuários
-- **API REST** para operações CRUD
-- **WebSocket** para atualizações instantâneas
-- **Fallback offline** quando servidor não disponível
+## 🛠️ Configuração
 
-## 🛠️ Instalação e Uso
+### 1. Google Cloud Platform
 
-### Modo Local (Desenvolvimento)
+1. Acesse o [Google Cloud Console](https://console.cloud.google.com/)
+2. Crie um novo projeto ou selecione um existente
+3. Ative a API do Google Sheets:
+   - Vá para "APIs & Services" > "Library"
+   - Procure por "Google Sheets API" e ative
+4. Crie um Service Account:
+   - Vá para "APIs & Services" > "Credentials"
+   - Clique em "Create Credentials" > "Service Account"
+   - Preencha os dados e clique em "Create"
+   - Na aba "Keys", clique em "Add Key" > "Create New Key" > "JSON"
+   - Baixe o arquivo JSON (você precisará dele depois)
 
-1. **Instalar dependências do backend:**
-   ```bash
-   cd backend
-   npm install
-   ```
+### 2. Google Sheets
 
-2. **Iniciar servidor:**
-   ```bash
-   npm start
-   ```
-   O servidor estará disponível em: `http://localhost:3001`
+1. Crie uma nova planilha no Google Sheets
+2. Crie as seguintes abas:
+   - `Jogadores` - para armazenar dados dos jogadores
+   - `Itens` - para armazenar dados dos itens
+   - `Histórico` - para armazenar histórico de distribuições
+   - `Configurações` - para configurações gerais
+3. Compartilhe a planilha com o email do Service Account (encontrado no arquivo JSON baixado)
+4. Copie o ID da planilha da URL (a parte entre `/d/` e `/edit`)
 
-3. **Acessar aplicação:**
-   Abra o navegador e acesse `http://localhost:3001`
+### 3. Netlify
 
-## 🚀 Deploy no Vercel
+1. Faça fork deste repositório
+2. Conecte sua conta do Netlify ao GitHub
+3. Crie um novo site a partir do seu fork
+4. Configure as variáveis de ambiente no Netlify:
+   - Vá para "Site Settings" > "Environment Variables"
+   - Adicione as seguintes variáveis:
+     ```
+     GOOGLE_SPREADSHEET_ID=seu_id_da_planilha
+     GOOGLE_SERVICE_ACCOUNT_KEY=conteudo_do_arquivo_json_em_uma_linha
+     ```
 
-### ✅ Configuração Pronta
+## 🚀 Deploy
 
-O projeto já está **100% configurado** para deploy no Vercel:
+1. Faça push das suas alterações para o repositório
+2. O Netlify fará o deploy automaticamente
+3. Acesse sua URL do Netlify para testar
 
-- ✅ `vercel.json` otimizado
-- ✅ `package.json` na raiz
-- ✅ Estrutura de arquivos correta
-- ✅ Detecção automática de ambiente
-- ✅ Fallback para polling quando WebSocket não disponível
+## 📁 Estrutura do Projeto
 
-### 🚀 Deploy Rápido
-
-**Método 1: Interface Web (Mais Fácil)**
-1. Acesse [vercel.com/new](https://vercel.com/new)
-2. Conecte seu repositório Git
-3. Clique em "Deploy"
-4. ✨ Pronto! Seu sistema estará online
-
-**Método 2: CLI**
-```bash
-npm i -g vercel
-vercel login
-vercel
+```
+.
+├── index.html              # Página principal
+├── app.js                   # Lógica principal da aplicação
+├── style.css               # Estilos CSS
+├── netlify.toml            # Configurações do Netlify
+├── src/
+│   ├── config/
+│   │   └── config.js       # Configurações da aplicação
+│   └── services/
+│       └── googleSheets.js # Serviço de integração com Google Sheets
+└── netlify/
+    └── functions/
+        ├── package.json    # Dependências das funções
+        └── sheets-api.js   # Função serverless para API
 ```
 
-### 📋 Instruções Detalhadas
+## 🔧 Desenvolvimento Local
 
-Para instruções completas, consulte: [`DEPLOY_VERCEL.md`](./DEPLOY_VERCEL.md)
+1. Clone o repositório
+2. Instale o Netlify CLI: `npm install -g netlify-cli`
+3. Execute: `netlify dev`
+4. Acesse `http://localhost:8888`
 
-### ⚠️ Importante para Produção
+## 📊 Estrutura das Planilhas
 
-**Banco de Dados**: SQLite não persiste no Vercel. Para produção, recomendamos:
-- **PlanetScale** (MySQL gratuito)
-- **Supabase** (PostgreSQL gratuito)
-- **MongoDB Atlas** (MongoDB gratuito)
+### Aba "Jogadores"
+| Nome | Item1 | Item2 | Item3 | Ativo | Faltas |
+|------|-------|-------|-------|-------|--------|
+| João | 5     | 3     | 2     | TRUE  | 0      |
 
-**WebSocket**: Funciona com polling automático no Vercel
+### Aba "Itens"
+| Nome           | Ativo |
+|----------------|-------|
+| Cristal do Caos| TRUE  |
 
-### Deploy no Heroku (Alternativa)
+### Aba "Histórico"
+| Data | Jogador | Item | Quantidade | Observações |
+|------|---------|------|------------|-------------|
+| 2024-01-15 | João | Cristal | 1 | Distribuição automática |
 
-1. **Criar arquivo Procfile:**
-   ```
-   web: node backend/server.js
-   ```
+## 🤝 Contribuição
 
-2. **Configurar variáveis de ambiente:**
-   ```bash
-   heroku config:set NODE_ENV=production
-   ```
+1. Faça fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
 
-3. **Deploy:**
-   ```bash
-   git add .
-   git commit -m "Deploy sistema online"
-   git push heroku main
-   ```
+## 📝 Licença
 
-## 📡 API Endpoints
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
 
-### Dados da Guilda
-- `GET /api/guild-data` - Buscar todos os dados
-- `POST /api/guild-data` - Salvar dados completos
+## 🆘 Suporte
 
-### Jogadores
-- `GET /api/players` - Listar jogadores
-- `POST /api/players` - Adicionar jogador
-- `PUT /api/players/:id` - Atualizar jogador
-- `DELETE /api/players/:id` - Remover jogador
+Se você encontrar algum problema ou tiver dúvidas:
 
-### WebSocket Events
-- `request-initial-data` - Solicitar dados iniciais
-- `update-data` - Atualizar dados
-- `data-updated` - Dados atualizados (broadcast)
-- `player-added` - Jogador adicionado (broadcast)
-- `player-updated` - Jogador atualizado (broadcast)
-- `player-deleted` - Jogador removido (broadcast)
+1. Verifique se todas as variáveis de ambiente estão configuradas corretamente
+2. Confirme se a planilha está compartilhada com o Service Account
+3. Verifique os logs do Netlify Functions para erros
+4. Abra uma issue neste repositório
 
-## 🔧 Configuração
+## 🔄 Atualizações
 
-### Variáveis de Ambiente
-- `PORT` - Porta do servidor (padrão: 3001)
-- `NODE_ENV` - Ambiente (development/production)
+Para atualizar o sistema:
 
-### Banco de Dados
-O sistema usa SQLite por padrão, criando automaticamente:
-- `backend/guild_loot.db` - Arquivo do banco de dados
-- Tabelas: `players`, `guild_data`, `logs`
-
-## 🌟 Recursos Online
-
-### Sincronização em Tempo Real
-- Múltiplos usuários podem acessar simultaneamente
-- Atualizações instantâneas via WebSocket
-- Notificações quando outros usuários fazem alterações
-
-### Modo Híbrido
-- Funciona online e offline
-- Dados salvos localmente como backup
-- Sincronização automática quando conexão é restaurada
-
-### Indicador de Status
-- Mostra status de conexão (Online/Offline)
-- Feedback visual para operações
-- Notificações de erro e sucesso
-
-## 🔒 Segurança
-
-- CORS configurado para múltiplas origens
-- Validação de dados no servidor
-- Tratamento de erros robusto
-- Logs de auditoria para todas as operações
-
-## 📱 Compatibilidade
-
-- **Navegadores:** Chrome, Firefox, Safari, Edge (versões recentes)
-- **Dispositivos:** Desktop, tablet, mobile
-- **Redes:** Funciona em redes locais e internet
-
-## 🚀 Performance
-
-- **WebSocket** para comunicação eficiente
-- **Cache inteligente** no frontend
-- **Lazy loading** para grandes volumes de dados
-- **Debounce** em operações de busca
-- **Compressão** automática no servidor
-
-## 📞 Suporte
-
-Para dúvidas ou problemas:
-1. Verifique os logs do servidor no terminal
-2. Abra o console do navegador (F12)
-3. Verifique a conectividade de rede
-4. Reinicie o servidor se necessário
-
----
-
-**Sistema de Loot de Guilda** - Agora com sincronização em tempo real! 🎮✨
+1. Faça pull das últimas alterações
+2. Verifique se há novas variáveis de ambiente necessárias
+3. Faça push para trigger um novo deploy no Netlify
