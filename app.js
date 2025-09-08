@@ -1178,7 +1178,7 @@ async function main() {
   saveState(state);
 
   // Inicializar sistema de sincronização em tempo real
-
+  initRealtimeSync();
 
   // Listener do tema
   if (themeSwitch) {
@@ -2263,6 +2263,93 @@ function fallbackCopyToClipboard(text) {
     
     document.body.removeChild(textArea);
 }
+
+// Sistema de sincronização em tempo real
+let lastSyncTimestamp = null;
+let syncInterval = null;
+let isCheckingUpdates = false;
+
+function initRealtimeSync() {
+  console.log('Iniciando sincronização em tempo real...');
+  
+  // Verificar mudanças a cada 3 segundos
+  syncInterval = setInterval(checkForUpdates, 3000);
+  
+  // Verificação inicial
+  setTimeout(checkForUpdates, 1000);
+}
+
+async function checkForUpdates() {
+  if (isCheckingUpdates) return;
+  
+  try {
+    isCheckingUpdates = true;
+    
+    const response = await fetch('/.netlify/functions/supabase-api/check-updates', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      
+      // Verificar se há mudanças baseado no timestamp
+      if (data.last_updated && data.last_updated !== lastSyncTimestamp) {
+        console.log('Mudanças detectadas, atualizando interface...');
+        
+        if (data.state) {
+          // Preservar configurações de UI
+          const currentUI = state.ui;
+          
+          // Atualizar estado com novos dados
+          state = data.state;
+          state.ui = currentUI;
+          
+          // Garantir propriedades necessárias
+          if (!state.rotation) state.rotation = {};
+          if (!state.ui) state.ui = { editUnlocked: false };
+          
+          // Garantir flag active e inicializar faltas
+          if (state.players) {
+            state.players.forEach((p) => { 
+              if (typeof p.active === 'undefined') p.active = true;
+              if (typeof p.faults === 'undefined') p.faults = 0;
+            });
+          }
+          
+          // Atualizar interface
+          renderItemsSelect();
+          renderPlayersManager();
+          renderItemsManager();
+          renderTable();
+          renderHistory();
+          
+          // Mostrar notificação discreta
+          showToast('Dados atualizados automaticamente', 'success');
+        }
+        
+        lastSyncTimestamp = data.last_updated;
+      }
+    }
+  } catch (error) {
+    console.warn('Erro na verificação automática:', error);
+  } finally {
+    isCheckingUpdates = false;
+  }
+}
+
+function stopRealtimeSync() {
+  if (syncInterval) {
+    clearInterval(syncInterval);
+    syncInterval = null;
+    console.log('Sincronização em tempo real parada');
+  }
+}
+
+// Parar sincronização quando a página for fechada
+window.addEventListener('beforeunload', stopRealtimeSync);
 
 document.addEventListener("DOMContentLoaded", main);
 

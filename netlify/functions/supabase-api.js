@@ -636,42 +636,70 @@ async function handleSync(data = {}) {
  * Verificar atualizações (compatibilidade com sistema anterior)
  */
 async function handleCheckUpdates() {
-  // Buscar dados atualizados
-  const [playersData, itemsData, historyData] = await Promise.all([
-    getPlayersData(),
-    getItemsData(),
-    getHistoryData({ limit: 50 })
-  ]);
+  try {
+    // Buscar dados atualizados
+    const [playersData, itemsData, historyData] = await Promise.all([
+      getPlayersData(),
+      getItemsData(),
+      getHistoryData({ limit: 50 })
+    ]);
 
-  // Construir o estado no formato esperado pelo frontend
-  const state = {
-    players: playersData.players || [],
-    items: itemsData.items || [],
-    history: historyData.history || [],
-    rotation: {},
-    ui: { editUnlocked: false },
-    lastBatchId: 0
-  };
+    // Construir o estado no formato esperado pelo frontend
+    const state = {
+      players: playersData.players || [],
+      items: itemsData.items || [],
+      history: historyData.history || [],
+      rotation: {},
+      ui: { editUnlocked: false },
+      lastBatchId: 0
+    };
 
-  // Garantir que cada jogador tenha a estrutura correta
-  state.players.forEach(player => {
-    if (!player.counts) player.counts = {};
-    if (typeof player.active === 'undefined') player.active = true;
-    if (typeof player.faults === 'undefined') player.faults = 0;
-    
-    // Garantir que o jogador tenha contadores para todos os itens
-    state.items.forEach(item => {
-      if (typeof player.counts[item] === 'undefined') {
-        player.counts[item] = 0;
-      }
+    // Garantir que cada jogador tenha a estrutura correta
+    state.players.forEach(player => {
+      if (!player.counts) player.counts = {};
+      if (typeof player.active === 'undefined') player.active = true;
+      if (typeof player.faults === 'undefined') player.faults = 0;
+      
+      // Garantir que o jogador tenha contadores para todos os itens
+      state.items.forEach(item => {
+        if (typeof player.counts[item] === 'undefined') {
+          player.counts[item] = 0;
+        }
+      });
     });
-  });
 
-  return {
-    state: state,
-    has_updates: true,
-    timestamp: new Date().toISOString()
-  };
+    // Calcular timestamp da última atualização baseado nos dados mais recentes
+    let lastUpdated = new Date(0).toISOString(); // Data mínima como fallback
+    
+    // Verificar timestamp mais recente do histórico
+    if (state.history && state.history.length > 0) {
+      const latestHistory = state.history.reduce((latest, current) => {
+        const currentTime = new Date(current.timestamp || current.created_at || 0);
+        const latestTime = new Date(latest.timestamp || latest.created_at || 0);
+        return currentTime > latestTime ? current : latest;
+      });
+      
+      if (latestHistory.timestamp || latestHistory.created_at) {
+        lastUpdated = latestHistory.timestamp || latestHistory.created_at;
+      }
+    }
+
+    return {
+      state: state,
+      has_updates: true,
+      last_updated: lastUpdated,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Erro em handleCheckUpdates:', error);
+    return {
+      state: null,
+      has_updates: false,
+      last_updated: null,
+      timestamp: new Date().toISOString(),
+      error: error.message
+    };
+  }
 }
 
 /**
