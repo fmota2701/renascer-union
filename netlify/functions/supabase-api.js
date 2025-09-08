@@ -544,26 +544,25 @@ async function handleSync(data = {}) {
     const { state } = data;
     
     // Sincronizar jogadores
-     if (state.players && Array.isArray(state.players)) {
-       for (const player of state.players) {
-         try {
-           const { error } = await supabase
-             .from('players')
-             .upsert({
-               name: player.name,
-               present: player.present || false
-             }, { onConflict: 'name' });
-           
-           if (error) {
-             syncResults.errors.push(`Erro ao sincronizar jogador ${player.name}: ${error.message}`);
-           } else {
-             syncResults.players_synced++;
-           }
-         } catch (err) {
-           syncResults.errors.push(`Erro ao processar jogador ${player.name}: ${err.message}`);
-         }
-       }
-     }
+      if (state.players && Array.isArray(state.players)) {
+        for (const player of state.players) {
+          try {
+            const { error } = await supabase
+              .from('players')
+              .upsert({
+                name: player.name
+              }, { onConflict: 'name' });
+            
+            if (error) {
+              syncResults.errors.push(`Erro ao sincronizar jogador ${player.name}: ${error.message}`);
+            } else {
+              syncResults.players_synced++;
+            }
+          } catch (err) {
+            syncResults.errors.push(`Erro ao processar jogador ${player.name}: ${err.message}`);
+          }
+        }
+      }
     
     // Sincronizar itens
     if (state.items && Array.isArray(state.items)) {
