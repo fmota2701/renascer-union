@@ -527,23 +527,111 @@ async function createItem(data) {
  * Sincronização (limpar cache e atualizar configurações)
  */
 async function handleSync(data = {}) {
+  console.log('handleSync chamado com dados:', data);
+  
   // Limpar todo o cache
   clearCache();
+  
+  let syncResults = {
+    players_synced: 0,
+    items_synced: 0,
+    history_synced: 0,
+    errors: []
+  };
+  
+  // Se há estado para sincronizar
+  if (data.state) {
+    const { state } = data;
+    
+    // Sincronizar jogadores
+    if (state.players && Array.isArray(state.players)) {
+      for (const player of state.players) {
+        try {
+          const { error } = await supabase
+            .from('players')
+            .upsert({
+              name: player.name,
+              present: player.present || false,
+              faults: player.faults || 0,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'name' });
+          
+          if (error) {
+            syncResults.errors.push(`Erro ao sincronizar jogador ${player.name}: ${error.message}`);
+          } else {
+            syncResults.players_synced++;
+          }
+        } catch (err) {
+          syncResults.errors.push(`Erro ao processar jogador ${player.name}: ${err.message}`);
+        }
+      }
+    }
+    
+    // Sincronizar itens
+    if (state.items && Array.isArray(state.items)) {
+      for (const item of state.items) {
+        try {
+          const { error } = await supabase
+            .from('items')
+            .upsert({
+              name: item.name || item,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'name' });
+          
+          if (error) {
+            syncResults.errors.push(`Erro ao sincronizar item ${item.name || item}: ${error.message}`);
+          } else {
+            syncResults.items_synced++;
+          }
+        } catch (err) {
+          syncResults.errors.push(`Erro ao processar item ${item.name || item}: ${err.message}`);
+        }
+      }
+    }
+    
+    // Sincronizar histórico
+    if (state.history && Array.isArray(state.history)) {
+      for (const entry of state.history) {
+        try {
+          const { error } = await supabase
+            .from('history')
+            .insert({
+              player_name: entry.player,
+              item_name: entry.item,
+              date: entry.date || new Date().toISOString(),
+              created_at: new Date().toISOString()
+            });
+          
+          if (error && !error.message.includes('duplicate')) {
+            syncResults.errors.push(`Erro ao sincronizar histórico: ${error.message}`);
+          } else if (!error) {
+            syncResults.history_synced++;
+          }
+        } catch (err) {
+          syncResults.errors.push(`Erro ao processar entrada do histórico: ${err.message}`);
+        }
+      }
+    }
+  }
   
   // Atualizar data de sincronização
   const { error } = await supabase
     .from('system_config')
-    .update({ value: new Date().toISOString() })
-    .eq('key', 'last_sync_date');
+    .upsert({ 
+      key: 'last_sync_date',
+      value: new Date().toISOString() 
+    }, { onConflict: 'key' });
 
   if (error) {
     console.error('Erro ao atualizar data de sync:', error);
+    syncResults.errors.push(`Erro ao atualizar data de sync: ${error.message}`);
   }
 
   return {
     message: 'Sincronização realizada com sucesso',
     cache_cleared: true,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    sync_results: syncResults
   };
 }
 

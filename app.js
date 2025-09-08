@@ -48,6 +48,8 @@ function saveState(state) {
 // Função para sincronizar com Supabase
 async function syncStateToSupabase(state) {
   try {
+    console.log('Iniciando sincronização com Supabase...', state);
+    
     const response = await fetch('/.netlify/functions/supabase-api/sync', {
       method: 'POST',
       headers: {
@@ -59,14 +61,20 @@ async function syncStateToSupabase(state) {
       })
     });
 
+    console.log('Resposta da API:', response.status, response.statusText);
+    
     if (response.ok) {
-      console.log('Estado sincronizado com Supabase');
+      const result = await response.json();
+      console.log('Estado sincronizado com Supabase:', result);
+      showToast('Dados sincronizados com sucesso!', 'success');
     } else {
-      throw new Error('Erro na resposta do servidor');
+      const errorText = await response.text();
+      console.error('Erro na resposta do servidor:', response.status, errorText);
+      throw new Error(`Erro ${response.status}: ${errorText}`);
     }
   } catch (error) {
     console.error('Erro ao sincronizar com Supabase:', error);
-    showToast('Dados salvos localmente. Sincronização com Supabase falhou.', 'warning');
+    showToast('Dados salvos localmente. Sincronização com Supabase falhou: ' + error.message, 'warning');
   }
 }
 
