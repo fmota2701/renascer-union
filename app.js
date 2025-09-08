@@ -7,64 +7,48 @@ const DEFAULT_ITEMS = [
   "Arcanjo",
 ];
 
-// Integração com Google Sheets via Netlify Functions
+// Integração com Supabase via Netlify Functions
 
 async function loadState() {
   try {
-    // Sempre carregar do Google Sheets em produção
-    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-      console.log('Carregando dados do Google Sheets...');
-      const response = await fetch('/.netlify/functions/sheets-api/check-updates', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.state) {
-          console.log('Dados carregados do Google Sheets');
-          return data.state;
-        }
+    console.log('Carregando dados do Supabase...');
+    const response = await fetch('/.netlify/functions/supabase-api/check-updates', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.state) {
+        console.log('Dados carregados do Supabase');
+        return data.state;
       }
     }
     return null;
   } catch (error) {
-    console.error('Erro ao carregar dados do Google Sheets:', error);
+    console.error('Erro ao carregar dados do Supabase:', error);
     return null;
   }
 }
 
-// Sistema de sincronização em tempo real
-let realTimeSync = {
-  enabled: localStorage.getItem('realTimeSync.enabled') !== 'false', // padrão true
-  interval: parseInt(localStorage.getItem('realTimeSync.interval')) || 5000, // 5 segundos
-  lastSync: null,
-  syncInProgress: false
-};
-
 function saveState(state) {
   try {
-    // Sincronização direta com Google Sheets (sem cache local)
-    if (realTimeSync.enabled && !realTimeSync.syncInProgress) {
-      syncStateToSheets(state);
-    }
+    // Salvar no localStorage como backup
+    localStorage.setItem('guild_state', JSON.stringify(state));
+    
+    // Sincronizar com Supabase
+    syncStateToSupabase(state);
   } catch (error) {
     console.error('Erro ao salvar estado:', error);
   }
 }
 
-// Função para sincronizar com Google Sheets
-async function syncStateToSheets(state) {
-  if (realTimeSync.syncInProgress) return;
-  
-  realTimeSync.syncInProgress = true;
-  updateSyncIndicator('syncing', 'Sincronizando com Google Sheets...');
-  
+// Função para sincronizar com Supabase
+async function syncStateToSupabase(state) {
   try {
-    // Sempre usar a API do Google Sheets (mesmo em desenvolvimento)
-    const response = await fetch('/.netlify/functions/sheets-api/sync', {
+    const response = await fetch('/.netlify/functions/supabase-api/sync', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -76,130 +60,19 @@ async function syncStateToSheets(state) {
     });
 
     if (response.ok) {
-      realTimeSync.lastSync = new Date();
-      updateSyncIndicator('success', `Sincronizado com Google Sheets às ${realTimeSync.lastSync.toLocaleTimeString('pt-BR')}`);
-      showToast('Dados salvos no Google Sheets!', 'success');
+      console.log('Estado sincronizado com Supabase');
     } else {
       throw new Error('Erro na resposta do servidor');
     }
   } catch (error) {
-    console.error('Erro ao sincronizar com Google Sheets:', error);
-    updateSyncIndicator('error', 'Erro na sincronização com Google Sheets');
-    showToast('Erro ao salvar no Google Sheets. Verifique a conexão.', 'error');
-  } finally {
-    realTimeSync.syncInProgress = false;
+    console.error('Erro ao sincronizar com Supabase:', error);
+    showToast('Dados salvos localmente. Sincronização com Supabase falhou.', 'warning');
   }
 }
 
-// Função para verificar mudanças no Google Sheets
-async function checkForUpdates() {
-  if (realTimeSync.syncInProgress) return;
-  
-  try {
-    // Sempre verificar mudanças no Google Sheets
-    const response = await fetch('/.netlify/functions/sheets-api/check-updates', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
 
-    if (response.ok) {
-      const data = await response.json();
-      if (data.hasUpdates && data.state) {
-        // Atualizar estado global com dados do Google Sheets
-        const newState = data.state;
-        
-        // Atualizar estado global
-        Object.assign(state, newState);
-        
-        // Re-renderizar interface
-        renderTable();
-        renderPlayersManager();
-        renderItemsManager();
-        renderHistory();
-        renderDashboard();
-        
-        updateSyncIndicator('success', 'Dados atualizados do Google Sheets');
-        showToast('Dados sincronizados do Google Sheets!', 'info');
-      }
-    }
-  } catch (error) {
-    console.error('Erro ao verificar atualizações do Google Sheets:', error);
-  }
-}
 
-// Inicializar sincronização em tempo real
-let syncIntervalId = null;
 
-function initRealTimeSync() {
-  // Iniciar polling se habilitado
-  if (realTimeSync.enabled) {
-    startRealTimePolling();
-  }
-  
-  // Sincronizar imediatamente ao carregar
-  setTimeout(() => syncStateToSheets(state), 1000);
-  
-  console.log('Sistema de sincronização em tempo real iniciado');
-}
-
-// Iniciar polling em tempo real
-function startRealTimePolling() {
-  if (syncIntervalId) {
-    clearInterval(syncIntervalId);
-  }
-  
-  syncIntervalId = setInterval(checkForUpdates, realTimeSync.interval);
-  console.log(`Polling iniciado com intervalo de ${realTimeSync.interval}ms`);
-}
-
-// Parar polling em tempo real
-function stopRealTimePolling() {
-  if (syncIntervalId) {
-    clearInterval(syncIntervalId);
-    syncIntervalId = null;
-    console.log('Polling pausado');
-  }
-}
-
-// Alternar sincronização em tempo real
-function toggleRealTimeSync() {
-  realTimeSync.enabled = !realTimeSync.enabled;
-  
-  if (realTimeSync.enabled) {
-    startRealTimePolling();
-    updateSyncIndicator('success', 'Sincronização em tempo real ativada');
-    showToast('Sincronização em tempo real ativada!', 'success');
-  } else {
-    stopRealTimePolling();
-    updateSyncIndicator('warning', 'Sincronização em tempo real pausada');
-    showToast('Sincronização em tempo real pausada', 'warning');
-  }
-  
-  // Salvar preferência
-  localStorage.setItem('realTimeSync.enabled', realTimeSync.enabled);
-  
-  // Re-renderizar para atualizar botões
-  renderPlayersManager();
-}
-
-// Atualizar intervalo de sincronização
-function updateSyncInterval(newInterval) {
-  const interval = parseInt(newInterval);
-  realTimeSync.interval = interval;
-  
-  // Salvar preferência
-  localStorage.setItem('realTimeSync.interval', interval);
-  
-  // Reiniciar polling com novo intervalo se ativo
-  if (realTimeSync.enabled) {
-    startRealTimePolling();
-  }
-  
-  showToast(`Intervalo de sincronização alterado para ${interval/1000}s`, 'info');
-  console.log(`Intervalo de sincronização alterado para ${interval}ms`);
-}
 
 function createEmptyState() {
   return {
@@ -211,7 +84,7 @@ function createEmptyState() {
   };
 }
 
-// Inicializar com estado vazio - será carregado do Google Sheets na função main
+// Inicializar com estado vazio - será carregado do Supabase na função main
 let state = createEmptyState();
 // Garantir que o estado tenha todas as propriedades necessárias
 if (!state.rotation) state.rotation = {};
@@ -653,41 +526,14 @@ function renderPlayersManager() {
   const wrap = document.getElementById('players-manager');
   if (!wrap) return;
   
-  // Adicionar indicador de sincronização com controles de tempo real
-  const syncStatus = `
-    <div class="sync-status" style="margin-bottom: 15px; padding: 12px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #4caf50;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-        <span id="sync-indicator" class="sync-indicator">🔄 Sincronizado com Google Sheets</span>
-        <div style="display: flex; gap: 8px;">
-          <button id="btn-toggle-realtime" class="ghost small" onclick="toggleRealTimeSync()">
-            ${realTimeSync.enabled ? '⏸️ Pausar' : '▶️ Ativar'} Tempo Real
-          </button>
-          <button id="btn-sync-now" class="ghost small" onclick="syncPlayersNow()">🔄 Sincronizar</button>
-        </div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 15px; font-size: 12px; color: #666;">
-        <label style="display: flex; align-items: center; gap: 5px;">
-          Intervalo:
-          <select id="sync-interval" onchange="updateSyncInterval(this.value)" style="padding: 2px 5px; border-radius: 4px;">
-            <option value="3000" ${realTimeSync.interval === 3000 ? 'selected' : ''}>3s</option>
-            <option value="5000" ${realTimeSync.interval === 5000 ? 'selected' : ''}>5s</option>
-            <option value="10000" ${realTimeSync.interval === 10000 ? 'selected' : ''}>10s</option>
-            <option value="30000" ${realTimeSync.interval === 30000 ? 'selected' : ''}>30s</option>
-          </select>
-        </label>
-        <span>Status: <strong>${realTimeSync.enabled ? 'Ativo' : 'Pausado'}</strong></span>
-        ${realTimeSync.lastSync ? `<span>Última sync: ${realTimeSync.lastSync.toLocaleTimeString('pt-BR')}</span>` : ''}
-      </div>
-    </div>
-  `;
+
   
-  wrap.innerHTML = syncStatus + state.players.map(p => `
-    <div class="row" data-name="${p.name}" style="border-left: ${p.syncedAt ? '4px solid #4caf50' : '4px solid #ff9800'}; margin-bottom: 10px; padding: 10px;">
+  wrap.innerHTML = state.players.map(p => `
+    <div class="row" data-name="${p.name}" style="border-left: 4px solid #4caf50; margin-bottom: 10px; padding: 10px;">
       <div class="player-info">
         <span class="name" style="font-weight: bold; font-size: 16px;">${p.name}</span>
         <div class="player-meta" style="font-size: 12px; color: #666; margin-top: 5px;">
           <div>📅 Cadastrado: ${p.createdAt || 'Data não disponível'}</div>
-          ${p.syncedAt ? `<div>✅ Sincronizado: ${p.syncedAt}</div>` : '<div style="color: #ff9800;">⚠️ Aguardando sincronização</div>'}
         </div>
       </div>
       <span class="actions">
@@ -1286,7 +1132,7 @@ async function main() {
   saveState(state);
 
   // Inicializar sistema de sincronização em tempo real
-  initRealTimeSync();
+
 
   // Listener do tema
   if (themeSwitch) {
@@ -1323,83 +1169,8 @@ function showToast(msg, type = 'info') {
   setTimeout(()=>{ t.remove(); }, type === 'error' ? 5000 : 3000);
 }
 
-// Funções de sincronização com Google Sheets
-async function syncPlayerToSheets(player) {
-  try {
-    const response = await fetch('/.netlify/functions/sheets-api/players', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: player.name,
-        createdAt: player.createdAt,
-        active: player.active,
-        faults: player.faults || 0
-      })
-    });
 
-    if (response.ok) {
-      // Atualizar o jogador com informação de sincronização
-      const playerIndex = state.players.findIndex(p => p.name === player.name);
-      if (playerIndex !== -1) {
-        state.players[playerIndex].syncedAt = new Date().toLocaleString('pt-BR');
-        saveState(state);
-        updateSyncIndicator('success', 'Jogador sincronizado com Google Sheets');
-      }
-    } else {
-      throw new Error('Erro na resposta do servidor');
-    }
-  } catch (error) {
-    console.error('Erro ao sincronizar jogador:', error);
-    updateSyncIndicator('error', 'Erro ao sincronizar com Google Sheets');
-    showToast('Jogador salvo localmente. Sincronização com Google Sheets falhou.', 'warning');
-  }
-}
 
-async function syncPlayersNow() {
-  const unsyncedPlayers = state.players.filter(p => !p.syncedAt);
-  
-  if (unsyncedPlayers.length === 0) {
-    showToast('Todos os jogadores já estão sincronizados!', 'info');
-    return;
-  }
-
-  updateSyncIndicator('syncing', 'Sincronizando jogadores...');
-  
-  let syncedCount = 0;
-  for (const player of unsyncedPlayers) {
-    try {
-      await syncPlayerToSheets(player);
-      syncedCount++;
-    } catch (error) {
-      console.error(`Erro ao sincronizar ${player.name}:`, error);
-    }
-  }
-  
-  if (syncedCount === unsyncedPlayers.length) {
-    showToast(`${syncedCount} jogadores sincronizados com sucesso!`, 'success');
-  } else {
-    showToast(`${syncedCount}/${unsyncedPlayers.length} jogadores sincronizados`, 'warning');
-  }
-  
-  renderPlayersManager();
-}
-
-function updateSyncIndicator(status, message) {
-  const indicator = document.getElementById('sync-indicator');
-  if (!indicator) return;
-  
-  const icons = {
-    success: '✅',
-    error: '❌',
-    syncing: '🔄',
-    warning: '⚠️'
-  };
-  
-  indicator.innerHTML = `${icons[status] || 'ℹ️'} ${message}`;
-  indicator.className = `sync-indicator sync-${status}`;
-}
 
 function flashCells(assignments) {
   // marca as células (item, jogador) alteradas

@@ -1,6 +1,6 @@
 # Sistema de Distribuição de Itens da Guilda
 
-Sistema web para gerenciar a distribuição de itens entre membros de uma guilda, usando Google Sheets como banco de dados e hospedado no Netlify.
+Sistema web para gerenciar a distribuição de itens entre membros de uma guilda, usando Supabase como banco de dados e hospedado no Netlify.
 
 ## 🚀 Funcionalidades
 
@@ -10,43 +10,28 @@ Sistema web para gerenciar a distribuição de itens entre membros de uma guilda
 - ✅ Dashboard com estatísticas
 - ✅ Tema claro/escuro
 - ✅ Exportação/Importação de dados
-- ✅ Integração com Google Sheets
+- ✅ Integração com Supabase
 - ✅ Deploy automático no Netlify
 
 ## 📋 Pré-requisitos
 
-1. Conta no Google Cloud Platform
+1. Conta no Supabase
 2. Conta no Netlify
-3. Planilha do Google Sheets configurada
 
 ## 🛠️ Configuração
 
-### 1. Google Cloud Platform
+### 1. Supabase
 
-1. Acesse o [Google Cloud Console](https://console.cloud.google.com/)
-2. Crie um novo projeto ou selecione um existente
-3. Ative a API do Google Sheets:
-   - Vá para "APIs & Services" > "Library"
-   - Procure por "Google Sheets API" e ative
-4. Crie um Service Account:
-   - Vá para "APIs & Services" > "Credentials"
-   - Clique em "Create Credentials" > "Service Account"
-   - Preencha os dados e clique em "Create"
-   - Na aba "Keys", clique em "Add Key" > "Create New Key" > "JSON"
-   - Baixe o arquivo JSON (você precisará dele depois)
+1. Acesse o [Supabase](https://supabase.com/)
+2. Crie uma nova conta ou faça login
+3. Crie um novo projeto
+4. Vá para Settings > API para obter:
+   - Project URL
+   - Anon public key
+   - Service role key (para operações administrativas)
+5. Execute o script de criação das tabelas (disponível em `supabase-schema.sql`)
 
-### 2. Google Sheets
-
-1. Crie uma nova planilha no Google Sheets
-2. Crie as seguintes abas:
-   - `Jogadores` - para armazenar dados dos jogadores
-   - `Itens` - para armazenar dados dos itens
-   - `Histórico` - para armazenar histórico de distribuições
-   - `Configurações` - para configurações gerais
-3. Compartilhe a planilha com o email do Service Account (encontrado no arquivo JSON baixado)
-4. Copie o ID da planilha da URL (a parte entre `/d/` e `/edit`)
-
-### 3. Netlify
+### 2. Netlify
 
 1. Faça fork deste repositório
 2. Conecte sua conta do Netlify ao GitHub
@@ -55,8 +40,8 @@ Sistema web para gerenciar a distribuição de itens entre membros de uma guilda
    - Vá para "Site Settings" > "Environment Variables"
    - Adicione as seguintes variáveis:
      ```
-     GOOGLE_SPREADSHEET_ID=seu_id_da_planilha
-     GOOGLE_SERVICE_ACCOUNT_KEY=conteudo_do_arquivo_json_em_uma_linha
+     SUPABASE_URL=sua_url_do_supabase
+     SUPABASE_ANON_KEY=sua_chave_publica_do_supabase
      ```
 
 ## 🚀 Deploy
@@ -73,15 +58,9 @@ Sistema web para gerenciar a distribuição de itens entre membros de uma guilda
 ├── app.js                   # Lógica principal da aplicação
 ├── style.css               # Estilos CSS
 ├── netlify.toml            # Configurações do Netlify
-├── src/
-│   ├── config/
-│   │   └── config.js       # Configurações da aplicação
-│   └── services/
-│       └── googleSheets.js # Serviço de integração com Google Sheets
-└── netlify/
-    └── functions/
-        ├── package.json    # Dependências das funções
-        └── sheets-api.js   # Função serverless para API
+├── supabase-api.js         # Serviço de integração com Supabase
+├── supabase-schema.sql     # Schema das tabelas do Supabase
+└── SUPABASE_SETUP.md       # Guia de configuração do Supabase
 ```
 
 ## 🔧 Desenvolvimento Local
@@ -91,22 +70,24 @@ Sistema web para gerenciar a distribuição de itens entre membros de uma guilda
 3. Execute: `netlify dev`
 4. Acesse `http://localhost:8888`
 
-## 📊 Estrutura das Planilhas
+## 📊 Estrutura do Banco de Dados
 
-### Aba "Jogadores"
-| Nome | Item1 | Item2 | Item3 | Ativo | Faltas |
-|------|-------|-------|-------|-------|--------|
-| João | 5     | 3     | 2     | TRUE  | 0      |
+### Tabela "players"
+| id | name | active | faults | created_at | updated_at |
+|----|------|--------|--------|------------|------------|
+| 1  | João | true   | 0      | timestamp  | timestamp  |
 
-### Aba "Itens"
-| Nome           | Ativo |
-|----------------|-------|
-| Cristal do Caos| TRUE  |
+### Tabela "items"
+| id | name | created_at |
+|----|------|------------|
+| 1  | Cristal do Caos | timestamp |
 
-### Aba "Histórico"
-| Data | Jogador | Item | Quantidade | Observações |
-|------|---------|------|------------|-------------|
-| 2024-01-15 | João | Cristal | 1 | Distribuição automática |
+### Tabela "distributions"
+| id | player_name | item_name | quantity | distributed_at |
+|----|-------------|-----------|----------|----------------|
+| 1  | João        | Cristal   | 1        | timestamp      |
+
+
 
 ## 🤝 Contribuição
 
@@ -125,8 +106,8 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 Se você encontrar algum problema ou tiver dúvidas:
 
 1. Verifique se todas as variáveis de ambiente estão configuradas corretamente
-2. Confirme se a planilha está compartilhada com o Service Account
-3. Verifique os logs do Netlify Functions para erros
+2. Confirme se as tabelas do Supabase foram criadas corretamente
+3. Verifique os logs do Netlify para erros
 4. Abra uma issue neste repositório
 
 ## 🔄 Atualizações

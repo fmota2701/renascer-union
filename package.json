@@ -1,7 +1,7 @@
 {
   "name": "guild-loot-distribution",
   "version": "1.0.0",
-  "description": "Sistema de distribuição de itens da guilda com Google Sheets",
+  "description": "Sistema de distribuição de itens da guilda com Supabase",
   "main": "index.html",
   "scripts": {
     "dev": "netlify dev",
@@ -12,17 +12,14 @@
     "guild",
     "loot",
     "distribution",
-    "google-sheets",
+    "supabase",
     "netlify"
   ],
   "author": "Guild Management",
   "license": "MIT",
   "dependencies": {
     "@supabase/supabase-js": "^2.57.2",
-    "dotenv": "^17.2.2",
-    "google-auth-library": "^9.0.0",
-    "google-spreadsheet": "^4.1.2",
-    "googleapis": "^128.0.0"
+    "dotenv": "^17.2.2"
   },
   "devDependencies": {
     "netlify-cli": "^17.0.0"
