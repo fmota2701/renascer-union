@@ -637,16 +637,38 @@ async function handleSync(data = {}) {
  */
 async function handleCheckUpdates() {
   // Buscar dados atualizados
-  const [players, items, history] = await Promise.all([
+  const [playersData, itemsData, historyData] = await Promise.all([
     getPlayersData(),
     getItemsData(),
     getHistoryData({ limit: 50 })
   ]);
 
+  // Construir o estado no formato esperado pelo frontend
+  const state = {
+    players: playersData.players || [],
+    items: itemsData.items || [],
+    history: historyData.history || [],
+    rotation: {},
+    ui: { editUnlocked: false },
+    lastBatchId: 0
+  };
+
+  // Garantir que cada jogador tenha a estrutura correta
+  state.players.forEach(player => {
+    if (!player.counts) player.counts = {};
+    if (typeof player.active === 'undefined') player.active = true;
+    if (typeof player.faults === 'undefined') player.faults = 0;
+    
+    // Garantir que o jogador tenha contadores para todos os itens
+    state.items.forEach(item => {
+      if (typeof player.counts[item] === 'undefined') {
+        player.counts[item] = 0;
+      }
+    });
+  });
+
   return {
-    players: players,
-    items: items,
-    history: history,
+    state: state,
     has_updates: true,
     timestamp: new Date().toISOString()
   };
