@@ -57,10 +57,18 @@ exports.handler = async (event, context) => {
 
     switch (httpMethod) {
       case 'GET':
-        return await handleGet(doc, action);
+        if (action === 'check-updates') {
+          return await handleCheckUpdates(doc);
+        } else {
+          return await handleGet(doc, action);
+        }
       
       case 'POST':
-        return await handlePost(doc, action, JSON.parse(body || '{}'));
+        if (action === 'sync') {
+          return await handleSync(doc, JSON.parse(body || '{}'));
+        } else {
+          return await handlePost(doc, action, JSON.parse(body || '{}'));
+        }
       
       case 'PUT':
         return await handlePut(doc, action, JSON.parse(body || '{}'));
@@ -416,56 +424,110 @@ async function distributeItem(doc, distributionData) {
 // Escrever dados genéricos em uma aba da planilha
 async function writeToSheet(doc, data) {
   try {
-    const { sheetName, range, values } = data;
+    // Obter ou criar aba "Estado"
+    let stateSheet;
+    try {
+      stateSheet = doc.sheetsByTitle['Estado'];
+    } catch (error) {
+      stateSheet = await doc.addSheet({ title: 'Estado' });
+    }
+
+    // Limpar conteúdo existente
+    await stateSheet.clear();
+
+    // Preparar dados para escrita
+    const rows = [];
     
-    if (!sheetName || !values) {
+    // Cabeçalho
+    rows.push(['Tipo', 'Dados', 'Timestamp']);
+    
+    // Dados do estado
+    rows.push([
+      'Estado Completo',
+      JSON.stringify(data),
+      new Date().toISOString()
+    ]);
+
+    // Escrever dados
+    await stateSheet.addRows(rows);
+
+    return {
+      success: true,
+      message: 'Estado salvo com sucesso',
+      timestamp: new Date().toISOString()
+    };
+
+  } catch (error) {
+    console.error('Erro ao escrever no Google Sheets:', error);
+    throw new Error(`Erro ao salvar estado: ${error.message}`);
+  }
+}
+
+// Função para sincronização em tempo real
+async function handleSync(doc, data) {
+  try {
+    const { state, timestamp } = data;
+    
+    // Salvar estado completo
+    const result = await writeToSheet(doc, {
+      ...state,
+      lastSync: timestamp
+    });
+    
+    return {
+      success: true,
+      message: 'Sincronização realizada com sucesso',
+      timestamp: new Date().toISOString()
+    };
+    
+  } catch (error) {
+    console.error('Erro na sincronização:', error);
+    throw new Error(`Erro na sincronização: ${error.message}`);
+  }
+}
+
+// Função para verificar atualizações
+async function handleCheckUpdates(doc) {
+  try {
+    // Obter aba "Estado"
+    let stateSheet;
+    try {
+      stateSheet = doc.sheetsByTitle['Estado'];
+    } catch (error) {
       return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'sheetName e values são obrigatórios' })
+        hasUpdates: false,
+        message: 'Nenhum estado encontrado'
       };
     }
+
+    // Carregar dados da planilha
+    const rows = await stateSheet.getRows();
     
-    // Carregar a planilha
-    await doc.loadInfo();
-    
-    // Obter ou criar a aba
-    let sheet = doc.sheetsByTitle[sheetName];
-    if (!sheet) {
-      sheet = await doc.addSheet({ title: sheetName });
+    if (rows.length === 0) {
+      return {
+        hasUpdates: false,
+        message: 'Nenhum dado encontrado'
+      };
     }
+
+    // Obter último estado salvo
+    const lastRow = rows[rows.length - 1];
+    const stateData = JSON.parse(lastRow.get('Dados') || '{}');
+    const lastUpdate = lastRow.get('Timestamp');
     
-    // Limpar a aba antes de escrever (opcional)
-    await sheet.clear();
-    
-    // Escrever os dados
-    if (values.length > 0) {
-      await sheet.addRows(values.slice(1), { insert: false }); // Pular cabeçalho
-      
-      // Definir cabeçalhos se fornecidos
-      if (values[0]) {
-        await sheet.setHeaderRow(values[0]);
-      }
-    }
-    
+    // Verificar se há atualizações (sempre retorna true para forçar sincronização)
     return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ 
-        success: true, 
-        message: `Dados escritos na aba '${sheetName}' com sucesso`,
-        rowsWritten: values.length
-      })
+      hasUpdates: true,
+      state: stateData,
+      lastUpdate: lastUpdate,
+      message: 'Dados atualizados disponíveis'
     };
+    
   } catch (error) {
-    console.error('Erro ao escrever na planilha:', error);
+    console.error('Erro ao verificar atualizações:', error);
     return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ 
-        error: 'Erro ao escrever na planilha', 
-        details: error.message 
-      })
+      hasUpdates: false,
+      error: error.message
     };
   }
 }
