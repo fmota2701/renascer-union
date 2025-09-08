@@ -558,7 +558,7 @@ function renderPlayersManager() {
       const row = btn.closest('.row');
       const name = row?.dataset.name;
       if (!name) return;
-      if (!confirm(`Excluir jogador "${name}"? Esta ação também removerá o jogador da planilha do Google Sheets.`)) return;
+      if (!confirm(`Excluir jogador "${name}"?`)) return;
       deletePlayer(name);
     });
   });
@@ -835,8 +835,22 @@ function setupEvents() {
     saveState(state);
     e.target.reset();
     
-    // Tentar sincronizar com Google Sheets
-    await syncPlayerToSheets(newPlayer);
+    // Sincronizar com Supabase
+    try {
+      const response = await fetch('/.netlify/functions/supabase-api/players', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name })
+      });
+      
+      if (!response.ok) {
+        console.error('Erro ao sincronizar jogador com Supabase:', await response.text());
+      }
+    } catch (error) {
+      console.error('Erro ao sincronizar jogador:', error);
+    }
     
     renderTable();
     renderPlayersManager();
@@ -1099,7 +1113,7 @@ async function main() {
   const themeSwitch = document.getElementById('theme-switch');
   if (themeSwitch) themeSwitch.checked = document.body.classList.contains('dark');
 
-  // Carregar dados do Google Sheets
+  // Carregar dados do Supabase
   try {
     const loadedState = await loadState();
     if (loadedState) {
@@ -1112,13 +1126,13 @@ async function main() {
         if (typeof p.active === 'undefined') p.active = true;
         if (typeof p.faults === 'undefined') p.faults = 0;
       });
-      console.log('Dados carregados do Google Sheets');
-      showToast('Dados carregados do Google Sheets!', 'success');
+      console.log('Dados carregados do Supabase');
+      showToast('Dados carregados do Supabase!', 'success');
     } else {
-      console.log('Usando estado padrão - nenhum dado encontrado no Google Sheets');
+      console.log('Usando estado padrão - nenhum dado encontrado no Supabase');
     }
   } catch (error) {
-    console.warn('Erro ao carregar dados do Google Sheets:', error);
+    console.warn('Erro ao carregar dados do Supabase:', error);
     showToast('Erro ao carregar dados. Usando dados padrão.', 'warning');
   }
 
