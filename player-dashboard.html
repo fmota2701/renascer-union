@@ -1526,8 +1526,8 @@
             try {
                 console.log('🔍 Verificando status do jogador no Supabase:', playerNick);
                 
-                // Buscar status do jogador no Supabase
-                const response = await fetch(`/.netlify/functions/supabase-api/player-selections?player_name=${encodeURIComponent(playerNick)}`);
+                // Buscar todas as seleções de jogadores
+                const response = await fetch('/.netlify/functions/supabase-api/player-selections');
                 
                 if (!response.ok) {
                     throw new Error(`Erro HTTP: ${response.status}`);
@@ -1540,6 +1540,7 @@
                 }
                 
                 // Verificar se o jogador está marcado como presente
+                // Buscar por qualquer registro do jogador que esteja marcado como selecionado
                 const playerSelection = result.data.find(selection => 
                     selection.player_name === playerNick && selection.is_selected === true
                 );
@@ -1547,12 +1548,19 @@
                 const isMarked = !!playerSelection;
                 
                 console.log('✅ Status do jogador:', playerNick, 'Marcado como presente:', isMarked);
+                console.log('📊 Dados encontrados:', result.data.filter(s => s.player_name === playerNick));
                 
                 // Ativar/desativar botão baseado no status
                 toggleChooseItemsButton(isMarked);
                 
-                // Dados agora são gerenciados exclusivamente pelo Supabase
-                // Removido localStorage para evitar inconsistências
+                // Atualizar localStorage para compatibilidade
+                const playerSelections = {};
+                result.data.forEach(selection => {
+                    if (selection.is_selected) {
+                        playerSelections[selection.player_name] = true;
+                    }
+                });
+                localStorage.setItem('playerSelections', JSON.stringify(playerSelections));
                 
             } catch (error) {
                 console.error('❌ Erro ao verificar status do jogador:', error);
