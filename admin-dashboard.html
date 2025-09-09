@@ -6,62 +6,180 @@
     <title>Admin Dashboard - Distribuição de Itens</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .admin-header {
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            background: #f5f7fa;
+        }
+        
+        .sidebar {
+            width: 280px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
         }
         
-        .admin-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
         }
         
-        .admin-avatar {
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            gap: 10px;
         }
         
-        .admin-details h2 {
-            margin: 0;
-            font-size: 24px;
+        .sidebar-menu {
+            padding: 20px 0;
         }
         
-        .admin-details p {
-            margin: 5px 0 0 0;
-            opacity: 0.9;
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-size: 16px;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            padding-left: 35px;
+        }
+        
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-right: 4px solid white;
+        }
+        
+        .menu-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .logout-section {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 20px;
         }
         
         .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
             color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            padding: 10px 20px;
-            border-radius: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-decoration: none;
+            width: 100%;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
         }
         
         .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            padding: 30px;
+            flex: 1;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .admin-header {
+            background: white;
+            color: #333;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .page-subtitle {
+            color: #666;
+            margin: 0;
+            font-size: 16px;
+        }
+        
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        #dashboard-section {
+            display: block;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .section-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: #5a6268;
             transform: translateY(-2px);
         }
         
@@ -187,19 +305,55 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="admin-header">
-            <div class="admin-info">
-                <div class="admin-avatar">👑</div>
-                <div class="admin-details">
-                    <h2>Painel do Administrador</h2>
-                    <p>Acesso completo ao sistema</p>
-                </div>
-            </div>
+    <!-- Menu Lateral -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>👑 Admin Panel</h2>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <button class="menu-item active" onclick="showDashboard()">
+                <span class="menu-icon">🏠</span>
+                <span>Dashboard</span>
+            </button>
+            <button class="menu-item" onclick="showAdminSection('players')">
+                <span class="menu-icon">👥</span>
+                <span>Jogadores</span>
+            </button>
+            <button class="menu-item" onclick="showAdminSection('items')">
+                <span class="menu-icon">📦</span>
+                <span>Itens</span>
+            </button>
+            <button class="menu-item" onclick="showAdminSection('distribute')">
+                <span class="menu-icon">🎯</span>
+                <span>Distribuição</span>
+            </button>
+            <button class="menu-item" onclick="showAdminSection('stats')">
+                <span class="menu-icon">📊</span>
+                <span>Relatórios</span>
+            </button>
+            <button class="menu-item" onclick="showAdminSection('config')">
+                <span class="menu-icon">⚙️</span>
+                <span>Configurações</span>
+            </button>
+        </nav>
+        
+        <div class="logout-section">
             <button class="logout-btn" onclick="logout()">
                 🚪 Sair
             </button>
         </div>
+    </div>
+    
+    <!-- Conteúdo Principal -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Dashboard Principal -->
+            <div id="dashboard-section" class="section active">
+                <div class="admin-header">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Visão geral do sistema</p>
+                </div>
         
         <div class="dashboard-stats">
             <div class="stat-card">
@@ -224,92 +378,13 @@
             </div>
         </div>
         
-        <div class="quick-actions">
-            <div class="action-card">
-                <div class="action-header">
-                    <div class="action-icon">👥</div>
-                    <div class="action-title">Gerenciar Jogadores</div>
+                <div id="dash-stats" class="summary-cards"></div>
+                <div class="dashboard-actions">
+                    <button id="btn-copy-winners" class="primary">📋 Copiar Ganhadores</button>
                 </div>
-                <div class="action-description">
-                    Adicionar, editar ou remover jogadores do sistema
-                </div>
-                <button class="action-button" onclick="showAdminSection('players')">
-                    Abrir Gerenciamento
-                </button>
+                <h3>Ranking de Jogadores por Item</h3>
+                <div id="ranking-container" class="ranking-container"></div>
             </div>
-            
-            <div class="action-card">
-                <div class="action-header">
-                    <div class="action-icon">📦</div>
-                    <div class="action-title">Gerenciar Itens</div>
-                </div>
-                <div class="action-description">
-                    Cadastrar novos itens e gerenciar o inventário
-                </div>
-                <button class="action-button" onclick="showAdminSection('items')">
-                    Abrir Inventário
-                </button>
-            </div>
-            
-            <div class="action-card">
-                <div class="action-header">
-                    <div class="action-icon">🎯</div>
-                    <div class="action-title">Distribuir Itens</div>
-                </div>
-                <div class="action-description">
-                    Distribuir itens para jogadores e gerenciar drops
-                </div>
-                <button class="action-button" onclick="showAdminSection('distribute')">
-                    Abrir Distribuição
-                </button>
-            </div>
-            
-            <div class="action-card">
-                <div class="action-header">
-                    <div class="action-icon">📊</div>
-                    <div class="action-title">Relatórios</div>
-                </div>
-                <div class="action-description">
-                    Visualizar estatísticas e histórico completo
-                </div>
-                <button class="action-button" onclick="showAdminSection('stats')">
-                    Ver Relatórios
-                </button>
-            </div>
-            
-            <div class="action-card">
-                <div class="action-header">
-                    <div class="action-icon">⚙️</div>
-                    <div class="action-title">Configurações</div>
-                </div>
-                <div class="action-description">
-                    Configurar sistema e preferências avançadas
-                </div>
-                <button class="action-button" onclick="showAdminSection('config')">
-                    Abrir Configurações
-                </button>
-            </div>
-            
-            <div class="action-card">
-                <div class="action-header">
-                    <div class="action-icon">🔄</div>
-                    <div class="action-title">Sincronização</div>
-                </div>
-                <div class="action-description">
-                    Sincronizar dados e fazer backup do sistema
-                </div>
-                <button class="action-button" onclick="syncData()">
-                    Sincronizar Agora
-                </button>
-            </div>
-        </div>
-        
-        <div id="dash-stats" class="summary-cards"></div>
-        <div class="dashboard-actions">
-            <button id="btn-copy-winners" class="primary">📋 Copiar Ganhadores</button>
-        </div>
-        <h3>Ranking de Jogadores por Item</h3>
-        <div id="ranking-container" class="ranking-container"></div>
         
         <!-- Seções do sistema original -->
         <div id="players-section" class="section" style="display: none;">
@@ -408,6 +483,7 @@
             </div>
             <!-- Conteúdo será carregado do sistema original -->
         </div>
+    </div>
     </div>
 
     <div id="toast-container"></div>
@@ -649,6 +725,44 @@
         
         // Atualizar estatísticas a cada 30 segundos
         setInterval(loadDashboardStats, 30000);
+        
+        // Gerenciar menu lateral ativo
+        function setActiveMenuItem(activeItem) {
+            // Remove active de todos os itens
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            // Adiciona active ao item clicado
+            if (activeItem) {
+                activeItem.classList.add('active');
+            }
+        }
+        
+        // Sobrescrever função showDashboard para gerenciar menu
+        const originalShowDashboard = window.showDashboard;
+        window.showDashboard = function() {
+            // Esconder todas as seções
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            // Mostrar dashboard
+            document.getElementById('dashboard-section').style.display = 'block';
+            // Ativar item do menu
+            setActiveMenuItem(document.querySelector('.menu-item[onclick="showDashboard()"]'));
+        };
+        
+        // Sobrescrever função showAdminSection para gerenciar menu
+        const originalShowAdminSection = window.showAdminSection;
+        window.showAdminSection = function(sectionName) {
+            if (originalShowAdminSection) {
+                originalShowAdminSection(sectionName);
+            }
+            // Esconder dashboard
+            document.getElementById('dashboard-section').style.display = 'none';
+            // Ativar item do menu correspondente
+            const menuItem = document.querySelector(`.menu-item[onclick="showAdminSection('${sectionName}')"]`);
+            setActiveMenuItem(menuItem);
+        };
     </script>
 </body>
 </html>
