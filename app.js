@@ -229,18 +229,36 @@ function renderTable() {
     `;
     
     // Event listeners
-    btnPresente.addEventListener('click', () => {
-      p.active = true;
-      saveState(state); 
-      savePlayerSelectionToStorage();
-      renderTable();
+    btnPresente.addEventListener('click', async () => {
+      try {
+        p.active = true;
+        saveState(state);
+        
+        // Atualizar status do jogador no Supabase
+        await updatePlayerStatusInSupabase(p.name, true);
+        
+        savePlayerSelectionToStorage();
+        renderTable();
+      } catch (error) {
+        console.error('Erro ao marcar jogador como presente:', error);
+        showToast('Erro ao marcar jogador como presente', 'error');
+      }
     });
     
-    btnAusente.addEventListener('click', () => {
-      p.active = false;
-      saveState(state); 
-      savePlayerSelectionToStorage();
-      renderTable();
+    btnAusente.addEventListener('click', async () => {
+      try {
+        p.active = false;
+        saveState(state);
+        
+        // Atualizar status do jogador no Supabase
+        await updatePlayerStatusInSupabase(p.name, false);
+        
+        savePlayerSelectionToStorage();
+        renderTable();
+      } catch (error) {
+        console.error('Erro ao marcar jogador como ausente:', error);
+        showToast('Erro ao marcar jogador como ausente', 'error');
+      }
     });
     
     buttonsContainer.appendChild(btnPresente);
@@ -2928,6 +2946,37 @@ async function loadPlayerSelectionFromStorage() {
 }
 
 // Função para salvar seleção de jogadores no Supabase
+// Função para atualizar status do jogador no Supabase
+async function updatePlayerStatusInSupabase(playerName, active) {
+  try {
+    console.log(`Atualizando status do jogador ${playerName} para ${active ? 'presente' : 'ausente'}`);
+    
+    const response = await fetch('/.netlify/functions/supabase-api/players/status', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        playerName: playerName,
+        active: active
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('Status do jogador atualizado no Supabase:', result);
+    
+    return result;
+  } catch (error) {
+    console.error('Erro ao atualizar status do jogador no Supabase:', error);
+    throw error;
+  }
+}
+
 async function savePlayerSelectionToStorage() {
   try {
     const selectedPlayers = [];
