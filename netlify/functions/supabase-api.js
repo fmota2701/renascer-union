@@ -10,9 +10,8 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Cache em memória para otimização
-const cache = new Map();
-const CACHE_TTL = 30000; // 30 segundos
+// Removido sistema de cache - dados sempre do Supabase
+console.log('Sistema funcionando apenas com dados online do Supabase');
 
 // Headers CORS
 const corsHeaders = {
@@ -141,15 +140,6 @@ async function handleDelete(path, params) {
  * Buscar dados dos jogadores
  */
 async function getPlayersData(params = {}) {
-  const cacheKey = `players_${JSON.stringify(params)}`;
-  
-  if (cache.has(cacheKey)) {
-    const cached = cache.get(cacheKey);
-    if (Date.now() - cached.timestamp < CACHE_TTL) {
-      console.log('Cache hit: players');
-      return cached.data;
-    }
-  }
 
   let query = supabase
     .from('player_stats')
@@ -181,12 +171,6 @@ async function getPlayersData(params = {}) {
     timestamp: new Date().toISOString()
   };
 
-  // Cache result
-  cache.set(cacheKey, {
-    data: result,
-    timestamp: Date.now()
-  });
-
   return result;
 }
 
@@ -194,15 +178,6 @@ async function getPlayersData(params = {}) {
  * Buscar dados dos itens
  */
 async function getItemsData(params = {}) {
-  const cacheKey = `items_${JSON.stringify(params)}`;
-  
-  if (cache.has(cacheKey)) {
-    const cached = cache.get(cacheKey);
-    if (Date.now() - cached.timestamp < CACHE_TTL) {
-      console.log('Cache hit: items');
-      return cached.data;
-    }
-  }
 
   let query = supabase
     .from('item_stats')
@@ -244,12 +219,6 @@ async function getItemsData(params = {}) {
     timestamp: new Date().toISOString()
   };
 
-  // Cache result
-  cache.set(cacheKey, {
-    data: result,
-    timestamp: Date.now()
-  });
-
   return result;
 }
 
@@ -257,20 +226,10 @@ async function getItemsData(params = {}) {
  * Buscar histórico de distribuições
  */
 async function getHistoryData(params = {}) {
-  const cacheKey = `history_${JSON.stringify(params)}`;
-  
-  // Limpar cache para garantir dados atualizados
-  if (cache.has(cacheKey)) {
-    cache.delete(cacheKey);
-  }
 
   let query = supabase
     .from('history')
-    .select(`
-      *,
-      players(name),
-      items(name)
-    `)
+    .select('*')
     .order('created_at', { ascending: false });
 
   // Filtros
@@ -293,9 +252,13 @@ async function getHistoryData(params = {}) {
   const limit = parseInt(params.limit) || 100;
   query = query.limit(limit);
 
+  console.log('Executando query do histórico...');
   const { data, error } = await query;
   
+  console.log('Resultado da query:', { data, error });
+  
   if (error) {
+    console.error('Erro na query do histórico:', error);
     throw new Error(`Erro ao buscar histórico: ${error.message}`);
   }
 
@@ -305,12 +268,6 @@ async function getHistoryData(params = {}) {
     timestamp: new Date().toISOString()
   };
 
-  // Cache result
-  cache.set(cacheKey, {
-    data: result,
-    timestamp: Date.now()
-  });
-
   return result;
 }
 
@@ -318,15 +275,6 @@ async function getHistoryData(params = {}) {
  * Buscar estatísticas gerais
  */
 async function getStatsData() {
-  const cacheKey = 'stats';
-  
-  if (cache.has(cacheKey)) {
-    const cached = cache.get(cacheKey);
-    if (Date.now() - cached.timestamp < CACHE_TTL) {
-      console.log('Cache hit: stats');
-      return cached.data;
-    }
-  }
 
   // Buscar estatísticas em paralelo
   const [playersResult, itemsResult, historyResult, configResult] = await Promise.all([
@@ -368,12 +316,6 @@ async function getStatsData() {
     timestamp: new Date().toISOString()
   };
 
-  // Cache result
-  cache.set(cacheKey, {
-    data: result,
-    timestamp: Date.now()
-  });
-
   return result;
 }
 
@@ -395,11 +337,15 @@ async function handleDistribute(data) {
     try {
       const { player_name, item_name, quantity = 1, notes = '' } = dist;
       
+      console.log('Processando distribuição:', { player_name, item_name, quantity, notes });
+      
       // Buscar IDs do jogador e item
       const [playerResult, itemResult] = await Promise.all([
         supabase.from('players').select('id').eq('name', player_name).single(),
-        supabase.from('items').select('id, available_quantity').eq('name', item_name).gt('available_quantity', 0).single()
+        supabase.from('items').select('id').eq('name', item_name).single()
       ]);
+      
+      console.log('Resultados da busca:', { playerResult, itemResult });
 
       if (playerResult.error) {
         throw new Error(`Jogador '${player_name}' não encontrado`);
@@ -412,35 +358,37 @@ async function handleDistribute(data) {
       const player = playerResult.data;
       const item = itemResult.data;
 
-      // Verificar disponibilidade
-      if (item.available_quantity < quantity) {
-        throw new Error(`Item '${item_name}' sem quantidade suficiente (disponível: ${item.available_quantity})`);
-      }
+      // Pular verificação de disponibilidade para este sistema
 
       // Inserir no histórico (triggers atualizarão automaticamente os totais)
-      const { error: historyError } = await supabase
+      console.log('Tentando inserir no histórico:', {
+        player_id: player.id,
+        item_id: item.id,
+        quantity: quantity,
+        distribution_date: new Date().toISOString(),
+        distribution_type: 'automatic',
+        notes: notes || `Distribuição de ${item_name} para ${player_name}`
+      });
+      
+      const { data: historyData, error: historyError } = await supabase
         .from('history')
         .insert({
           player_id: player.id,
           item_id: item.id,
           quantity: quantity,
-          distribution_type: 'manual',
-          notes: notes
-        });
+          distribution_date: new Date().toISOString(),
+          distribution_type: 'automatic',
+          notes: notes || `Distribuição de ${item_name} para ${player_name}`
+        })
+        .select();
+
+      console.log('Resultado da inserção no histórico:', { historyData, historyError });
 
       if (historyError) {
         throw new Error(`Erro ao registrar distribuição: ${historyError.message}`);
       }
 
-      // Atualizar quantidade disponível do item
-      const { error: updateError } = await supabase
-        .from('items')
-        .update({ available_quantity: item.available_quantity - quantity })
-        .eq('id', item.id);
-
-      if (updateError) {
-        throw new Error(`Erro ao atualizar item: ${updateError.message}`);
-      }
+      // Não atualizar quantidade disponível para este sistema
 
       results.push({
         player: player_name,
@@ -457,8 +405,7 @@ async function handleDistribute(data) {
     }
   }
 
-  // Limpar cache
-  clearCache();
+  // Cache removido - dados sempre atualizados
 
   return {
     success: results.length,
@@ -489,7 +436,7 @@ async function createPlayer(data) {
     throw new Error(`Erro ao criar jogador: ${error.message}`);
   }
 
-  clearCache();
+  // Cache removido - dados sempre atualizados
   
   return {
     player: player,
@@ -532,7 +479,7 @@ async function createItem(data) {
     throw new Error(`Erro ao criar item: ${error.message}`);
   }
 
-  clearCache();
+  // Cache removido - dados sempre atualizados
   
   return {
     item: item,
@@ -548,7 +495,7 @@ async function handleSync(data = {}) {
   console.log('handleSync chamado com dados:', data);
   
   // Limpar todo o cache
-  clearCache();
+  // Cache removido - dados sempre atualizados
   
   let syncResults = {
     players_synced: 0,
@@ -739,8 +686,7 @@ async function deletePlayer(params) {
     throw new Error('Nome do jogador é obrigatório');
   }
   
-  // Limpar cache
-  clearCache();
+  // Cache removido - dados sempre atualizados
   
   try {
     const { error } = await supabase
@@ -770,8 +716,7 @@ async function deleteItem(params) {
     throw new Error('Nome do item é obrigatório');
   }
   
-  // Limpar cache
-  clearCache();
+  // Cache removido - dados sempre atualizados
   
   try {
     const { error } = await supabase
@@ -794,12 +739,5 @@ async function deleteItem(params) {
 }
 
 /**
- * Limpar cache
+ * Cache removido - sistema funciona apenas online
  */
-function clearCache() {
-  cache.clear();
-  console.log('Cache limpo');
-}
-
-// Limpar cache periodicamente
-setInterval(clearCache, 5 * 60 * 1000); // 5 minutos
