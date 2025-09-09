@@ -2071,6 +2071,9 @@ function initDistributeModal() {
                 return;
             }
             
+            // Pausar sincronização automática durante distribuição
+            isDistributionInProgress = true;
+            
             const playersArray = Array.from(selectedPlayers);
             const itemsArray = Array.from(selectedItems);
             
@@ -2191,12 +2194,17 @@ function initDistributeModal() {
             } catch (error) {
                 console.error('Erro na distribuição:', error);
                 showToast('Erro ao processar distribuição: ' + error.message, 'error');
+                // Reativar sincronização automática em caso de erro
+                isDistributionInProgress = false;
                 return;
             }
             
             // Mostrar modal de resultados
             showResultsModal(assignments, distributionSummary);
             closeModal();
+            
+            // Reativar sincronização automática após distribuição bem-sucedida
+            isDistributionInProgress = false;
         });
     }
 }
@@ -2378,6 +2386,7 @@ function fallbackCopyToClipboard(text) {
 let lastSyncTimestamp = null;
 let syncInterval = null;
 let isCheckingUpdates = false;
+let isDistributionInProgress = false;
 
 function initRealtimeSync() {
   console.log('Iniciando sincronização em tempo real...');
@@ -2390,7 +2399,7 @@ function initRealtimeSync() {
 }
 
 async function checkForUpdates() {
-  if (isCheckingUpdates) return;
+  if (isCheckingUpdates || isDistributionInProgress) return;
   
   try {
     isCheckingUpdates = true;
@@ -2429,12 +2438,21 @@ async function checkForUpdates() {
             });
           }
           
-          // Atualizar interface
+          // Atualizar interface apenas se não estiver em processo de distribuição
           renderItemsSelect();
           renderPlayersManager();
           renderItemsManager();
           renderTable();
-          renderHistory();
+          
+          // Só renderizar histórico se não estiver com modal de distribuição ou resultados aberto
+          const distributeModal = document.getElementById('distribute-modal');
+          const resultsModal = document.getElementById('results-modal');
+          const isDistributeModalOpen = distributeModal && distributeModal.classList.contains('show');
+          const isResultsModalOpen = resultsModal && resultsModal.classList.contains('show');
+          
+          if (!isDistributeModalOpen && !isResultsModalOpen) {
+            renderHistory();
+          }
           
           // Mostrar notificação discreta apenas se houve mudanças significativas
           const hasSignificantChanges = (
