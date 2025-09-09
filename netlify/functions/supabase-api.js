@@ -265,7 +265,7 @@ async function getHistoryData(params = {}) {
   }
 
   let query = supabase
-    .from('distribution_history')
+    .from('history')
     .select('*')
     .order('created_at', { ascending: false });
 
