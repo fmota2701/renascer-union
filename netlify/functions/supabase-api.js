@@ -131,6 +131,8 @@ async function handleDelete(path, params) {
       return await deletePlayer(params);
     case '/items':
       return await deleteItem(params);
+    case '/history':
+      return await deleteHistory(params);
     default:
       throw new Error(`Endpoint DELETE ${endpoint} não encontrado`);
   }
@@ -142,12 +144,12 @@ async function handleDelete(path, params) {
 async function getPlayersData(params = {}) {
 
   let query = supabase
-    .from('player_stats')
+    .from('players')
     .select('*');
 
   // Filtros
-  if (params.status) {
-    query = query.eq('status', params.status);
+  if (params.name) {
+    query = query.eq('name', params.name);
   }
   
   if (params.limit) {
@@ -155,7 +157,7 @@ async function getPlayersData(params = {}) {
   }
 
   // Ordenação
-  const orderBy = params.order_by || 'total_items';
+  const orderBy = params.order_by || 'total_received';
   const orderDirection = params.order_direction || 'desc';
   query = query.order(orderBy, { ascending: orderDirection === 'asc' });
 
@@ -165,9 +167,52 @@ async function getPlayersData(params = {}) {
     throw new Error(`Erro ao buscar jogadores: ${error.message}`);
   }
 
+  // Buscar contadores de itens por jogador do histórico
+  const { data: historyData, error: historyError } = await supabase
+    .from('history')
+    .select(`
+      quantity,
+      players!inner(name),
+      items!inner(name)
+    `);
+
+  if (historyError) {
+    console.warn('Erro ao buscar histórico para contadores:', historyError);
+  }
+
+  // Calcular contadores por jogador e item
+  const playerCounts = {};
+  if (historyData) {
+    historyData.forEach(record => {
+      const playerName = record.players.name;
+      const itemName = record.items.name;
+      const quantity = record.quantity || 1;
+      
+      if (!playerCounts[playerName]) {
+        playerCounts[playerName] = {};
+      }
+      
+      if (!playerCounts[playerName][itemName]) {
+        playerCounts[playerName][itemName] = 0;
+      }
+      
+      playerCounts[playerName][itemName] += quantity;
+    });
+  }
+
+  // Transformar dados para o formato esperado pelo frontend
+  const players = (data || []).map(player => ({
+    name: player.name,
+    counts: playerCounts[player.name] || {}, // Contadores calculados do histórico
+    active: player.active !== false,
+    faults: player.faults || 0,
+    total_items: player.total_received || 0,
+    total_distributions: player.total_distributions || 0
+  }));
+
   const result = {
-    players: data || [],
-    total: data?.length || 0,
+    players: players,
+    total: players.length,
     timestamp: new Date().toISOString()
   };
 
@@ -180,20 +225,12 @@ async function getPlayersData(params = {}) {
 async function getItemsData(params = {}) {
 
   let query = supabase
-    .from('item_stats')
+    .from('items')
     .select('*');
 
   // Filtros
-  if (params.category) {
-    query = query.eq('category', params.category);
-  }
-  
-  if (params.rarity) {
-    query = query.eq('rarity', params.rarity);
-  }
-  
-  if (params.available_only === 'true') {
-    query = query.gt('available_quantity', 0);
+  if (params.name) {
+    query = query.eq('name', params.name);
   }
   
   if (params.limit) {
@@ -214,8 +251,6 @@ async function getItemsData(params = {}) {
   const result = {
     items: data || [],
     total: data?.length || 0,
-    categories: [...new Set(data?.map(item => item.category) || [])],
-    rarities: [...new Set(data?.map(item => item.rarity) || [])],
     timestamp: new Date().toISOString()
   };
 
@@ -229,24 +264,28 @@ async function getHistoryData(params = {}) {
 
   let query = supabase
     .from('history')
-    .select('*')
+    .select(`
+      *,
+      players!inner(name),
+      items!inner(name)
+    `)
     .order('created_at', { ascending: false });
 
   // Filtros
   if (params.player_name) {
-    query = query.ilike('player_name', `%${params.player_name}%`);
+    query = query.ilike('players.name', `%${params.player_name}%`);
   }
   
   if (params.item_name) {
-    query = query.ilike('item_name', `%${params.item_name}%`);
+    query = query.ilike('items.name', `%${params.item_name}%`);
   }
   
   if (params.date_from) {
-    query = query.gte('distribution_date', params.date_from);
+    query = query.gte('created_at', params.date_from);
   }
   
   if (params.date_to) {
-    query = query.lte('distribution_date', params.date_to);
+    query = query.lte('created_at', params.date_to);
   }
   
   const limit = parseInt(params.limit) || 100;
@@ -262,9 +301,21 @@ async function getHistoryData(params = {}) {
     throw new Error(`Erro ao buscar histórico: ${error.message}`);
   }
 
+  // Transformar dados para o formato esperado pelo frontend
+  const history = (data || []).map(record => ({
+    id: record.id,
+    player: record.players.name,
+    item: record.items.name,
+    quantity: record.quantity,
+    date: record.created_at,
+    type: record.distribution_type || 'automatic',
+    notes: record.notes || '',
+    batchId: record.batch_id || 0
+  }));
+
   const result = {
-    history: data || [],
-    total: data?.length || 0,
+    history: history,
+    total: history.length,
     timestamp: new Date().toISOString()
   };
 
@@ -323,7 +374,7 @@ async function getStatsData() {
  * Distribuir itens para jogadores
  */
 async function handleDistribute(data) {
-  const { distributions } = data;
+  const { distributions, selectedPlayers } = data;
   
   if (!distributions || !Array.isArray(distributions)) {
     throw new Error('Dados de distribuição inválidos');
@@ -331,6 +382,8 @@ async function handleDistribute(data) {
 
   const results = [];
   const errors = [];
+  
+  console.log('DEBUG - Dados recebidos:', { distributions, selectedPlayers });
 
   // Processar distribuições em transação
   for (const dist of distributions) {
@@ -365,8 +418,6 @@ async function handleDistribute(data) {
         player_id: player.id,
         item_id: item.id,
         quantity: quantity,
-        distribution_date: new Date().toISOString(),
-        distribution_type: 'automatic',
         notes: notes || `Distribuição de ${item_name} para ${player_name}`
       });
       
@@ -376,8 +427,6 @@ async function handleDistribute(data) {
           player_id: player.id,
           item_id: item.id,
           quantity: quantity,
-          distribution_date: new Date().toISOString(),
-          distribution_type: 'automatic',
           notes: notes || `Distribuição de ${item_name} para ${player_name}`
         })
         .select();
@@ -402,6 +451,51 @@ async function handleDistribute(data) {
         distribution: dist,
         error: error.message
       });
+    }
+  }
+
+  // Aplicar faltas automáticas aos jogadores não selecionados
+  if (selectedPlayers && Array.isArray(selectedPlayers)) {
+    try {
+      console.log('DEBUG - Aplicando faltas automáticas...');
+      
+      // Buscar todos os jogadores ativos
+      const { data: allPlayers, error: playersError } = await supabase
+        .from('players')
+        .select('id, name, faults')
+        .eq('status', 'active');
+      
+      if (playersError) {
+        console.error('Erro ao buscar jogadores:', playersError);
+      } else {
+        console.log('DEBUG - Jogadores ativos:', allPlayers.map(p => ({ name: p.name, faults: p.faults })));
+        console.log('DEBUG - Jogadores selecionados:', selectedPlayers);
+        
+        // Encontrar jogadores não selecionados
+        const nonSelectedPlayers = allPlayers.filter(player => 
+          !selectedPlayers.includes(player.name)
+        );
+        
+        console.log('DEBUG - Jogadores não selecionados:', nonSelectedPlayers.map(p => p.name));
+        
+        // Adicionar falta a cada jogador não selecionado
+        for (const player of nonSelectedPlayers) {
+          const newFaults = (player.faults || 0) + 1;
+          
+          const { error: faultError } = await supabase
+            .from('players')
+            .update({ faults: newFaults })
+            .eq('id', player.id);
+          
+          if (faultError) {
+            console.error(`Erro ao adicionar falta para ${player.name}:`, faultError);
+          } else {
+            console.log(`DEBUG - ${player.name}: faltas ${player.faults || 0} -> ${newFaults}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao aplicar faltas automáticas:', error);
     }
   }
 
@@ -515,7 +609,9 @@ async function handleSync(data = {}) {
             const { error } = await supabase
               .from('players')
               .upsert({
-                name: player.name
+                name: player.name,
+                active: player.active !== false,
+                faults: player.faults || 0
               }, { onConflict: 'name' });
             
             if (error) {
@@ -619,11 +715,11 @@ async function handleCheckUpdates() {
       players: playersData.players || [],
       items: (itemsData.items || []).map(item => item.name), // Extrair apenas os nomes dos itens
       history: (historyData.history || []).map(h => ({
-        player: h.player_name,
-        item: h.item_name,
+        player: h.player,
+        item: h.item,
         qty: h.quantity || 1,
-        date: h.distribution_date || h.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-        timestamp: h.created_at
+        date: h.date?.split('T')[0] || new Date().toISOString().split('T')[0],
+        timestamp: h.date
       })),
       rotation: {},
       ui: { editUnlocked: false },
@@ -650,13 +746,13 @@ async function handleCheckUpdates() {
     // Verificar timestamp mais recente do histórico
     if (state.history && state.history.length > 0) {
       const latestHistory = state.history.reduce((latest, current) => {
-        const currentTime = new Date(current.timestamp || current.created_at || 0);
-        const latestTime = new Date(latest.timestamp || latest.created_at || 0);
+        const currentTime = new Date(current.timestamp || 0);
+        const latestTime = new Date(latest.timestamp || 0);
         return currentTime > latestTime ? current : latest;
       });
       
-      if (latestHistory.timestamp || latestHistory.created_at) {
-        lastUpdated = latestHistory.timestamp || latestHistory.created_at;
+      if (latestHistory.timestamp) {
+        lastUpdated = latestHistory.timestamp;
       }
     }
 
@@ -736,6 +832,40 @@ async function deleteItem(params) {
     console.error('Erro ao deletar item:', err);
     throw err;
   }
+}
+
+/**
+ * Deletar entrada do histórico
+ */
+async function deleteHistory(params) {
+  const { id } = params;
+  
+  if (!id) {
+    throw new Error('ID da entrada do histórico é obrigatório');
+  }
+
+  console.log('Deletando entrada do histórico:', id);
+  
+  const { data, error } = await supabase
+    .from('history')
+    .delete()
+    .eq('id', id)
+    .select();
+
+  if (error) {
+    console.error('Erro ao deletar entrada do histórico:', error);
+    throw new Error(`Erro ao deletar entrada do histórico: ${error.message}`);
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error('Entrada do histórico não encontrada');
+  }
+
+  return {
+    message: 'Entrada do histórico excluída com sucesso',
+    deleted_entry: data[0],
+    timestamp: new Date().toISOString()
+  };
 }
 
 /**

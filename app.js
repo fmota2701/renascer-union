@@ -759,38 +759,62 @@ function renderHistory() {
 }
 
 // Função para excluir uma entrada específica do histórico
-function deleteHistoryEntry(index) {
+async function deleteHistoryEntry(index) {
   if (index < 0 || index >= state.history.length) return;
   
   const entry = state.history[index];
   if (!confirm(`Excluir distribuição: ${entry.item} para ${entry.player} em ${entry.date}?`)) return;
   
-  // Reverter contadores do jogador
-  const player = state.players.find(p => p.name === entry.player);
-  if (player && player.counts) {
-    const currentCount = player.counts[entry.item] || 0;
-    const qtyToRemove = entry.qty || 1;
-    player.counts[entry.item] = Math.max(0, currentCount - qtyToRemove);
+  try {
+    // Se a entrada tem ID (veio do Supabase), deletar da base de dados
+    if (entry.id) {
+      console.log('Deletando entrada do histórico da base de dados:', entry.id);
+      const response = await fetch(`/.netlify/functions/supabase-api/history?id=${entry.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erro ao deletar da base de dados: ${errorText}`);
+      }
+      
+      console.log('Entrada deletada da base de dados com sucesso');
+    }
+    
+    // Reverter contadores do jogador
+    const player = state.players.find(p => p.name === entry.player);
+    if (player && player.counts) {
+      const currentCount = player.counts[entry.item] || 0;
+      const qtyToRemove = entry.qty || 1;
+      player.counts[entry.item] = Math.max(0, currentCount - qtyToRemove);
+    }
+    
+    // Remover entrada do histórico local
+    state.history.splice(index, 1);
+    
+    // Recalcular rotação baseada no histórico restante
+    const order = state.players.map(p => p.name);
+    const lastByItem = new Map();
+    for (const h of state.history) {
+      lastByItem.set(h.item, h.player);
+    }
+    for (const item of Object.keys(state.rotation || {})) {
+      const lastPlayer = lastByItem.get(item);
+      state.rotation[item] = lastPlayer ? order.indexOf(lastPlayer) : -1;
+    }
+    
+    saveState(state);
+    syncStateToSupabase(state);
+    renderTable();
+    renderHistory();
+    showToast('Distribuição excluída com sucesso', 'success');
+  } catch (error) {
+    console.error('Erro ao excluir entrada do histórico:', error);
+    showToast('Erro ao excluir entrada do histórico: ' + error.message, 'error');
   }
-  
-  // Remover entrada do histórico
-  state.history.splice(index, 1);
-  
-  // Recalcular rotação baseada no histórico restante
-  const order = state.players.map(p => p.name);
-  const lastByItem = new Map();
-  for (const h of state.history) {
-    lastByItem.set(h.item, h.player);
-  }
-  for (const item of Object.keys(state.rotation || {})) {
-    const lastPlayer = lastByItem.get(item);
-    state.rotation[item] = lastPlayer ? order.indexOf(lastPlayer) : -1;
-  }
-  
-  saveState(state);
-  renderTable();
-  renderHistory();
-  showToast('Distribuição excluída com sucesso');
 }
 
 // Cards-resumo por item
@@ -1312,6 +1336,34 @@ function applySuggestionHighlights(plan) {
       nameTd.appendChild(b); nameTd.setAttribute('data-has-badge','1');
     }
   });
+}
+
+function highlightNonSelectedPlayers(selectedPlayers) {
+  // Limpar destaques anteriores
+  document.querySelectorAll('.player-not-selected').forEach(row => {
+    row.classList.remove('player-not-selected');
+  });
+  
+  // Obter todos os jogadores ativos da tabela
+  const allPlayerRows = document.querySelectorAll('#players-table tbody tr');
+  
+  allPlayerRows.forEach(row => {
+    const playerName = row.getAttribute('data-name');
+    const checkbox = row.querySelector('input[type="checkbox"]');
+    
+    // Verificar se o jogador está ativo (checkbox marcado) e não foi selecionado
+    if (checkbox && checkbox.checked && !selectedPlayers.includes(playerName)) {
+      row.classList.add('player-not-selected');
+      console.log(`DEBUG - Destacando jogador não selecionado: ${playerName}`);
+    }
+  });
+  
+  // Remover destaque após 5 segundos
+  setTimeout(() => {
+    document.querySelectorAll('.player-not-selected').forEach(row => {
+      row.classList.remove('player-not-selected');
+    });
+  }, 5000);
 }
 
 // Reordenar jogadores preservando rotação por item
@@ -2121,14 +2173,24 @@ function initDistributeModal() {
                     notes: `Distribuição automática - ${fmtDate()}`
                 }));
                 
+                // Obter lista de jogadores selecionados
+                const selectedPlayers = [...new Set(assignments.map(a => a.player))];
+                
                 console.log('Enviando distribuições para API:', distributions);
+                console.log('DEBUG - Jogadores selecionados:', selectedPlayers);
+                
+                // Aplicar destaque visual aos jogadores não selecionados
+                highlightNonSelectedPlayers(selectedPlayers);
                 
                 const response = await fetch('/.netlify/functions/supabase-api/distribute', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ distributions })
+                    body: JSON.stringify({ 
+                        distributions,
+                        selectedPlayers 
+                    })
                 });
                 
                 console.log('Resposta da API - Status:', response.status);
@@ -2165,12 +2227,23 @@ function initDistributeModal() {
                 
                 // Adicionar faltas aos jogadores não presentes (não selecionados)
                 const selectedPlayerNames = Array.from(selectedPlayers);
+                console.log('DEBUG - Jogadores selecionados:', selectedPlayerNames);
+                console.log('DEBUG - Todos os jogadores:', state.players.map(p => ({ name: p.name, active: p.active, faults: p.faults })));
+                
                 state.players.forEach(player => {
-                    if (player.active !== false && !selectedPlayerNames.includes(player.name)) {
-                        // Jogador ativo que não foi selecionado recebe +1 falta
-                        player.faults = (player.faults || 0) + 1;
+                    const isActive = player.active !== false;
+                    const wasSelected = selectedPlayerNames.includes(player.name);
+                    
+                    console.log(`DEBUG - Jogador: ${player.name}, Ativo: ${isActive}, Selecionado: ${wasSelected}`);
+                    
+                    if (isActive && !wasSelected) {
+                        const oldFaults = player.faults || 0;
+                        player.faults = oldFaults + 1;
+                        console.log(`DEBUG - ${player.name}: faltas ${oldFaults} -> ${player.faults}`);
                     }
                 });
+                
+                console.log('DEBUG - Estado final dos jogadores:', state.players.map(p => ({ name: p.name, faults: p.faults })));
                 
                 // Adicionar ao histórico local
                 Object.entries(distributionSummary).forEach(([player, items]) => {
@@ -2188,14 +2261,21 @@ function initDistributeModal() {
                 renderTable();
                 renderHistory();
                 
+                // Reativar sincronização automática após distribuição bem-sucedida
+                isDistributionInProgress = false;
+                
+                // Forçar sincronização imediata para garantir que a visualização seja atualizada
+                setTimeout(async () => {
+                    await checkForUpdates();
+                    renderTable(); // Garantir que a tabela seja re-renderizada com dados atualizados
+                    renderDashboard(); // Atualizar dashboard também
+                }, 1000);
+                
                 // Mostrar modal de resultados
                 showResultsModal(assignments, distributionSummary);
                 
                 // Fechar modal de distribuição
                 closeModal();
-                
-                // Reativar sincronização automática após distribuição bem-sucedida
-                isDistributionInProgress = false;
                 
             } catch (error) {
                 console.error('Erro na distribuição:', error);
