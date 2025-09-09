@@ -2191,6 +2191,12 @@ function initDistributeModal() {
                 // Mostrar modal de resultados
                 showResultsModal(assignments, distributionSummary);
                 
+                // Fechar modal de distribuição
+                closeModal();
+                
+                // Reativar sincronização automática após distribuição bem-sucedida
+                isDistributionInProgress = false;
+                
             } catch (error) {
                 console.error('Erro na distribuição:', error);
                 showToast('Erro ao processar distribuição: ' + error.message, 'error');
@@ -2198,13 +2204,6 @@ function initDistributeModal() {
                 isDistributionInProgress = false;
                 return;
             }
-            
-            // Mostrar modal de resultados
-            showResultsModal(assignments, distributionSummary);
-            closeModal();
-            
-            // Reativar sincronização automática após distribuição bem-sucedida
-            isDistributionInProgress = false;
         });
     }
 }

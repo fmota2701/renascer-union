@@ -671,7 +671,13 @@ async function handleCheckUpdates() {
     const state = {
       players: playersData.players || [],
       items: (itemsData.items || []).map(item => item.name), // Extrair apenas os nomes dos itens
-      history: historyData.history || [],
+      history: (historyData.history || []).map(h => ({
+        player: h.player_name,
+        item: h.item_name,
+        qty: h.quantity || 1,
+        date: h.distribution_date || h.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+        timestamp: h.created_at
+      })),
       rotation: {},
       ui: { editUnlocked: false },
       lastBatchId: 0
