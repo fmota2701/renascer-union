@@ -1022,7 +1022,7 @@
                         .map(player => ({
                             name: player.name,
                             count: player.counts[itemName] || 0,
-                            active: player.active !== false
+                            active: player.status === 'active'
                         }))
                         .sort((a, b) => a.count - b.count); // Ordena por quantidade crescente (menor no topo)
                     
@@ -1066,7 +1066,7 @@
                     const playersHtml = displayPlayers.map((player, index) => {
                         const position = index + 1;
                         const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : `${position}º`;
-                        const activeClass = player.active ? 'active' : 'inactive';
+                        const activeClass = player.status === 'active' ? 'active' : 'inactive';
                         const isLoggedPlayer = player.name.toLowerCase() === playerNick.toLowerCase();
                         const highlightClass = isLoggedPlayer ? 'logged-player' : '';
                         
@@ -1548,7 +1548,7 @@
                 
                 if (data.players && data.players.length > 0) {
                     const player = data.players[0];
-                    isParticipating = player.active === true;
+                    isParticipating = player.status === 'active';
                     updateParticipateButton();
                 }
             } catch (error) {
