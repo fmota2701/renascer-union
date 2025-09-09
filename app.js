@@ -2864,6 +2864,14 @@ async function loadPlayerSelectionFromStorage() {
     
   } catch (error) {
     console.error('Erro ao carregar seleção de jogadores do Supabase:', error);
+    
+    // Se a tabela não existe, desabilitar funcionalidade temporariamente
+    if (error.message && (error.message.includes('player_selections') || error.message.includes('404'))) {
+      console.warn('⚠️ Tabela player_selections não encontrada. Funcionalidade desabilitada temporariamente.');
+      // Não mostrar toast de erro para não incomodar o usuário
+      return;
+    }
+    
     showToast('Erro ao carregar seleções: ' + error.message, 'error');
     
     // Fallback para localStorage em caso de erro
@@ -2938,6 +2946,14 @@ async function savePlayerSelectionToStorage() {
     
   } catch (error) {
     console.error('Erro ao salvar seleção de jogadores no Supabase:', error);
+    
+    // Se a tabela não existe, desabilitar funcionalidade temporariamente
+    if (error.message && (error.message.includes('player_selections') || error.message.includes('404'))) {
+      console.warn('⚠️ Tabela player_selections não encontrada. Funcionalidade desabilitada temporariamente.');
+      // Não mostrar toast de erro para não incomodar o usuário
+      return;
+    }
+    
     showToast('Erro ao salvar seleções: ' + error.message, 'error');
   }
 }
