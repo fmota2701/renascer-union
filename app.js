@@ -2889,10 +2889,8 @@ async function loadPlayerSelectionFromStorage() {
     const selectedPlayers = result.data.map(selection => selection.player_name);
     console.log('DEBUG - Seleções carregadas do Supabase:', selectedPlayers);
     
-    // Manter compatibilidade com localStorage temporariamente
-    const adminTableState = JSON.parse(localStorage.getItem('adminTableState') || '{}');
-    adminTableState.selectedPlayers = selectedPlayers;
-    localStorage.setItem('adminTableState', JSON.stringify(adminTableState));
+    // Remover dependência do localStorage para seleções de jogadores
+    // Agora usando apenas Supabase como fonte única da verdade
     
     // Aguardar um pouco para garantir que a tabela foi renderizada
     setTimeout(() => {
@@ -3022,11 +3020,8 @@ async function savePlayerSelectionToStorage() {
     const result = await response.json();
     console.log('Seleções salvas no Supabase:', result);
     
-    // Manter compatibilidade com localStorage temporariamente
-    const adminTableState = JSON.parse(localStorage.getItem('adminTableState') || '{}');
-    adminTableState.selectedPlayers = selectedPlayers;
-    localStorage.setItem('adminTableState', JSON.stringify(adminTableState));
-    localStorage.setItem('playerSelections', JSON.stringify(playerSelections));
+    // Remover dependência do localStorage para seleções de jogadores
+    // Dados agora são gerenciados exclusivamente pelo Supabase
     
     // Disparar evento para notificar mudanças
     window.dispatchEvent(new CustomEvent('playerSelectionChanged', {

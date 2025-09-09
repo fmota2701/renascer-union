@@ -1391,18 +1391,8 @@
                     throw new Error('Erro ao salvar seleção no Supabase');
                 }
                 
-                // Manter compatibilidade mínima com localStorage
-                const playerSelections = JSON.parse(localStorage.getItem('playerSelections') || '{}');
-                
-                if (selected) {
-                    playerSelections[playerName] = true;
-                } else {
-                    delete playerSelections[playerName];
-                }
-                
-                localStorage.setItem('playerSelections', JSON.stringify(playerSelections));
-                
-                // adminTableState removido - agora usando apenas Supabase
+                // Dados agora são gerenciados exclusivamente pelo Supabase
+                // localStorage removido para evitar inconsistências
                 
                 // Disparar evento para notificar mudanças
                 window.dispatchEvent(new CustomEvent('playerSelectionChanged', {
@@ -1560,14 +1550,8 @@
                 // Ativar/desativar botão baseado no status
                 toggleChooseItemsButton(isMarked);
                 
-                // Manter compatibilidade com localStorage para outros componentes
-                const playerSelections = JSON.parse(localStorage.getItem('playerSelections') || '{}');
-                if (isMarked) {
-                    playerSelections[playerNick] = true;
-                } else {
-                    delete playerSelections[playerNick];
-                }
-                localStorage.setItem('playerSelections', JSON.stringify(playerSelections));
+                // Dados agora são gerenciados exclusivamente pelo Supabase
+                // Removido localStorage para evitar inconsistências
                 
             } catch (error) {
                 console.error('❌ Erro ao verificar status do jogador:', error);
