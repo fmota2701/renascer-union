@@ -3,6 +3,7 @@
  * Adiciona as colunas necessárias que estão faltando
  */
 
+require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 
 // Usar as mesmas configurações das funções do Netlify
