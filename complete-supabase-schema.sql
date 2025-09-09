@@ -133,19 +133,27 @@ ALTER TABLE system_config ENABLE ROW LEVEL SECURITY;
 ALTER TABLE player_selections ENABLE ROW LEVEL SECURITY;
 
 -- Políticas RLS (permitir todas as operações por enquanto)
-CREATE POLICY IF NOT EXISTS "Allow all operations on players" 
+-- Remover políticas existentes se houver
+DROP POLICY IF EXISTS "Allow all operations on players" ON players;
+DROP POLICY IF EXISTS "Allow all operations on items" ON items;
+DROP POLICY IF EXISTS "Allow all operations on history" ON history;
+DROP POLICY IF EXISTS "Allow all operations on system_config" ON system_config;
+DROP POLICY IF EXISTS "Allow all operations on player_selections" ON player_selections;
+
+-- Criar novas políticas
+CREATE POLICY "Allow all operations on players" 
 ON players FOR ALL USING (true);
 
-CREATE POLICY IF NOT EXISTS "Allow all operations on items" 
+CREATE POLICY "Allow all operations on items" 
 ON items FOR ALL USING (true);
 
-CREATE POLICY IF NOT EXISTS "Allow all operations on history" 
+CREATE POLICY "Allow all operations on history" 
 ON history FOR ALL USING (true);
 
-CREATE POLICY IF NOT EXISTS "Allow all operations on system_config" 
+CREATE POLICY "Allow all operations on system_config" 
 ON system_config FOR ALL USING (true);
 
-CREATE POLICY IF NOT EXISTS "Allow all operations on player_selections" 
+CREATE POLICY "Allow all operations on player_selections" 
 ON player_selections FOR ALL USING (true);
 
 -- Comentários para documentação
