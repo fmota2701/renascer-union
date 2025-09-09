@@ -1266,29 +1266,32 @@
             const participateBtn = document.getElementById('participate-btn');
             
             if (!isParticipating) {
-                // Ativar participação - marcar na tabela admin primeiro, depois carregar itens e abrir modal
+                // Ativar participação - apenas marcar na tabela admin e mostrar botão escolher itens
                 try {
                     participateBtn.disabled = true;
-                    participateBtn.innerHTML = '⏳ Carregando...';
+                    participateBtn.innerHTML = '⏳ Marcando...';
                     
-                    // 1. Primeiro marcar o jogador na tabela de distribuição do admin
+                    // Marcar o jogador na tabela de distribuição do admin
                     await markPlayerInAdminTable(true);
                     
-                    // 2. Depois carregar itens e abrir modal
-                    await loadActiveItems();
-                    openItemsModal();
+                    // Atualizar status do jogador
+                    await updatePlayerStatus(true);
+                    
+                    // Mostrar botão "escolher itens" ao lado do botão participar
+                    showChooseItemsButton();
+                    
                 } catch (error) {
-                    console.error('Erro ao carregar itens:', error);
-                    alert('Erro ao carregar itens disponíveis. Tente novamente.');
+                    console.error('Erro ao marcar participação:', error);
+                    alert('Erro ao marcar participação. Tente novamente.');
                 } finally {
                     participateBtn.disabled = false;
-                    participateBtn.innerHTML = '🎯 Participar';
                 }
             } else {
                 // Desativar participação
                 if (confirm('Tem certeza que deseja parar de participar?')) {
                     await updatePlayerStatus(false);
                     await markPlayerInAdminTable(false);
+                    hideChooseItemsButton();
                 }
             }
         }
@@ -1463,11 +1466,58 @@
             const participateBtn = document.getElementById('participate-btn');
             
             if (isParticipating) {
-                participateBtn.innerHTML = '🔥 Participando';
+                participateBtn.innerHTML = '✅ Marcado';
                 participateBtn.classList.add('participating');
+                showChooseItemsButton();
             } else {
                 participateBtn.innerHTML = '🎯 Participar';
                 participateBtn.classList.remove('participating');
+                hideChooseItemsButton();
+            }
+        }
+        
+        // Função para mostrar botão "escolher itens"
+        function showChooseItemsButton() {
+            let chooseBtn = document.getElementById('choose-items-btn');
+            if (!chooseBtn) {
+                chooseBtn = document.createElement('button');
+                chooseBtn.id = 'choose-items-btn';
+                chooseBtn.className = 'participate-btn';
+                chooseBtn.style.marginLeft = '10px';
+                chooseBtn.innerHTML = '📦 Escolher Itens';
+                chooseBtn.onclick = openChooseItemsFlow;
+                
+                const participateBtn = document.getElementById('participate-btn');
+                participateBtn.parentNode.insertBefore(chooseBtn, participateBtn.nextSibling);
+            }
+            chooseBtn.style.display = 'inline-block';
+        }
+        
+        // Função para esconder botão "escolher itens"
+        function hideChooseItemsButton() {
+            const chooseBtn = document.getElementById('choose-items-btn');
+            if (chooseBtn) {
+                chooseBtn.style.display = 'none';
+            }
+        }
+        
+        // Função para abrir fluxo de escolha de itens
+        async function openChooseItemsFlow() {
+            try {
+                const chooseBtn = document.getElementById('choose-items-btn');
+                chooseBtn.disabled = true;
+                chooseBtn.innerHTML = '⏳ Carregando...';
+                
+                await loadActiveItems();
+                openItemsModal();
+                
+            } catch (error) {
+                console.error('Erro ao carregar itens:', error);
+                alert('Erro ao carregar itens disponíveis. Tente novamente.');
+            } finally {
+                const chooseBtn = document.getElementById('choose-items-btn');
+                chooseBtn.disabled = false;
+                chooseBtn.innerHTML = '📦 Escolher Itens';
             }
         }
 
