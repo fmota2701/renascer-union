@@ -2727,6 +2727,8 @@ function loadPlayerSelectionFromStorage() {
     const adminTableState = JSON.parse(localStorage.getItem('adminTableState') || '{}');
     const selectedPlayers = adminTableState.selectedPlayers || [];
     
+    console.log('DEBUG - Carregando seleção do localStorage:', selectedPlayers);
+    
     // Aguardar um pouco para garantir que a tabela foi renderizada
     setTimeout(() => {
       // Marcar checkboxes dos jogadores selecionados
@@ -2736,13 +2738,23 @@ function loadPlayerSelectionFromStorage() {
         
         if (checkbox && playerName) {
           const shouldBeChecked = selectedPlayers.includes(playerName);
+          console.log(`DEBUG - Jogador: ${playerName}, Deveria estar marcado: ${shouldBeChecked}, Está marcado: ${checkbox.checked}`);
+          
           if (checkbox.checked !== shouldBeChecked) {
             checkbox.checked = shouldBeChecked;
-            // Salvar mudança no estado se necessário
-            savePlayerSelectionToStorage();
+            
+            // Atualizar o estado do jogador no state local
+            const player = state.players.find(p => p.name === playerName);
+            if (player) {
+              player.active = shouldBeChecked;
+              console.log(`DEBUG - Atualizando estado do jogador ${playerName} para: ${shouldBeChecked}`);
+            }
           }
         }
       });
+      
+      // Salvar estado após sincronização
+      saveState(state);
     }, 100);
     
   } catch (error) {

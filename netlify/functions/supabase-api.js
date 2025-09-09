@@ -922,12 +922,12 @@ async function updatePlayerStatus(data) {
 
 /**
  * Buscar apenas itens ativos
+ * Como não existe coluna 'active', retorna todos os itens disponíveis
  */
 async function getActiveItems() {
   const { data, error } = await supabase
     .from('items')
     .select('*')
-    .eq('active', true)
     .order('name');
 
   if (error) {
