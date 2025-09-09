@@ -1080,6 +1080,10 @@ function setupEvents() {
   const btnUndo = document.getElementById('btn-undo');
   if (btnUndo) btnUndo.addEventListener('click', () => undoLastBatch());
 
+  // Limpar destaque vermelho
+  const btnClearHighlights = document.getElementById('btn-clear-highlights');
+  if (btnClearHighlights) btnClearHighlights.addEventListener('click', () => clearPlayerHighlights());
+
   // função global setupRowDragAndDrop já definida no final
 
   function getPairsFromUI() {
@@ -1357,13 +1361,13 @@ function highlightNonSelectedPlayers(selectedPlayers) {
       console.log(`DEBUG - Destacando jogador não selecionado: ${playerName}`);
     }
   });
-  
-  // Remover destaque após 5 segundos
-  setTimeout(() => {
-    document.querySelectorAll('.player-not-selected').forEach(row => {
-      row.classList.remove('player-not-selected');
-    });
-  }, 5000);
+}
+
+function clearPlayerHighlights() {
+  document.querySelectorAll('.player-not-selected').forEach(row => {
+    row.classList.remove('player-not-selected');
+  });
+  console.log('DEBUG - Destaques removidos manualmente');
 }
 
 // Reordenar jogadores preservando rotação por item
