@@ -86,6 +86,37 @@
             transform: translateY(-2px);
         }
 
+        .participate-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            margin-right: 15px;
+        }
+        
+        .participate-btn:hover {
+            background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .participate-btn.participating {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+        }
+        
+        .participate-btn.participating:hover {
+            background: linear-gradient(135deg, #F57C00 0%, #FF9800 100%);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+        }
+
         .dashboard-nav {
             display: flex;
             gap: 15px;
@@ -487,6 +518,164 @@
             color: #666;
         }
 
+        /* Modal de Seleção de Itens */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 20px;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .item-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .item-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .item-card.selected {
+            border-color: #4CAF50;
+            background: linear-gradient(135deg, #f8fff8 0%, #e8f5e8 100%);
+        }
+        
+        .item-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .item-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .item-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .selected-count {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .confirm-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .confirm-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         @media (max-width: 768px) {
             .player-header {
                 flex-direction: column;
@@ -512,6 +701,15 @@
             .stats-grid {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+            
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -525,9 +723,14 @@
                     <p>Dashboard do Jogador</p>
                 </div>
             </div>
-            <button class="logout-btn" onclick="logout()">
-                🚪 Sair
-            </button>
+            <div style="display: flex; align-items: center;">
+                <button id="participate-btn" class="participate-btn" onclick="toggleParticipation()">
+                    🎯 Participar
+                </button>
+                <button class="logout-btn" onclick="logout()">
+                    🚪 Sair
+                </button>
+            </div>
         </div>
         
         <div class="dashboard-nav">
@@ -655,6 +858,28 @@
                     <div class="empty-state-icon">👤</div>
                     <p>Carregando seu histórico...</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Seleção de Itens -->
+    <div id="items-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🎯 Selecionar Itens para Participar</h3>
+                <button class="modal-close" onclick="closeItemsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Selecione os itens que você gostaria de receber:</p>
+                <div id="items-grid" class="items-grid">
+                    <!-- Itens serão carregados dinamicamente -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="selected-count" id="selected-count">0 itens selecionados</div>
+                <button class="confirm-btn" id="confirm-selection" onclick="confirmItemSelection()" disabled>
+                    ✅ Confirmar Seleção
+                </button>
             </div>
         </div>
     </div>
@@ -1031,8 +1256,210 @@
             }
         }
 
+        // Variáveis globais para participação
+        let isParticipating = false;
+        let selectedItems = new Set();
+        let availableItems = [];
+
+        // Função para alternar participação
+        async function toggleParticipation() {
+            const participateBtn = document.getElementById('participate-btn');
+            
+            if (!isParticipating) {
+                // Ativar participação - carregar itens e abrir modal
+                try {
+                    participateBtn.disabled = true;
+                    participateBtn.innerHTML = '⏳ Carregando...';
+                    
+                    await loadActiveItems();
+                    openItemsModal();
+                } catch (error) {
+                    console.error('Erro ao carregar itens:', error);
+                    alert('Erro ao carregar itens disponíveis. Tente novamente.');
+                } finally {
+                    participateBtn.disabled = false;
+                    updateParticipateButton();
+                }
+            } else {
+                // Desativar participação
+                if (confirm('Tem certeza que deseja parar de participar?')) {
+                    await updatePlayerStatus(false);
+                }
+            }
+        }
+
+        // Função para carregar itens ativos
+        async function loadActiveItems() {
+            const response = await fetch('/.netlify/functions/supabase-api/items/active');
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Erro ao carregar itens');
+            }
+            
+            availableItems = data.items || [];
+        }
+
+        // Função para abrir modal de itens
+        function openItemsModal() {
+            const modal = document.getElementById('items-modal');
+            const itemsGrid = document.getElementById('items-grid');
+            
+            // Limpar seleções anteriores
+            selectedItems.clear();
+            
+            // Renderizar itens
+            if (availableItems.length === 0) {
+                itemsGrid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">📦</div>
+                        <p>Nenhum item ativo disponível no momento.</p>
+                    </div>
+                `;
+            } else {
+                itemsGrid.innerHTML = availableItems.map(item => `
+                    <div class="item-card" onclick="toggleItemSelection('${item.name}')" id="item-${item.name}">
+                        <div class="item-card-header">
+                            <div class="item-name">${item.name}</div>
+                            <input type="checkbox" class="item-checkbox" id="checkbox-${item.name}" onchange="toggleItemSelection('${item.name}')">
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            updateSelectedCount();
+            modal.style.display = 'block';
+        }
+
+        // Função para fechar modal
+        function closeItemsModal() {
+            const modal = document.getElementById('items-modal');
+            modal.style.display = 'none';
+            selectedItems.clear();
+        }
+
+        // Função para alternar seleção de item
+        function toggleItemSelection(itemName) {
+            const itemCard = document.getElementById(`item-${itemName}`);
+            const checkbox = document.getElementById(`checkbox-${itemName}`);
+            
+            if (selectedItems.has(itemName)) {
+                selectedItems.delete(itemName);
+                itemCard.classList.remove('selected');
+                checkbox.checked = false;
+            } else {
+                selectedItems.add(itemName);
+                itemCard.classList.add('selected');
+                checkbox.checked = true;
+            }
+            
+            updateSelectedCount();
+        }
+
+        // Função para atualizar contador de selecionados
+        function updateSelectedCount() {
+            const countElement = document.getElementById('selected-count');
+            const confirmBtn = document.getElementById('confirm-selection');
+            const count = selectedItems.size;
+            
+            countElement.textContent = `${count} ${count === 1 ? 'item selecionado' : 'itens selecionados'}`;
+            confirmBtn.disabled = count === 0;
+        }
+
+        // Função para confirmar seleção de itens
+        async function confirmItemSelection() {
+            if (selectedItems.size === 0) {
+                alert('Selecione pelo menos um item para participar.');
+                return;
+            }
+            
+            try {
+                const confirmBtn = document.getElementById('confirm-selection');
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '⏳ Confirmando...';
+                
+                // Ativar status do jogador
+                await updatePlayerStatus(true);
+                
+                // Fechar modal
+                closeItemsModal();
+                
+                // Mostrar mensagem de sucesso
+                alert(`Participação ativada! Você está concorrendo a ${selectedItems.size} ${selectedItems.size === 1 ? 'item' : 'itens'}.`);
+                
+            } catch (error) {
+                console.error('Erro ao confirmar participação:', error);
+                alert('Erro ao confirmar participação. Tente novamente.');
+            } finally {
+                const confirmBtn = document.getElementById('confirm-selection');
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '✅ Confirmar Seleção';
+            }
+        }
+
+        // Função para atualizar status do jogador
+        async function updatePlayerStatus(active) {
+            const response = await fetch('/.netlify/functions/supabase-api/players/status', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    playerName: playerNick,
+                    active: active
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Erro ao atualizar status');
+            }
+            
+            isParticipating = active;
+            updateParticipateButton();
+        }
+
+        // Função para atualizar botão de participação
+        function updateParticipateButton() {
+            const participateBtn = document.getElementById('participate-btn');
+            
+            if (isParticipating) {
+                participateBtn.innerHTML = '🔥 Participando';
+                participateBtn.classList.add('participating');
+            } else {
+                participateBtn.innerHTML = '🎯 Participar';
+                participateBtn.classList.remove('participating');
+            }
+        }
+
+        // Função para verificar status inicial do jogador
+        async function checkPlayerStatus() {
+            try {
+                const response = await fetch(`/.netlify/functions/supabase-api/players?name=${encodeURIComponent(playerNick)}`);
+                const data = await response.json();
+                
+                if (data.players && data.players.length > 0) {
+                    const player = data.players[0];
+                    isParticipating = player.active === true;
+                    updateParticipateButton();
+                }
+            } catch (error) {
+                console.error('Erro ao verificar status do jogador:', error);
+            }
+        }
+
+        // Fechar modal ao clicar fora dele
+        window.onclick = function(event) {
+            const modal = document.getElementById('items-modal');
+            if (event.target === modal) {
+                closeItemsModal();
+            }
+        }
+
         // Carregar dados iniciais
         loadOverviewData();
+        checkPlayerStatus();
     </script>
 </body>
 </html>

@@ -48,6 +48,9 @@ exports.handler = async (event, context) => {
       case 'POST':
         result = await handlePost(path, JSON.parse(body || '{}'));
         break;
+      case 'PUT':
+        result = await handlePut(path, JSON.parse(body || '{}'));
+        break;
       case 'DELETE':
         result = await handleDelete(path, params);
         break;
@@ -98,6 +101,8 @@ async function handleGet(path, params) {
       return await getStatsData();
     case '/check-updates':
       return await handleCheckUpdates();
+    case '/items/active':
+      return await getActiveItems();
     default:
       throw new Error(`Endpoint GET ${endpoint} não encontrado`);
   }
@@ -120,6 +125,17 @@ async function handlePost(path, data) {
       return await createItem(data);
     default:
       throw new Error(`Endpoint POST ${endpoint} não encontrado`);
+  }
+}
+
+async function handlePut(path, data) {
+  const endpoint = path.replace('/.netlify/functions/supabase-api', '');
+  
+  switch (endpoint) {
+    case '/players/status':
+      return await updatePlayerStatus(data);
+    default:
+      throw new Error(`Endpoint PUT ${endpoint} não encontrado`);
   }
 }
 
@@ -864,6 +880,59 @@ async function deleteHistory(params) {
   return {
     message: 'Entrada do histórico excluída com sucesso',
     deleted_entry: data[0],
+    timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Atualizar status ativo do jogador
+ */
+async function updatePlayerStatus(data) {
+  const { playerName, active } = data;
+  
+  if (!playerName) {
+    throw new Error('Nome do jogador é obrigatório');
+  }
+
+  const { data: updateData, error } = await supabase
+    .from('players')
+    .update({ active: active })
+    .eq('name', playerName)
+    .select();
+
+  if (error) {
+    throw new Error(`Erro ao atualizar status do jogador: ${error.message}`);
+  }
+
+  if (!updateData || updateData.length === 0) {
+    throw new Error('Jogador não encontrado');
+  }
+
+  return {
+    success: true,
+    message: `Status do jogador ${playerName} atualizado para ${active ? 'ativo' : 'inativo'}`,
+    player: updateData[0],
+    timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Buscar apenas itens ativos
+ */
+async function getActiveItems() {
+  const { data, error } = await supabase
+    .from('items')
+    .select('*')
+    .eq('active', true)
+    .order('name');
+
+  if (error) {
+    throw new Error(`Erro ao buscar itens ativos: ${error.message}`);
+  }
+
+  return {
+    items: data || [],
+    total: (data || []).length,
     timestamp: new Date().toISOString()
   };
 }
