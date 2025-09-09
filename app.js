@@ -122,6 +122,9 @@ function showSection(id) {
   if (id === '#section-cadastros') { renderPlayersManager(); renderItemsManager(); }
 }
 
+// Estado global para itens selecionados na tabela de distribuição
+let selectedDistributionItems = new Set();
+
 // Renderização da tabela
 function renderTable() {
   const thead = $("#table-head");
@@ -138,6 +141,9 @@ function renderTable() {
   
   thead.innerHTML = "";
   tbody.innerHTML = "";
+  
+  // Renderizar também a tabela de itens
+  renderItemsTable();
 
   const focus = state.ui?.focusItem || "";
   const itemCols = focus ? [focus] : state.items;
@@ -567,6 +573,40 @@ function renderItemsManager() {
       removeItem(name);
     });
   });
+}
+
+// Renderização da tabela de itens para distribuição
+function renderItemsTable() {
+  const tbody = document.getElementById('items-table-body');
+  if (!tbody) return;
+  
+  tbody.innerHTML = state.items.map(item => {
+    const isSelected = selectedDistributionItems.has(item);
+    return `
+      <tr data-item="${item}">
+        <td>
+          <input type="checkbox" ${isSelected ? 'checked' : ''} 
+                 onchange="toggleItemSelection('${item}')">
+        </td>
+        <td>${item}</td>
+        <td>
+          <input type="number" min="1" value="1" 
+                 id="qty-${item}" class="item-quantity" 
+                 style="width: 60px; text-align: center;">
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Função para alternar seleção de item na tabela
+function toggleItemSelection(itemName) {
+  if (selectedDistributionItems.has(itemName)) {
+    selectedDistributionItems.delete(itemName);
+  } else {
+    selectedDistributionItems.add(itemName);
+  }
+  renderItemsTable();
 }
 
 // Gerenciador de Jogadores (lista simples com editar/excluir)
@@ -1863,18 +1903,31 @@ function initDistributeModal() {
         });
     }
     
-    // Renderizar lista de itens
+    // Renderizar lista de itens (apenas itens selecionados na tabela)
     function renderItemsList() {
         const searchTerm = itemsSearchInput ? itemsSearchInput.value.toLowerCase() : '';
-        filteredItems = state.items.filter(item => 
+        // Filtrar apenas itens selecionados na tabela de distribuição
+        const selectedItemsArray = Array.from(selectedDistributionItems);
+        filteredItems = selectedItemsArray.filter(item => 
             item.toLowerCase().includes(searchTerm)
         );
         
         if (!itemsList) return;
         
+        if (filteredItems.length === 0) {
+            itemsList.innerHTML = `
+                <div class="empty-state" style="text-align: center; padding: 40px; color: #666;">
+                    <div style="font-size: 48px; margin-bottom: 15px;">📦</div>
+                    <p>Nenhum item selecionado na tabela de distribuição.</p>
+                    <p style="font-size: 14px; opacity: 0.8;">Selecione itens na tabela ao lado para distribuir.</p>
+                </div>
+            `;
+            return;
+        }
+        
         itemsList.innerHTML = filteredItems.map(item => {
             const isSelected = selectedItems.has(item);
-            const quantity = itemQuantities[item] || 1;
+            const quantity = itemQuantities[item] || document.getElementById(`qty-${item}`)?.value || 1;
             return `
                 <div class="item-item ${isSelected ? 'selected' : ''}" data-item="${item}">
                     <div class="item-checkbox-section">
@@ -2607,7 +2660,32 @@ function stopRealtimeSync() {
 // Parar sincronização quando a página for fechada
 window.addEventListener('beforeunload', stopRealtimeSync);
 
-document.addEventListener("DOMContentLoaded", main);
+document.addEventListener("DOMContentLoaded", () => {
+  main();
+  initItemsTableEvents();
+});
+
+// Inicializar eventos da tabela de itens
+function initItemsTableEvents() {
+  const markAllItemsBtn = document.getElementById('btn-mark-all-items');
+  const unmarkAllItemsBtn = document.getElementById('btn-unmark-all-items');
+  
+  if (markAllItemsBtn) {
+    markAllItemsBtn.addEventListener('click', () => {
+      state.items.forEach(item => selectedDistributionItems.add(item));
+      renderItemsTable();
+      renderItemsList(); // Atualizar modal também
+    });
+  }
+  
+  if (unmarkAllItemsBtn) {
+    unmarkAllItemsBtn.addEventListener('click', () => {
+      selectedDistributionItems.clear();
+      renderItemsTable();
+      renderItemsList(); // Atualizar modal também
+    });
+  }
+}
 
 // Toggle edição manual
 function initToggleEdit() {
