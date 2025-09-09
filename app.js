@@ -2663,6 +2663,7 @@ window.addEventListener('beforeunload', stopRealtimeSync);
 document.addEventListener("DOMContentLoaded", () => {
   main();
   initItemsTableEvents();
+  initPlayerSelectionSync();
 });
 
 // Inicializar eventos da tabela de itens
@@ -2684,6 +2685,75 @@ function initItemsTableEvents() {
       renderItemsTable();
       renderItemsList(); // Atualizar modal também
     });
+  }
+}
+
+// Função para sincronizar seleção de jogadores com localStorage
+function initPlayerSelectionSync() {
+  // Carregar estado inicial do localStorage
+  loadPlayerSelectionFromStorage();
+  
+  // Escutar mudanças no localStorage (para sincronizar entre abas)
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'adminTableState') {
+      loadPlayerSelectionFromStorage();
+    }
+  });
+  
+  // Escutar eventos customizados (para sincronizar na mesma aba)
+  window.addEventListener('playerSelectionChanged', (e) => {
+    loadPlayerSelectionFromStorage();
+  });
+}
+
+// Função para carregar seleção de jogadores do localStorage
+function loadPlayerSelectionFromStorage() {
+  try {
+    const adminTableState = JSON.parse(localStorage.getItem('adminTableState') || '{}');
+    const selectedPlayers = adminTableState.selectedPlayers || [];
+    
+    // Aguardar um pouco para garantir que a tabela foi renderizada
+    setTimeout(() => {
+      // Marcar checkboxes dos jogadores selecionados
+      document.querySelectorAll('#players-table tbody tr').forEach(row => {
+        const playerName = row.getAttribute('data-name');
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        
+        if (checkbox && playerName) {
+          const shouldBeChecked = selectedPlayers.includes(playerName);
+          if (checkbox.checked !== shouldBeChecked) {
+            checkbox.checked = shouldBeChecked;
+            // Salvar mudança no estado se necessário
+            savePlayerSelectionToStorage();
+          }
+        }
+      });
+    }, 100);
+    
+  } catch (error) {
+    console.error('Erro ao carregar seleção de jogadores do localStorage:', error);
+  }
+}
+
+// Função para salvar seleção de jogadores no localStorage
+function savePlayerSelectionToStorage() {
+  try {
+    const selectedPlayers = [];
+    document.querySelectorAll('#players-table tbody tr').forEach(row => {
+      const playerName = row.getAttribute('data-name');
+      const checkbox = row.querySelector('input[type="checkbox"]');
+      
+      if (checkbox && checkbox.checked && playerName) {
+        selectedPlayers.push(playerName);
+      }
+    });
+    
+    const adminTableState = JSON.parse(localStorage.getItem('adminTableState') || '{}');
+    adminTableState.selectedPlayers = selectedPlayers;
+    localStorage.setItem('adminTableState', JSON.stringify(adminTableState));
+    
+  } catch (error) {
+    console.error('Erro ao salvar seleção de jogadores no localStorage:', error);
   }
 }
 

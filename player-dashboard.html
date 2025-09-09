@@ -1266,11 +1266,15 @@
             const participateBtn = document.getElementById('participate-btn');
             
             if (!isParticipating) {
-                // Ativar participação - carregar itens e abrir modal
+                // Ativar participação - marcar na tabela admin primeiro, depois carregar itens e abrir modal
                 try {
                     participateBtn.disabled = true;
                     participateBtn.innerHTML = '⏳ Carregando...';
                     
+                    // 1. Primeiro marcar o jogador na tabela de distribuição do admin
+                    await markPlayerInAdminTable(true);
+                    
+                    // 2. Depois carregar itens e abrir modal
                     await loadActiveItems();
                     openItemsModal();
                 } catch (error) {
@@ -1284,6 +1288,7 @@
                 // Desativar participação
                 if (confirm('Tem certeza que deseja parar de participar?')) {
                     await updatePlayerStatus(false);
+                    await markPlayerInAdminTable(false);
                 }
             }
         }
@@ -1394,6 +1399,39 @@
                 const confirmBtn = document.getElementById('confirm-selection');
                 confirmBtn.disabled = false;
                 confirmBtn.innerHTML = '✅ Confirmar Seleção';
+            }
+        }
+
+        // Função para marcar jogador na tabela de distribuição do admin
+        async function markPlayerInAdminTable(active) {
+            try {
+                // Simular marcação na tabela do admin através de localStorage
+                // para sincronizar com a interface do admin
+                const adminTableState = JSON.parse(localStorage.getItem('adminTableState') || '{}');
+                
+                if (!adminTableState.selectedPlayers) {
+                    adminTableState.selectedPlayers = [];
+                }
+                
+                if (active) {
+                    // Adicionar jogador à lista de selecionados se não estiver
+                    if (!adminTableState.selectedPlayers.includes(playerNick)) {
+                        adminTableState.selectedPlayers.push(playerNick);
+                    }
+                } else {
+                    // Remover jogador da lista de selecionados
+                    adminTableState.selectedPlayers = adminTableState.selectedPlayers.filter(name => name !== playerNick);
+                }
+                
+                localStorage.setItem('adminTableState', JSON.stringify(adminTableState));
+                
+                // Disparar evento para notificar outras abas/janelas
+                window.dispatchEvent(new CustomEvent('playerSelectionChanged', {
+                    detail: { playerName: playerNick, selected: active }
+                }));
+                
+            } catch (error) {
+                console.error('Erro ao marcar jogador na tabela do admin:', error);
             }
         }
 
