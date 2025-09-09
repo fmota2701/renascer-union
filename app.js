@@ -126,6 +126,16 @@ function showSection(id) {
 function renderTable() {
   const thead = $("#table-head");
   const tbody = $("#table-body");
+  
+  // Preservar jogadores destacados antes de limpar a tabela
+  const highlightedPlayers = new Set();
+  document.querySelectorAll('.player-not-selected').forEach(row => {
+    const playerName = row.getAttribute('data-name');
+    if (playerName) {
+      highlightedPlayers.add(playerName);
+    }
+  });
+  
   thead.innerHTML = "";
   tbody.innerHTML = "";
 
@@ -311,6 +321,17 @@ function renderTable() {
 
   // habilita arrastar e soltar para reordenar
   setupRowDragAndDrop(tbody);
+
+  // Reaplicar destaques visuais preservados
+  if (highlightedPlayers.size > 0) {
+    document.querySelectorAll('#players-table tbody tr').forEach(row => {
+      const playerName = row.getAttribute('data-name');
+      if (playerName && highlightedPlayers.has(playerName)) {
+        row.classList.add('player-not-selected');
+        console.log(`DEBUG - Reaplica destaque para: ${playerName}`);
+      }
+    });
+  }
 
   // Atualiza cards-resumo quando a tabela renderiza
   renderSummaryCards();
