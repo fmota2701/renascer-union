@@ -233,7 +233,7 @@
                 <div class="action-description">
                     Adicionar, editar ou remover jogadores do sistema
                 </div>
-                <button class="action-button" onclick="showSection('players')">
+                <button class="action-button" onclick="showAdminSection('players')">
                     Abrir Gerenciamento
                 </button>
             </div>
@@ -246,7 +246,7 @@
                 <div class="action-description">
                     Cadastrar novos itens e gerenciar o inventário
                 </div>
-                <button class="action-button" onclick="showSection('items')">
+                <button class="action-button" onclick="showAdminSection('items')">
                     Abrir Inventário
                 </button>
             </div>
@@ -259,7 +259,7 @@
                 <div class="action-description">
                     Distribuir itens para jogadores e gerenciar drops
                 </div>
-                <button class="action-button" onclick="showSection('distribute')">
+                <button class="action-button" onclick="showAdminSection('distribute')">
                     Abrir Distribuição
                 </button>
             </div>
@@ -272,7 +272,7 @@
                 <div class="action-description">
                     Visualizar estatísticas e histórico completo
                 </div>
-                <button class="action-button" onclick="showSection('stats')">
+                <button class="action-button" onclick="showAdminSection('stats')">
                     Ver Relatórios
                 </button>
             </div>
@@ -285,7 +285,7 @@
                 <div class="action-description">
                     Configurar sistema e preferências avançadas
                 </div>
-                <button class="action-button" onclick="showSection('config')">
+                <button class="action-button" onclick="showAdminSection('config')">
                     Abrir Configurações
                 </button>
             </div>
@@ -511,6 +511,7 @@
     </div>
     
     <script src="src/config/config.js"></script>
+    <script src="app.js"></script>
     <script>
         // Verificar autenticação
         if (localStorage.getItem('isLoggedIn') !== 'true' || localStorage.getItem('userType') !== 'admin') {
@@ -525,8 +526,8 @@
             }
         }
         
-        // Função para mostrar seção específica
-        function showSection(sectionName) {
+        // Função para mostrar seção específica do admin
+        function showAdminSection(sectionName) {
             // Esconder dashboard
             document.querySelector('.dashboard-stats').style.display = 'none';
             document.querySelector('.quick-actions').style.display = 'none';
@@ -540,7 +541,7 @@
             const section = document.getElementById(sectionName + '-section');
             if (section) {
                 section.style.display = 'block';
-                loadSectionContent(sectionName);
+                loadAdminSectionContent(sectionName);
             }
         }
         
@@ -556,26 +557,28 @@
             });
         }
         
-        // Função para carregar conteúdo das seções
-        function loadSectionContent(sectionName) {
-            // As seções já estão definidas no HTML, não precisamos criar dinamicamente
-            // Apenas inicializar o conteúdo específico se necessário
-            
+        // Função para carregar conteúdo das seções do admin
+        function loadAdminSectionContent(sectionName) {
+            // Usar as funções do app.js para carregar o conteúdo
             switch(sectionName) {
                 case 'players':
-                    // Inicializar gerenciamento de jogadores se necessário
+                    // Mostrar seção de cadastros do app.js
+                    showSection('#section-cadastros');
                     break;
                     
                 case 'items':
-                    // Inicializar gerenciamento de itens se necessário
+                    // Mostrar seção de cadastros do app.js
+                    showSection('#section-cadastros');
                     break;
                     
                 case 'distribute':
-                    // Inicializar distribuição se necessário
+                    // Mostrar seção de distribuição do app.js
+                    showSection('#section-distribuir');
                     break;
                     
                 case 'stats':
-                    // Inicializar estatísticas se necessário
+                    // Mostrar seção de histórico do app.js
+                    showSection('#section-historico');
                     break;
                     
                 case 'config':
