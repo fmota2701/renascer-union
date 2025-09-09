@@ -194,16 +194,58 @@ function renderTable() {
     // Participa
     const tdActive = document.createElement('td');
     tdActive.className = 'num';
-    const chk = document.createElement('input');
-    chk.type = 'checkbox';
-    chk.checked = p.active !== false;
-    chk.addEventListener('change', () => {
-      p.active = chk.checked;
+    
+    // Container para os botões
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.style.display = 'flex';
+    buttonsContainer.style.gap = '4px';
+    
+    // Botão Presente
+    const btnPresente = document.createElement('button');
+    btnPresente.textContent = 'Presente';
+    btnPresente.className = p.active !== false ? 'btn-presente active' : 'btn-presente';
+    btnPresente.style.cssText = `
+      padding: 2px 6px;
+      font-size: 10px;
+      border: 1px solid #28a745;
+      background: ${p.active !== false ? '#28a745' : 'transparent'};
+      color: ${p.active !== false ? 'white' : '#28a745'};
+      cursor: pointer;
+      border-radius: 3px;
+    `;
+    
+    // Botão Ausente
+    const btnAusente = document.createElement('button');
+    btnAusente.textContent = 'Ausente';
+    btnAusente.className = p.active === false ? 'btn-ausente active' : 'btn-ausente';
+    btnAusente.style.cssText = `
+      padding: 2px 6px;
+      font-size: 10px;
+      border: 1px solid #dc3545;
+      background: ${p.active === false ? '#dc3545' : 'transparent'};
+      color: ${p.active === false ? 'white' : '#dc3545'};
+      cursor: pointer;
+      border-radius: 3px;
+    `;
+    
+    // Event listeners
+    btnPresente.addEventListener('click', () => {
+      p.active = true;
       saveState(state); 
-      savePlayerSelectionToStorage(); // Sincronizar com localStorage
+      savePlayerSelectionToStorage();
       renderTable();
     });
-    tdActive.appendChild(chk);
+    
+    btnAusente.addEventListener('click', () => {
+      p.active = false;
+      saveState(state); 
+      savePlayerSelectionToStorage();
+      renderTable();
+    });
+    
+    buttonsContainer.appendChild(btnPresente);
+    buttonsContainer.appendChild(btnAusente);
+    tdActive.appendChild(buttonsContainer);
     tr.appendChild(tdActive);
 
     // Nome
