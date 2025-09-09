@@ -259,17 +259,15 @@ async function getItemsData(params = {}) {
 async function getHistoryData(params = {}) {
   const cacheKey = `history_${JSON.stringify(params)}`;
   
+  // Limpar cache para garantir dados atualizados
   if (cache.has(cacheKey)) {
-    const cached = cache.get(cacheKey);
-    if (Date.now() - cached.timestamp < CACHE_TTL) {
-      console.log('Cache hit: history');
-      return cached.data;
-    }
+    cache.delete(cacheKey);
   }
 
   let query = supabase
-    .from('recent_distributions')
-    .select('*');
+    .from('distribution_history')
+    .select('*')
+    .order('created_at', { ascending: false });
 
   // Filtros
   if (params.player_name) {
