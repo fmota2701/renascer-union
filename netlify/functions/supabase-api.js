@@ -105,6 +105,8 @@ async function handleGet(path, params) {
       return await getActiveItems();
     case '/fix-table':
       return await fixTableStructure();
+    case '/player-selections':
+      return await getPlayerSelections(params);
     default:
       throw new Error(`Endpoint GET ${endpoint} não encontrado`);
   }
@@ -125,6 +127,8 @@ async function handlePost(path, data) {
       return await createPlayer(data);
     case '/items':
       return await createItem(data);
+    case '/player-selections':
+      return await handlePlayerSelections(data);
     default:
       throw new Error(`Endpoint POST ${endpoint} não encontrado`);
   }
@@ -997,6 +1001,100 @@ async function fixTableStructure() {
     
   } catch (error) {
     console.error('❌ Erro geral:', error);
+    return {
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    };
+  }
+}
+
+/**
+ * Buscar seleções de jogadores
+ */
+async function getPlayerSelections(params = {}) {
+  try {
+    console.log('🔍 Buscando seleções de jogadores:', params);
+    
+    let query = supabase
+      .from('player_selections')
+      .select('*')
+      .order('updated_at', { ascending: false });
+    
+    // Filtrar por jogador específico se fornecido
+    if (params.player_name) {
+      query = query.eq('player_name', params.player_name);
+    }
+    
+    // Filtrar apenas selecionados se fornecido
+    if (params.selected_only === 'true') {
+      query = query.eq('is_selected', true);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('❌ Erro ao buscar seleções:', error);
+      throw error;
+    }
+    
+    console.log(`✅ ${data.length} seleções encontradas`);
+    
+    return {
+      success: true,
+      data: data,
+      count: data.length,
+      timestamp: new Date().toISOString()
+    };
+    
+  } catch (error) {
+    console.error('❌ Erro ao buscar seleções:', error);
+    return {
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    };
+  }
+}
+
+/**
+ * Gerenciar seleções de jogadores
+ */
+async function handlePlayerSelections(data) {
+  try {
+    console.log('📝 Salvando seleções de jogadores:', data);
+    
+    const { selections } = data;
+    
+    if (!selections || !Array.isArray(selections)) {
+      throw new Error('Dados de seleções inválidos');
+    }
+    
+    // Usar upsert para inserir ou atualizar seleções
+    const { data: result, error } = await supabase
+      .from('player_selections')
+      .upsert(selections, {
+        onConflict: 'player_name',
+        ignoreDuplicates: false
+      })
+      .select();
+    
+    if (error) {
+      console.error('❌ Erro ao salvar seleções:', error);
+      throw error;
+    }
+    
+    console.log('✅ Seleções salvas com sucesso:', result);
+    
+    return {
+      success: true,
+      data: result,
+      message: `${selections.length} seleções processadas`,
+      timestamp: new Date().toISOString()
+    };
+    
+  } catch (error) {
+    console.error('❌ Erro ao processar seleções:', error);
     return {
       success: false,
       error: error.message,

@@ -1,9 +1,15 @@
-// Configurações do Google Sheets
+// Configurações do sistema
 const CONFIG = {
-  // URL da função Netlify para API do Google Sheets
-  NETLIFY_FUNCTION_URL: '/.netlify/functions/sheets-api',
+  // URL da função Netlify para API do Supabase
+  NETLIFY_FUNCTION_URL: '/.netlify/functions/supabase-api',
   
-  // ID da planilha do Google Sheets (será configurado via variável de ambiente)
+  // Configurações do Supabase
+  SUPABASE: {
+    URL: 'https://your-project.supabase.co', // Substituir pela URL real
+    ANON_KEY: 'your-anon-key' // Substituir pela chave real
+  },
+  
+  // ID da planilha do Google Sheets (mantido para compatibilidade)
   SPREADSHEET_ID: '1MTQcyUr7vX79-hZGYbFrLqMZzvB2SVxl5OjJLTE3n_4',
   
   // Nomes das abas da planilha

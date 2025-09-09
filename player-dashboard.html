@@ -882,6 +882,10 @@
         </div>
     </div>
 
+    <!-- Supabase Scripts -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    
     <script>
         // Verificar autenticação
         if (localStorage.getItem('userType') !== 'player' || localStorage.getItem('isLoggedIn') !== 'true') {
@@ -1368,10 +1372,26 @@
             }
         }
 
-        // Função para atualizar seleção de jogadores no localStorage
-        function updatePlayerSelection(playerName, selected) {
+        // Função para atualizar seleção de jogadores no Supabase
+        async function updatePlayerSelection(playerName, selected) {
             try {
-                // Atualizar localStorage 'playerSelections' para sincronização em tempo real
+                // Salvar no Supabase
+                const response = await fetch('/.netlify/functions/supabase-api/player-selections', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        playerName: playerName,
+                        selected: selected
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao salvar seleção no Supabase');
+                }
+                
+                // Manter compatibilidade mínima com localStorage
                 const playerSelections = JSON.parse(localStorage.getItem('playerSelections') || '{}');
                 
                 if (selected) {
@@ -1382,32 +1402,62 @@
                 
                 localStorage.setItem('playerSelections', JSON.stringify(playerSelections));
                 
-                // Também manter compatibilidade com adminTableState
-                const adminTableState = JSON.parse(localStorage.getItem('adminTableState') || '{}');
-                
-                if (!adminTableState.selectedPlayers) {
-                    adminTableState.selectedPlayers = [];
-                }
-                
-                if (selected) {
-                    if (!adminTableState.selectedPlayers.includes(playerName)) {
-                        adminTableState.selectedPlayers.push(playerName);
-                    }
-                } else {
-                    adminTableState.selectedPlayers = adminTableState.selectedPlayers.filter(name => name !== playerName);
-                }
-                
-                localStorage.setItem('adminTableState', JSON.stringify(adminTableState));
+                // adminTableState removido - agora usando apenas Supabase
                 
                 // Disparar evento para notificar mudanças
                 window.dispatchEvent(new CustomEvent('playerSelectionChanged', {
                     detail: { playerName: playerName, selected: selected }
                 }));
                 
-                console.log(`Player ${playerName} ${selected ? 'selecionado' : 'desmarcado'} no localStorage`);
+                console.log(`✅ Player ${playerName} ${selected ? 'selecionado' : 'desmarcado'} salvo no Supabase`);
                 
             } catch (error) {
-                console.error('Erro ao atualizar seleção do jogador:', error);
+                console.error('❌ Erro ao atualizar seleção do jogador:', error);
+                // Em caso de erro, manter apenas no localStorage
+                const playerSelections = JSON.parse(localStorage.getItem('playerSelections') || '{}');
+                
+                if (selected) {
+                    playerSelections[playerName] = true;
+                } else {
+                    delete playerSelections[playerName];
+                }
+                
+                localStorage.setItem('playerSelections', JSON.stringify(playerSelections));
+            }
+        }
+
+        // Função para carregar seleções de jogadores do Supabase
+        async function loadPlayerSelectionsFromSupabase() {
+            try {
+                const response = await fetch('/.netlify/functions/supabase-api/player-selections');
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar seleções do Supabase');
+                }
+                
+                const data = await response.json();
+                const playerSelections = {};
+                
+                // Converter array de seleções para objeto
+                if (data.data && Array.isArray(data.data)) {
+                    data.data.forEach(selection => {
+                        if (selection.selected) {
+                            playerSelections[selection.player_name] = true;
+                        }
+                    });
+                }
+                
+                // Atualizar localStorage para compatibilidade
+                localStorage.setItem('playerSelections', JSON.stringify(playerSelections));
+                
+                console.log('✅ Seleções de jogadores carregadas do Supabase:', playerSelections);
+                return playerSelections;
+                
+            } catch (error) {
+                console.error('❌ Erro ao carregar seleções do Supabase:', error);
+                // Fallback para localStorage
+                const playerSelections = JSON.parse(localStorage.getItem('playerSelections') || '{}');
+                return playerSelections;
             }
         }
 
@@ -1496,7 +1546,7 @@
             
             // Monitorar mudanças no localStorage (entre abas)
             window.addEventListener('storage', function(e) {
-                if (e.key === 'playerSelections' || e.key === 'adminTableState') {
+                if (e.key === 'playerSelections') {
                     console.log('Detectada mudança nas seleções de jogadores via storage event');
                     checkPlayerMarkedStatus();
                 }
@@ -1523,8 +1573,23 @@
         // Carregar dados iniciais
         loadOverviewData();
         
+        // Carregar seleções de jogadores do Supabase
+        loadPlayerSelectionsFromSupabase();
+        
         // Iniciar monitoramento do status do jogador
         startPlayerStatusMonitoring();
+        
+        // Inicializar realtime do Supabase se disponível
+        if (typeof initRealtimeManager === 'function') {
+            const realtimeManager = initRealtimeManager();
+            if (realtimeManager) {
+                // Subscrever mudanças nas seleções de jogadores
+                realtimeManager.subscribeToPlayerSelections((payload) => {
+                    console.log('🔄 Mudança detectada nas seleções de jogadores:', payload);
+                    loadPlayerSelectionsFromSupabase();
+                });
+            }
+        }
     </script>
 </body>
 </html>
