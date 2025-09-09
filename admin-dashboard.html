@@ -635,26 +635,35 @@
         
         // Função para carregar conteúdo das seções do admin
         function loadAdminSectionContent(sectionName) {
-            // Usar as funções do app.js para carregar o conteúdo
+            // Carregar apenas o conteúdo específico de cada seção
             switch(sectionName) {
                 case 'players':
-                    // Mostrar seção de cadastros do app.js
-                    showSection('#section-cadastros');
+                    // Carregar apenas gerenciamento de jogadores
+                    if (window.renderPlayersManager) {
+                        window.renderPlayersManager();
+                    }
                     break;
                     
                 case 'items':
-                    // Mostrar seção de cadastros do app.js
-                    showSection('#section-cadastros');
+                    // Carregar apenas gerenciamento de itens
+                    if (window.renderItemsManager) {
+                        window.renderItemsManager();
+                    }
                     break;
                     
                 case 'distribute':
-                    // Mostrar seção de distribuição do app.js
-                    showSection('#section-distribuir');
+                    // Carregar funcionalidades de distribuição
+                    if (window.renderTable && window.renderItemsSelect) {
+                        window.renderItemsSelect();
+                        window.renderTable();
+                    }
                     break;
                     
                 case 'stats':
-                    // Mostrar seção de histórico do app.js
-                    showSection('#section-historico');
+                    // Carregar apenas histórico
+                    if (window.renderHistory) {
+                        window.renderHistory();
+                    }
                     break;
                     
                 case 'config':
