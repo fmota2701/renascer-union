@@ -199,7 +199,9 @@ function renderTable() {
     chk.checked = p.active !== false;
     chk.addEventListener('change', () => {
       p.active = chk.checked;
-      saveState(state); renderTable();
+      saveState(state); 
+      savePlayerSelectionToStorage(); // Sincronizar com localStorage
+      renderTable();
     });
     tdActive.appendChild(chk);
     tr.appendChild(tdActive);
@@ -2695,14 +2697,27 @@ function initPlayerSelectionSync() {
   
   // Escutar mudanças no localStorage (para sincronizar entre abas)
   window.addEventListener('storage', (e) => {
-    if (e.key === 'adminTableState') {
+    if (e.key === 'adminTableState' || e.key === 'guildDistributionState') {
       loadPlayerSelectionFromStorage();
+      // Recarregar estado se mudou
+      if (e.key === 'guildDistributionState') {
+        loadState().then(() => renderTable());
+      }
     }
   });
   
   // Escutar eventos customizados (para sincronizar na mesma aba)
   window.addEventListener('playerSelectionChanged', (e) => {
     loadPlayerSelectionFromStorage();
+    // Atualizar estado local do jogador
+    if (e.detail && e.detail.playerName) {
+      const player = state.players.find(p => p.name === e.detail.playerName);
+      if (player) {
+        player.active = e.detail.selected;
+        saveState(state);
+        renderTable();
+      }
+    }
   });
 }
 

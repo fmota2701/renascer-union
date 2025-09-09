@@ -1428,9 +1428,28 @@
                 
                 localStorage.setItem('adminTableState', JSON.stringify(adminTableState));
                 
+                // Também atualizar o estado local do app.js para sincronizar o checkbox
+                try {
+                    const appState = JSON.parse(localStorage.getItem('guildDistributionState') || '{}');
+                    if (appState.players) {
+                        const player = appState.players.find(p => p.name === playerNick);
+                        if (player) {
+                            player.active = active;
+                            localStorage.setItem('guildDistributionState', JSON.stringify(appState));
+                        }
+                    }
+                } catch (stateError) {
+                    console.log('Estado do app não encontrado, continuando...');
+                }
+                
                 // Disparar evento para notificar outras abas/janelas
                 window.dispatchEvent(new CustomEvent('playerSelectionChanged', {
                     detail: { playerName: playerNick, selected: active }
+                }));
+                
+                // Disparar evento adicional para forçar atualização da tabela
+                window.dispatchEvent(new CustomEvent('storage', {
+                    detail: { key: 'adminTableState' }
                 }));
                 
             } catch (error) {
