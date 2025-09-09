@@ -1827,7 +1827,7 @@ function initDistributeModal() {
     function renderPlayersList() {
         const searchTerm = playersSearchInput ? playersSearchInput.value.toLowerCase() : '';
         filteredPlayers = state.players.filter(player => 
-            player.name.toLowerCase().includes(searchTerm)
+            player.name.toLowerCase().includes(searchTerm) && player.active !== false
         );
         
         if (!playersList) return;
