@@ -1876,30 +1876,45 @@ function initDistributeModal() {
         
         playersList.innerHTML = filteredPlayers.map(player => `
             <div class="player-item ${selectedPlayers.has(player.name) ? 'selected' : ''}" data-player="${player.name}">
-                <input type="checkbox" ${selectedPlayers.has(player.name) ? 'checked' : ''}>
-                <span>${player.name}</span>
+                <span class="player-name">${player.name}</span>
+                <div class="presence-buttons">
+                    <button class="btn-presente ${selectedPlayers.has(player.name) ? 'active' : ''}" data-action="presente">
+                        Presente
+                    </button>
+                    <button class="btn-ausente ${!selectedPlayers.has(player.name) ? 'active' : ''}" data-action="ausente">
+                        Ausente
+                    </button>
+                </div>
             </div>
         `).join('');
         
-        // Adicionar eventos de clique
+        // Adicionar eventos de clique nos botões
         playersList.querySelectorAll('.player-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                const playerName = item.dataset.player;
-                const checkbox = item.querySelector('input');
-                
-                if (selectedPlayers.has(playerName)) {
-                    selectedPlayers.delete(playerName);
-                    checkbox.checked = false;
-                    item.classList.remove('selected');
-                } else {
-                    selectedPlayers.add(playerName);
-                    checkbox.checked = true;
-                    item.classList.add('selected');
-                }
+            const playerName = item.dataset.player;
+            const btnPresente = item.querySelector('.btn-presente');
+            const btnAusente = item.querySelector('.btn-ausente');
+            
+            btnPresente.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectedPlayers.add(playerName);
+                item.classList.add('selected');
+                btnPresente.classList.add('active');
+                btnAusente.classList.remove('active');
                 
                 // Aplicar destaque visual em tempo real na tabela
                 highlightNonSelectedPlayers(Array.from(selectedPlayers));
+                updatePreview();
+            });
+            
+            btnAusente.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectedPlayers.delete(playerName);
+                item.classList.remove('selected');
+                btnAusente.classList.add('active');
+                btnPresente.classList.remove('active');
                 
+                // Aplicar destaque visual em tempo real na tabela
+                highlightNonSelectedPlayers(Array.from(selectedPlayers));
                 updatePreview();
             });
         });
