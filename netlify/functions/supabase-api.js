@@ -606,18 +606,23 @@ async function handleSync(data = {}) {
     if (state.history && Array.isArray(state.history)) {
       for (const entry of state.history) {
         try {
+          // Criar uma chave única baseada nos dados da entrada
+          const uniqueKey = `${entry.player}_${entry.item}_${entry.date}_${entry.qty || 1}`;
+          
           const { error } = await supabase
             .from('history')
-            .insert({
+            .upsert({
+              unique_key: uniqueKey,
               player_name: entry.player,
               item_name: entry.item,
+              quantity: entry.qty || 1,
               date: entry.date || new Date().toISOString(),
               created_at: new Date().toISOString()
-            });
+            }, { onConflict: 'unique_key' });
           
-          if (error && !error.message.includes('duplicate')) {
+          if (error) {
             syncResults.errors.push(`Erro ao sincronizar histórico: ${error.message}`);
-          } else if (!error) {
+          } else {
             syncResults.history_synced++;
           }
         } catch (err) {
