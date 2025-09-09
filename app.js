@@ -1799,6 +1799,8 @@ function initDistributeModal() {
             modal.classList.add('show');
             renderPlayersList();
             renderItemsList();
+            // Aplicar destaque visual inicial (se houver jogadores selecionados)
+            highlightNonSelectedPlayers(Array.from(selectedPlayers));
             updatePreview();
         });
     }
@@ -1808,6 +1810,8 @@ function initDistributeModal() {
         modal.classList.remove('show');
         selectedPlayers.clear();
         selectedItems.clear();
+        // Limpar destaque visual ao fechar o modal
+        clearPlayerHighlights();
         updatePreview();
     }
     
@@ -1850,6 +1854,9 @@ function initDistributeModal() {
                     checkbox.checked = true;
                     item.classList.add('selected');
                 }
+                
+                // Aplicar destaque visual em tempo real na tabela
+                highlightNonSelectedPlayers(Array.from(selectedPlayers));
                 
                 updatePreview();
             });
@@ -1967,6 +1974,8 @@ function initDistributeModal() {
         selectAllPlayersBtn.addEventListener('click', () => {
             filteredPlayers.forEach(player => selectedPlayers.add(player.name));
             renderPlayersList();
+            // Aplicar destaque visual em tempo real na tabela
+            highlightNonSelectedPlayers(Array.from(selectedPlayers));
             updatePreview();
         });
     }
@@ -1975,6 +1984,8 @@ function initDistributeModal() {
         deselectAllPlayersBtn.addEventListener('click', () => {
             filteredPlayers.forEach(player => selectedPlayers.delete(player.name));
             renderPlayersList();
+            // Aplicar destaque visual em tempo real na tabela
+            highlightNonSelectedPlayers(Array.from(selectedPlayers));
             updatePreview();
         });
     }
