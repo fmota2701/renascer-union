@@ -2110,6 +2110,8 @@ function initDistributeModal() {
                     notes: `Distribuição automática - ${fmtDate()}`
                 }));
                 
+                console.log('Enviando distribuições para API:', distributions);
+                
                 const response = await fetch('/.netlify/functions/supabase-api/distribute', {
                     method: 'POST',
                     headers: {
@@ -2118,11 +2120,16 @@ function initDistributeModal() {
                     body: JSON.stringify({ distributions })
                 });
                 
+                console.log('Resposta da API - Status:', response.status);
+                
                 if (!response.ok) {
-                    throw new Error(`Erro na API: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('Erro na API:', errorText);
+                    throw new Error(`Erro na API: ${response.status} - ${errorText}`);
                 }
                 
                 const result = await response.json();
+                console.log('Resultado da API:', result);
                 
                 if (result.errors && result.errors.length > 0) {
                     console.warn('Alguns erros na distribuição:', result.error_details);
