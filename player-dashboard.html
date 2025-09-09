@@ -1429,6 +1429,7 @@
         // Função para carregar seleções de jogadores do Supabase
         async function loadPlayerSelectionsFromSupabase() {
             try {
+                console.log('🔄 Carregando seleções de jogadores do Supabase...');
                 const response = await fetch('/.netlify/functions/supabase-api/player-selections');
                 
                 if (!response.ok) {
@@ -1441,7 +1442,7 @@
                 // Converter array de seleções para objeto
                 if (data.data && Array.isArray(data.data)) {
                     data.data.forEach(selection => {
-                        if (selection.selected) {
+                        if (selection.is_selected) {
                             playerSelections[selection.player_name] = true;
                         }
                     });
@@ -1451,12 +1452,20 @@
                 localStorage.setItem('playerSelections', JSON.stringify(playerSelections));
                 
                 console.log('✅ Seleções de jogadores carregadas do Supabase:', playerSelections);
+                
+                // Verificar se o status do jogador atual mudou e atualizar o botão
+                const isCurrentPlayerSelected = playerSelections[playerNick] === true;
+                console.log(`🎮 Jogador ${playerNick} está selecionado:`, isCurrentPlayerSelected);
+                toggleChooseItemsButton(isCurrentPlayerSelected);
+                
                 return playerSelections;
                 
             } catch (error) {
                 console.error('❌ Erro ao carregar seleções do Supabase:', error);
                 // Fallback para localStorage
                 const playerSelections = JSON.parse(localStorage.getItem('playerSelections') || '{}');
+                const isCurrentPlayerSelected = playerSelections[playerNick] === true;
+                toggleChooseItemsButton(isCurrentPlayerSelected);
                 return playerSelections;
             }
         }
@@ -1524,18 +1533,55 @@
         // Função para verificar se jogador está marcado pelo admin
         async function checkPlayerMarkedStatus() {
             try {
-                // Verificar no localStorage se o jogador está marcado
-                const playerSelections = JSON.parse(localStorage.getItem('playerSelections') || '{}');
-                const isMarked = playerSelections[playerNick] === true;
+                console.log('🔍 Verificando status do jogador no Supabase:', playerNick);
                 
-                console.log('Verificando status do jogador:', playerNick, 'Marcado:', isMarked);
+                // Buscar status do jogador no Supabase
+                const response = await fetch(`/.netlify/functions/supabase-api/player-selections?player_name=${encodeURIComponent(playerNick)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Erro ao buscar status do jogador');
+                }
+                
+                // Verificar se o jogador está marcado como presente
+                const playerSelection = result.data.find(selection => 
+                    selection.player_name === playerNick && selection.is_selected === true
+                );
+                
+                const isMarked = !!playerSelection;
+                
+                console.log('✅ Status do jogador:', playerNick, 'Marcado como presente:', isMarked);
                 
                 // Ativar/desativar botão baseado no status
                 toggleChooseItemsButton(isMarked);
                 
+                // Manter compatibilidade com localStorage para outros componentes
+                const playerSelections = JSON.parse(localStorage.getItem('playerSelections') || '{}');
+                if (isMarked) {
+                    playerSelections[playerNick] = true;
+                } else {
+                    delete playerSelections[playerNick];
+                }
+                localStorage.setItem('playerSelections', JSON.stringify(playerSelections));
+                
             } catch (error) {
-                console.error('Erro ao verificar status do jogador:', error);
-                toggleChooseItemsButton(false);
+                console.error('❌ Erro ao verificar status do jogador:', error);
+                
+                // Fallback para localStorage em caso de erro
+                try {
+                    const playerSelections = JSON.parse(localStorage.getItem('playerSelections') || '{}');
+                    const isMarked = playerSelections[playerNick] === true;
+                    console.log('🔄 Fallback para localStorage:', playerNick, 'Marcado:', isMarked);
+                    toggleChooseItemsButton(isMarked);
+                } catch (fallbackError) {
+                    console.error('❌ Erro no fallback:', fallbackError);
+                    toggleChooseItemsButton(false);
+                }
             }
         }
         
