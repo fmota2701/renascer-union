@@ -266,7 +266,11 @@ async function getHistoryData(params = {}) {
 
   let query = supabase
     .from('history')
-    .select('*')
+    .select(`
+      *,
+      players(name),
+      items(name)
+    `)
     .order('created_at', { ascending: false });
 
   // Filtros
@@ -394,7 +398,7 @@ async function handleDistribute(data) {
       // Buscar IDs do jogador e item
       const [playerResult, itemResult] = await Promise.all([
         supabase.from('players').select('id').eq('name', player_name).single(),
-        supabase.from('items').select('id, available_quantity').eq('name', item_name).single()
+        supabase.from('items').select('id, available_quantity').eq('name', item_name).gt('available_quantity', 0).single()
       ]);
 
       if (playerResult.error) {

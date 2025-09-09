@@ -2103,10 +2103,18 @@ function initDistributeModal() {
             
             // Aplicar distribuição via API do Supabase
             try {
-                const distributions = assignments.map(({ item, player }) => ({
-                    player_name: player,
-                    item_name: item,
-                    quantity: 1,
+                // Agrupar assignments por jogador e item para enviar a quantidade correta
+                const distributionMap = new Map();
+                assignments.forEach(({ item, player }) => {
+                    const key = `${player}|${item}`;
+                    if (!distributionMap.has(key)) {
+                        distributionMap.set(key, { player_name: player, item_name: item, quantity: 0 });
+                    }
+                    distributionMap.get(key).quantity += 1;
+                });
+                
+                const distributions = Array.from(distributionMap.values()).map(dist => ({
+                    ...dist,
                     notes: `Distribuição automática - ${fmtDate()}`
                 }));
                 
