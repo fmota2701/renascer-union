@@ -2766,18 +2766,34 @@ function loadPlayerSelectionFromStorage() {
 function savePlayerSelectionToStorage() {
   try {
     const selectedPlayers = [];
+    const playerSelections = {};
+    
     document.querySelectorAll('#players-table tbody tr').forEach(row => {
       const playerName = row.getAttribute('data-name');
       const checkbox = row.querySelector('input[type="checkbox"]');
       
-      if (checkbox && checkbox.checked && playerName) {
-        selectedPlayers.push(playerName);
+      if (checkbox && playerName) {
+        if (checkbox.checked) {
+          selectedPlayers.push(playerName);
+          playerSelections[playerName] = true;
+        }
       }
     });
     
+    // Salvar no formato antigo (compatibilidade)
     const adminTableState = JSON.parse(localStorage.getItem('adminTableState') || '{}');
     adminTableState.selectedPlayers = selectedPlayers;
     localStorage.setItem('adminTableState', JSON.stringify(adminTableState));
+    
+    // Salvar no novo formato para sincronização em tempo real
+    localStorage.setItem('playerSelections', JSON.stringify(playerSelections));
+    
+    // Disparar evento para notificar mudanças
+    window.dispatchEvent(new CustomEvent('playerSelectionChanged', {
+      detail: { selectedPlayers: selectedPlayers, playerSelections: playerSelections }
+    }));
+    
+    console.log('Seleções de jogadores salvas:', selectedPlayers);
     
   } catch (error) {
     console.error('Erro ao salvar seleção de jogadores no localStorage:', error);

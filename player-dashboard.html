@@ -86,7 +86,7 @@
             transform: translateY(-2px);
         }
 
-        .participate-btn {
+        .choose-items-btn {
             background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
             color: white;
             border: none;
@@ -102,19 +102,17 @@
             margin-right: 15px;
         }
         
-        .participate-btn:hover {
+        .choose-items-btn:hover {
             background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
         }
         
-        .participate-btn.participating {
-            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
-        }
-        
-        .participate-btn.participating:hover {
-            background: linear-gradient(135deg, #F57C00 0%, #FF9800 100%);
-            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+        .choose-items-btn:disabled {
+            background: linear-gradient(135deg, #ccc 0%, #999 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         .dashboard-nav {
@@ -724,8 +722,8 @@
                 </div>
             </div>
             <div style="display: flex; align-items: center;">
-                <button id="participate-btn" class="participate-btn" onclick="toggleParticipation()">
-                    🎯 Participar
+                <button id="choose-items-btn" class="choose-items-btn" onclick="openChooseItemsFlow()" disabled>
+                    📦 Escolher Itens
                 </button>
                 <button class="logout-btn" onclick="logout()">
                     🚪 Sair
@@ -1256,45 +1254,10 @@
             }
         }
 
-        // Variáveis globais para participação
-        let isParticipating = false;
+        // Variáveis globais para seleção de itens
         let selectedItems = new Set();
         let availableItems = [];
-
-        // Função para alternar participação
-        async function toggleParticipation() {
-            const participateBtn = document.getElementById('participate-btn');
-            
-            if (!isParticipating) {
-                // Ativar participação - apenas marcar na tabela admin e mostrar botão escolher itens
-                try {
-                    participateBtn.disabled = true;
-                    participateBtn.innerHTML = '⏳ Marcando...';
-                    
-                    // Marcar o jogador na tabela de distribuição do admin
-                    await markPlayerInAdminTable(true);
-                    
-                    // Atualizar status do jogador
-                    await updatePlayerStatus(true);
-                    
-                    // Mostrar botão "escolher itens" ao lado do botão participar
-                    showChooseItemsButton();
-                    
-                } catch (error) {
-                    console.error('Erro ao marcar participação:', error);
-                    alert('Erro ao marcar participação. Tente novamente.');
-                } finally {
-                    participateBtn.disabled = false;
-                }
-            } else {
-                // Desativar participação
-                if (confirm('Tem certeza que deseja parar de participar?')) {
-                    await updatePlayerStatus(false);
-                    await markPlayerInAdminTable(false);
-                    hideChooseItemsButton();
-                }
-            }
-        }
+        let isPlayerMarked = false;
 
         // Função para carregar itens ativos
         async function loadActiveItems() {
@@ -1405,55 +1368,46 @@
             }
         }
 
-        // Função para marcar jogador na tabela de distribuição do admin
-        async function markPlayerInAdminTable(active) {
+        // Função para atualizar seleção de jogadores no localStorage
+        function updatePlayerSelection(playerName, selected) {
             try {
-                // Simular marcação na tabela do admin através de localStorage
-                // para sincronizar com a interface do admin
+                // Atualizar localStorage 'playerSelections' para sincronização em tempo real
+                const playerSelections = JSON.parse(localStorage.getItem('playerSelections') || '{}');
+                
+                if (selected) {
+                    playerSelections[playerName] = true;
+                } else {
+                    delete playerSelections[playerName];
+                }
+                
+                localStorage.setItem('playerSelections', JSON.stringify(playerSelections));
+                
+                // Também manter compatibilidade com adminTableState
                 const adminTableState = JSON.parse(localStorage.getItem('adminTableState') || '{}');
                 
                 if (!adminTableState.selectedPlayers) {
                     adminTableState.selectedPlayers = [];
                 }
                 
-                if (active) {
-                    // Adicionar jogador à lista de selecionados se não estiver
-                    if (!adminTableState.selectedPlayers.includes(playerNick)) {
-                        adminTableState.selectedPlayers.push(playerNick);
+                if (selected) {
+                    if (!adminTableState.selectedPlayers.includes(playerName)) {
+                        adminTableState.selectedPlayers.push(playerName);
                     }
                 } else {
-                    // Remover jogador da lista de selecionados
-                    adminTableState.selectedPlayers = adminTableState.selectedPlayers.filter(name => name !== playerNick);
+                    adminTableState.selectedPlayers = adminTableState.selectedPlayers.filter(name => name !== playerName);
                 }
                 
                 localStorage.setItem('adminTableState', JSON.stringify(adminTableState));
                 
-                // Também atualizar o estado local do app.js para sincronizar o checkbox
-                try {
-                    const appState = JSON.parse(localStorage.getItem('guildDistributionState') || '{}');
-                    if (appState.players) {
-                        const player = appState.players.find(p => p.name === playerNick);
-                        if (player) {
-                            player.active = active;
-                            localStorage.setItem('guildDistributionState', JSON.stringify(appState));
-                        }
-                    }
-                } catch (stateError) {
-                    console.log('Estado do app não encontrado, continuando...');
-                }
-                
-                // Disparar evento para notificar outras abas/janelas
+                // Disparar evento para notificar mudanças
                 window.dispatchEvent(new CustomEvent('playerSelectionChanged', {
-                    detail: { playerName: playerNick, selected: active }
+                    detail: { playerName: playerName, selected: selected }
                 }));
                 
-                // Disparar evento adicional para forçar atualização da tabela
-                window.dispatchEvent(new CustomEvent('storage', {
-                    detail: { key: 'adminTableState' }
-                }));
+                console.log(`Player ${playerName} ${selected ? 'selecionado' : 'desmarcado'} no localStorage`);
                 
             } catch (error) {
-                console.error('Erro ao marcar jogador na tabela do admin:', error);
+                console.error('Erro ao atualizar seleção do jogador:', error);
             }
         }
 
@@ -1480,43 +1434,20 @@
             updateParticipateButton();
         }
 
-        // Função para atualizar botão de participação
-        function updateParticipateButton() {
-            const participateBtn = document.getElementById('participate-btn');
-            
-            if (isParticipating) {
-                participateBtn.innerHTML = '✅ Marcado';
-                participateBtn.classList.add('participating');
-                showChooseItemsButton();
-            } else {
-                participateBtn.innerHTML = '🎯 Participar';
-                participateBtn.classList.remove('participating');
-                hideChooseItemsButton();
-            }
-        }
-        
-        // Função para mostrar botão "escolher itens"
-        function showChooseItemsButton() {
-            let chooseBtn = document.getElementById('choose-items-btn');
-            if (!chooseBtn) {
-                chooseBtn = document.createElement('button');
-                chooseBtn.id = 'choose-items-btn';
-                chooseBtn.className = 'participate-btn';
-                chooseBtn.style.marginLeft = '10px';
-                chooseBtn.innerHTML = '📦 Escolher Itens';
-                chooseBtn.onclick = openChooseItemsFlow;
-                
-                const participateBtn = document.getElementById('participate-btn');
-                participateBtn.parentNode.insertBefore(chooseBtn, participateBtn.nextSibling);
-            }
-            chooseBtn.style.display = 'inline-block';
-        }
-        
-        // Função para esconder botão "escolher itens"
-        function hideChooseItemsButton() {
+        // Função para ativar/desativar botão escolher itens
+        function toggleChooseItemsButton(enabled) {
             const chooseBtn = document.getElementById('choose-items-btn');
             if (chooseBtn) {
-                chooseBtn.style.display = 'none';
+                chooseBtn.disabled = !enabled;
+                isPlayerMarked = enabled;
+                
+                if (enabled) {
+                    chooseBtn.innerHTML = '📦 Escolher Itens';
+                    chooseBtn.style.opacity = '1';
+                } else {
+                    chooseBtn.innerHTML = '📦 Aguardando Admin';
+                    chooseBtn.style.opacity = '0.6';
+                }
             }
         }
         
@@ -1540,20 +1471,45 @@
             }
         }
 
-        // Função para verificar status inicial do jogador
-        async function checkPlayerStatus() {
+        // Função para verificar se jogador está marcado pelo admin
+        async function checkPlayerMarkedStatus() {
             try {
-                const response = await fetch(`/.netlify/functions/supabase-api/players?name=${encodeURIComponent(playerNick)}`);
-                const data = await response.json();
+                // Verificar no localStorage se o jogador está marcado
+                const playerSelections = JSON.parse(localStorage.getItem('playerSelections') || '{}');
+                const isMarked = playerSelections[playerNick] === true;
                 
-                if (data.players && data.players.length > 0) {
-                    const player = data.players[0];
-                    isParticipating = player.status === 'active';
-                    updateParticipateButton();
-                }
+                console.log('Verificando status do jogador:', playerNick, 'Marcado:', isMarked);
+                
+                // Ativar/desativar botão baseado no status
+                toggleChooseItemsButton(isMarked);
+                
             } catch (error) {
                 console.error('Erro ao verificar status do jogador:', error);
+                toggleChooseItemsButton(false);
             }
+        }
+        
+        // Função para monitorar mudanças no localStorage
+        function startPlayerStatusMonitoring() {
+            // Verificar status inicial
+            checkPlayerMarkedStatus();
+            
+            // Monitorar mudanças no localStorage (entre abas)
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'playerSelections' || e.key === 'adminTableState') {
+                    console.log('Detectada mudança nas seleções de jogadores via storage event');
+                    checkPlayerMarkedStatus();
+                }
+            });
+            
+            // Monitorar eventos customizados (mesma aba)
+            window.addEventListener('playerSelectionChanged', function(e) {
+                console.log('Detectada mudança via evento customizado:', e.detail);
+                checkPlayerMarkedStatus();
+            });
+            
+            // Verificar periodicamente (backup para garantir sincronização)
+            setInterval(checkPlayerMarkedStatus, 1000);
         }
 
         // Fechar modal ao clicar fora dele
@@ -1566,6 +1522,9 @@
 
         // Carregar dados iniciais
         loadOverviewData();
+        
+        // Iniciar monitoramento do status do jogador
+        startPlayerStatusMonitoring();
     </script>
 </body>
 </html>
