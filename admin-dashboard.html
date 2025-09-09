@@ -604,11 +604,7 @@
         
         // Função para mostrar seção específica do admin
         function showAdminSection(sectionName) {
-            // Esconder dashboard
-            document.querySelector('.dashboard-stats').style.display = 'none';
-            document.querySelector('.quick-actions').style.display = 'none';
-            
-            // Esconder todas as seções
+            // Esconder todas as seções incluindo dashboard
             document.querySelectorAll('.section').forEach(section => {
                 section.style.display = 'none';
             });
@@ -623,14 +619,16 @@
         
         // Função para voltar ao dashboard
         function showDashboard() {
-            // Mostrar dashboard
-            document.querySelector('.dashboard-stats').style.display = 'grid';
-            document.querySelector('.quick-actions').style.display = 'grid';
-            
             // Esconder todas as seções
             document.querySelectorAll('.section').forEach(section => {
                 section.style.display = 'none';
             });
+            
+            // Mostrar dashboard
+            const dashboardSection = document.getElementById('dashboard-section');
+            if (dashboardSection) {
+                dashboardSection.style.display = 'block';
+            }
         }
         
         // Função para carregar conteúdo das seções do admin
