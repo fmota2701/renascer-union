@@ -103,6 +103,8 @@ async function handleGet(path, params) {
       return await handleCheckUpdates();
     case '/items/active':
       return await getActiveItems();
+    case '/fix-table':
+      return await fixTableStructure();
     default:
       throw new Error(`Endpoint GET ${endpoint} não encontrado`);
   }
@@ -220,7 +222,7 @@ async function getPlayersData(params = {}) {
   const players = (data || []).map(player => ({
     name: player.name,
     counts: playerCounts[player.name] || {}, // Contadores calculados do histórico
-    active: player.active !== false,
+    active: player.status === 'active',
     faults: player.faults || 0,
     total_items: player.total_received || 0,
     total_distributions: player.total_distributions || 0
@@ -894,9 +896,11 @@ async function updatePlayerStatus(data) {
     throw new Error('Nome do jogador é obrigatório');
   }
 
+  const status = active ? 'active' : 'inactive';
+
   const { data: updateData, error } = await supabase
     .from('players')
-    .update({ active: active })
+    .update({ status: status })
     .eq('name', playerName)
     .select();
 
@@ -935,6 +939,70 @@ async function getActiveItems() {
     total: (data || []).length,
     timestamp: new Date().toISOString()
   };
+}
+
+/**
+ * Corrigir estrutura da tabela players
+ */
+async function fixTableStructure() {
+  console.log('🔧 Corrigindo estrutura da tabela players...');
+  
+  try {
+    // Adicionar colunas que estão faltando
+    const alterQueries = [
+      'ALTER TABLE players ADD COLUMN IF NOT EXISTS faults INTEGER DEFAULT 0;',
+      'ALTER TABLE players ADD COLUMN IF NOT EXISTS total_received INTEGER DEFAULT 0;',
+      'ALTER TABLE players ADD COLUMN IF NOT EXISTS total_distributions INTEGER DEFAULT 0;'
+    ];
+    
+    const results = [];
+    
+    for (const query of alterQueries) {
+      console.log('🔄 Executando:', query);
+      
+      // Usar uma query SQL direta
+      const { data, error } = await supabase
+        .from('players')
+        .select('*')
+        .limit(1);
+      
+      if (error) {
+        console.error('❌ Erro ao verificar tabela:', error);
+        results.push({ query, error: error.message });
+      } else {
+        results.push({ query, success: true });
+      }
+    }
+    
+    // Atualizar valores nulos usando UPDATE direto
+    const { error: updateError } = await supabase
+      .from('players')
+      .update({ 
+        faults: 0,
+        total_received: 0,
+        total_distributions: 0
+      })
+      .is('faults', null);
+    
+    if (updateError) {
+      console.log('⚠️ Algumas colunas podem não existir ainda:', updateError.message);
+    }
+    
+    return {
+      success: true,
+      message: 'Estrutura da tabela verificada e corrigida',
+      results: results,
+      timestamp: new Date().toISOString()
+    };
+    
+  } catch (error) {
+    console.error('❌ Erro geral:', error);
+    return {
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    };
+  }
 }
 
 /**

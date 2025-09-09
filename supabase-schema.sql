@@ -8,6 +8,9 @@ CREATE TABLE players (
     total_items INTEGER DEFAULT 0,
     last_distribution_date TIMESTAMP,
     status VARCHAR(50) DEFAULT 'active',
+    faults INTEGER DEFAULT 0,
+    total_received INTEGER DEFAULT 0,
+    total_distributions INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
