@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS players (
     name VARCHAR(255) NOT NULL UNIQUE,
     total_items INTEGER DEFAULT 0,
     last_distribution_date TIMESTAMP,
-    status VARCHAR(50) DEFAULT 'active',
+
     faults INTEGER DEFAULT 0,
     total_received INTEGER DEFAULT 0,
     total_distributions INTEGER DEFAULT 0,
@@ -34,11 +34,7 @@ CREATE TABLE IF NOT EXISTS players (
 CREATE TABLE IF NOT EXISTS items (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    category VARCHAR(100),
-    rarity VARCHAR(50),
-    value INTEGER DEFAULT 0,
-    description TEXT,
-    available_quantity INTEGER DEFAULT 0,
+
     total_distributed INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
@@ -50,8 +46,7 @@ CREATE TABLE IF NOT EXISTS history (
     player_id INTEGER REFERENCES players(id) ON DELETE CASCADE,
     item_id INTEGER REFERENCES items(id) ON DELETE CASCADE,
     quantity INTEGER DEFAULT 1,
-    distribution_date TIMESTAMP DEFAULT NOW(),
-    distribution_type VARCHAR(50) DEFAULT 'manual',
+
     notes TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
@@ -95,12 +90,11 @@ WHERE NOT EXISTS (SELECT 1 FROM system_config WHERE key = 'system_status');
 
 -- Índices para performance
 CREATE INDEX IF NOT EXISTS idx_players_name ON players(name);
-CREATE INDEX IF NOT EXISTS idx_players_status ON players(status);
-CREATE INDEX IF NOT EXISTS idx_items_category ON items(category);
-CREATE INDEX IF NOT EXISTS idx_items_rarity ON items(rarity);
+
+
 CREATE INDEX IF NOT EXISTS idx_history_player_id ON history(player_id);
 CREATE INDEX IF NOT EXISTS idx_history_item_id ON history(item_id);
-CREATE INDEX IF NOT EXISTS idx_history_distribution_date ON history(distribution_date);
+
 CREATE INDEX IF NOT EXISTS idx_system_config_key ON system_config(key);
 CREATE INDEX IF NOT EXISTS idx_player_selections_player_id ON player_selections(player_id);
 CREATE INDEX IF NOT EXISTS idx_player_selections_player_name ON player_selections(player_name);
@@ -155,20 +149,29 @@ ALTER TABLE system_config ENABLE ROW LEVEL SECURITY;
 ALTER TABLE player_selections ENABLE ROW LEVEL SECURITY;
 
 -- Criar políticas RLS
-CREATE POLICY "Allow all operations on players" 
-ON players FOR ALL USING (true);
+DO $$ 
+BEGIN
+    -- Criar ou substituir políticas RLS
+    DROP POLICY IF EXISTS "Allow all operations on players" ON players;
+    CREATE POLICY "Allow all operations on players" 
+    ON players FOR ALL USING (true);
 
-CREATE POLICY "Allow all operations on items" 
-ON items FOR ALL USING (true);
+    DROP POLICY IF EXISTS "Allow all operations on items" ON items;
+    CREATE POLICY "Allow all operations on items" 
+    ON items FOR ALL USING (true);
 
-CREATE POLICY "Allow all operations on history" 
-ON history FOR ALL USING (true);
+    DROP POLICY IF EXISTS "Allow all operations on history" ON history;
+    CREATE POLICY "Allow all operations on history" 
+    ON history FOR ALL USING (true);
 
-CREATE POLICY "Allow all operations on system_config" 
-ON system_config FOR ALL USING (true);
+    DROP POLICY IF EXISTS "Allow all operations on system_config" ON system_config;
+    CREATE POLICY "Allow all operations on system_config" 
+    ON system_config FOR ALL USING (true);
 
-CREATE POLICY "Allow all operations on player_selections" 
-ON player_selections FOR ALL USING (true);
+    DROP POLICY IF EXISTS "Allow all operations on player_selections" ON player_selections;
+    CREATE POLICY "Allow all operations on player_selections" 
+    ON player_selections FOR ALL USING (true);
+END $$;
 
 -- Comentários para documentação
 COMMENT ON TABLE players IS 'Tabela de jogadores do sistema';
