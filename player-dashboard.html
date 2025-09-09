@@ -98,6 +98,132 @@
             border: none;
             padding: 15px 25px;
             border-radius: 12px;
+        }
+        
+        /* Estilos para o ranking de jogadores por item */
+        .player-positions-alert {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+        
+        .player-positions-alert h4 {
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .positions-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .position-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .item-ranking {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .item-title {
+            color: #333;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .ranking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .ranking-player {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .ranking-player:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+        
+        .ranking-player.logged-player {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            border: 2px solid #fdcb6e;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(253, 203, 110, 0.3);
+        }
+        
+        .ranking-player.logged-player:hover {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+        }
+        
+        .ranking-player.inactive {
+            opacity: 0.6;
+        }
+        
+        .ranking-player .position {
+            font-weight: bold;
+            font-size: 16px;
+            min-width: 40px;
+        }
+        
+        .ranking-player .player-name {
+            flex: 1;
+            margin: 0 15px;
+            font-weight: 500;
+        }
+        
+        .ranking-player .player-count {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .show-more-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .show-more-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-button {
             cursor: pointer;
             font-size: 16px;
             font-weight: 500;
@@ -643,84 +769,120 @@
             }
         }
 
-        // Função para carregar ranking de jogadores
+        // Estado para controlar expansão dos rankings (global para todos os itens)
+        let allRankingsExpanded = false;
+        
+        // Função para carregar ranking de jogadores por item
         async function loadPlayersRanking() {
             try {
-                const historyResponse = await fetch('/.netlify/functions/supabase-api/history');
-                const historyData = await historyResponse.json();
                 const playersResponse = await fetch('/.netlify/functions/supabase-api/players');
                 const playersData = await playersResponse.json();
+                const itemsResponse = await fetch('/.netlify/functions/supabase-api/items');
+                const itemsData = await itemsResponse.json();
                 
-                const history = historyData.history || [];
                 const players = playersData.players || [];
+                const items = itemsData.items || [];
                 
-                // Contar itens por jogador
-                const playerStats = {};
-                players.forEach(player => {
-                    playerStats[player.name] = {
-                        name: player.name,
-                        count: 0,
-                        lastItem: null
+                // Criar ranking para cada item
+                const itemRankings = items.map(item => {
+                    const playersWithItem = players
+                        .map(player => ({
+                            name: player.name,
+                            count: player.counts[item] || 0,
+                            active: player.active !== false
+                        }))
+                        .sort((a, b) => a.count - b.count); // Ordena por quantidade crescente (menor no topo)
+                    
+                    return {
+                        item,
+                        players: playersWithItem
                     };
                 });
                 
-                history.forEach(entry => {
-                    if (playerStats[entry.player]) {
-                        playerStats[entry.player].count++;
-                        if (!playerStats[entry.player].lastItem || 
-                            new Date(entry.date) > new Date(playerStats[entry.player].lastItem)) {
-                            playerStats[entry.player].lastItem = entry.date;
-                        }
+                // Encontrar posição do jogador logado em cada item
+                const playerPositions = {};
+                itemRankings.forEach(ranking => {
+                    const playerIndex = ranking.players.findIndex(p => 
+                        p.name.toLowerCase() === playerNick.toLowerCase()
+                    );
+                    if (playerIndex !== -1) {
+                        playerPositions[ranking.item] = playerIndex + 1;
                     }
                 });
                 
-                // Ordenar por quantidade de itens
-                const sortedPlayers = Object.values(playerStats)
-                    .sort((a, b) => b.count - a.count);
-                
                 const container = document.getElementById('players-ranking');
-                if (sortedPlayers.length > 0) {
-                    container.innerHTML = `
-                        <table class="history-table">
-                            <thead>
-                                <tr>
-                                    <th>Posição</th>
-                                    <th>Jogador</th>
-                                    <th>Itens</th>
-                                    <th>Último Item</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${sortedPlayers.map((player, index) => `
-                                    <tr ${player.name.toLowerCase() === playerNick.toLowerCase() ? 'style="background: #e8f4fd; font-weight: bold;"' : ''}>
-                                        <td>
-                                            ${index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`}
-                                        </td>
-                                        <td><strong>${player.name}</strong></td>
-                                        <td><span class="item-badge">${player.count}</span></td>
-                                        <td>
-                                            ${player.lastItem ? 
-                                                `<span class="date-badge">${new Date(player.lastItem).toLocaleDateString('pt-BR')}</span>` : 
-                                                '<span class="date-badge">Nunca</span>'
-                                            }
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    `;
-                } else {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-state-icon">🏆</div>
-                            <p>Nenhum jogador encontrado</p>
+                
+                // Mostrar aviso de posições do jogador
+                const positionsHtml = Object.keys(playerPositions).length > 0 ? `
+                    <div class="player-positions-alert">
+                        <h4>🎯 Suas Posições:</h4>
+                        <div class="positions-grid">
+                            ${Object.entries(playerPositions).map(([item, position]) => {
+                                const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : `#${position}`;
+                                return `<span class="position-badge">${item}: ${medal}</span>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                ` : '';
+                
+                const html = itemRankings.map((ranking, itemIndex) => {
+                    const displayLimit = allRankingsExpanded ? ranking.players.length : 8;
+                    const displayPlayers = ranking.players.slice(0, displayLimit);
+                    const hasMorePlayers = ranking.players.length > 8;
+                    
+                    const playersHtml = displayPlayers.map((player, index) => {
+                        const position = index + 1;
+                        const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : `${position}º`;
+                        const activeClass = player.active ? 'active' : 'inactive';
+                        const isLoggedPlayer = player.name.toLowerCase() === playerNick.toLowerCase();
+                        const highlightClass = isLoggedPlayer ? 'logged-player' : '';
+                        
+                        return `
+                            <div class="ranking-player ${activeClass} ${highlightClass}">
+                                <span class="position">${medal}</span>
+                                <span class="player-name">${player.name}${isLoggedPlayer ? ' (Você)' : ''}</span>
+                                <span class="player-count">${player.count}</span>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    // Mostrar botão apenas no primeiro item se algum item tiver mais de 8 jogadores
+                    const anyItemHasMore = itemRankings.some(r => r.players.length > 8);
+                    const showMoreButton = (itemIndex === 0 && anyItemHasMore) ? `
+                        <button class="show-more-btn" onclick="toggleAllRankingsExpansion()">
+                            ${allRankingsExpanded ? '📤 Mostrar Menos (Todos os Itens)' : '📥 Mostrar Mais (Todos os Itens)'}
+                        </button>
+                    ` : '';
+                    
+                    return `
+                        <div class="item-ranking">
+                            <h4 class="item-title">${ranking.item}</h4>
+                            <div class="ranking-list">
+                                ${playersHtml}
+                            </div>
+                            ${showMoreButton}
                         </div>
                     `;
-                }
+                }).join('');
+                
+                container.innerHTML = positionsHtml + html;
                 
             } catch (error) {
                 console.error('Erro ao carregar ranking de jogadores:', error);
+                const container = document.getElementById('players-ranking');
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <p>Erro ao carregar ranking</p>
+                    </div>
+                `;
             }
+        }
+        
+        // Função para alternar expansão do ranking
+        function toggleAllRankingsExpansion() {
+            allRankingsExpanded = !allRankingsExpanded;
+            loadPlayersRanking();
         }
 
         // Função para carregar histórico geral
