@@ -1278,7 +1278,7 @@
                     alert('Erro ao carregar itens disponíveis. Tente novamente.');
                 } finally {
                     participateBtn.disabled = false;
-                    updateParticipateButton();
+                    participateBtn.innerHTML = '🎯 Participar';
                 }
             } else {
                 // Desativar participação
@@ -1459,7 +1459,6 @@
 
         // Carregar dados iniciais
         loadOverviewData();
-        checkPlayerStatus();
     </script>
 </body>
 </html>
