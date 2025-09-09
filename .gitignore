@@ -8,3 +8,7 @@
 .env.development
 renascer-union.json
 node_modules
+
+# macOS system files
+.DS_Store
+**/.DS_Store
