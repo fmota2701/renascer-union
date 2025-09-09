@@ -1,6 +1,21 @@
 -- Schema Completo do Supabase para Sistema de Distribuição de Itens
 -- Execute este SQL no Supabase SQL Editor para criar todas as tabelas necessárias
 
+-- Primeiro, vamos remover as políticas RLS existentes se houver
+DO $$ 
+BEGIN
+    -- Remover políticas existentes
+    DROP POLICY IF EXISTS "Allow all operations on players" ON players;
+    DROP POLICY IF EXISTS "Allow all operations on items" ON items;
+    DROP POLICY IF EXISTS "Allow all operations on history" ON history;
+    DROP POLICY IF EXISTS "Allow all operations on system_config" ON system_config;
+    DROP POLICY IF EXISTS "Allow all operations on player_selections" ON player_selections;
+EXCEPTION
+    WHEN undefined_table THEN
+        -- Tabelas não existem ainda, continuar
+        NULL;
+END $$;
+
 -- Tabela de Jogadores
 CREATE TABLE IF NOT EXISTS players (
     id SERIAL PRIMARY KEY,
@@ -91,7 +106,7 @@ CREATE INDEX IF NOT EXISTS idx_player_selections_player_id ON player_selections(
 CREATE INDEX IF NOT EXISTS idx_player_selections_player_name ON player_selections(player_name);
 CREATE INDEX IF NOT EXISTS idx_player_selections_is_selected ON player_selections(is_selected);
 
--- Triggers para atualizar updated_at automaticamente
+-- Função para atualizar updated_at automaticamente
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -100,30 +115,37 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Aplicar triggers nas tabelas
-DROP TRIGGER IF EXISTS update_players_updated_at ON players;
-CREATE TRIGGER update_players_updated_at
-    BEFORE UPDATE ON players
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+-- Aplicar triggers nas tabelas (com verificação de existência)
+DO $$ 
+BEGIN
+    -- Triggers para players
+    DROP TRIGGER IF EXISTS update_players_updated_at ON players;
+    CREATE TRIGGER update_players_updated_at
+        BEFORE UPDATE ON players
+        FOR EACH ROW
+        EXECUTE FUNCTION update_updated_at_column();
 
-DROP TRIGGER IF EXISTS update_items_updated_at ON items;
-CREATE TRIGGER update_items_updated_at
-    BEFORE UPDATE ON items
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+    -- Triggers para items
+    DROP TRIGGER IF EXISTS update_items_updated_at ON items;
+    CREATE TRIGGER update_items_updated_at
+        BEFORE UPDATE ON items
+        FOR EACH ROW
+        EXECUTE FUNCTION update_updated_at_column();
 
-DROP TRIGGER IF EXISTS update_system_config_updated_at ON system_config;
-CREATE TRIGGER update_system_config_updated_at
-    BEFORE UPDATE ON system_config
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+    -- Triggers para system_config
+    DROP TRIGGER IF EXISTS update_system_config_updated_at ON system_config;
+    CREATE TRIGGER update_system_config_updated_at
+        BEFORE UPDATE ON system_config
+        FOR EACH ROW
+        EXECUTE FUNCTION update_updated_at_column();
 
-DROP TRIGGER IF EXISTS update_player_selections_updated_at ON player_selections;
-CREATE TRIGGER update_player_selections_updated_at
-    BEFORE UPDATE ON player_selections
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+    -- Triggers para player_selections
+    DROP TRIGGER IF EXISTS update_player_selections_updated_at ON player_selections;
+    CREATE TRIGGER update_player_selections_updated_at
+        BEFORE UPDATE ON player_selections
+        FOR EACH ROW
+        EXECUTE FUNCTION update_updated_at_column();
+END $$;
 
 -- Habilitar Row Level Security (RLS)
 ALTER TABLE players ENABLE ROW LEVEL SECURITY;
@@ -132,15 +154,7 @@ ALTER TABLE history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE system_config ENABLE ROW LEVEL SECURITY;
 ALTER TABLE player_selections ENABLE ROW LEVEL SECURITY;
 
--- Políticas RLS (permitir todas as operações por enquanto)
--- Remover políticas existentes se houver
-DROP POLICY IF EXISTS "Allow all operations on players" ON players;
-DROP POLICY IF EXISTS "Allow all operations on items" ON items;
-DROP POLICY IF EXISTS "Allow all operations on history" ON history;
-DROP POLICY IF EXISTS "Allow all operations on system_config" ON system_config;
-DROP POLICY IF EXISTS "Allow all operations on player_selections" ON player_selections;
-
--- Criar novas políticas
+-- Criar políticas RLS
 CREATE POLICY "Allow all operations on players" 
 ON players FOR ALL USING (true);
 
@@ -164,4 +178,4 @@ COMMENT ON TABLE system_config IS 'Configurações do sistema';
 COMMENT ON TABLE player_selections IS 'Seleções de jogadores para sincronização realtime';
 
 -- Finalização
-SELECT 'Schema criado com sucesso! Todas as tabelas, índices, triggers e políticas RLS foram configurados.' as status;
+SELECT 'Schema criado com sucesso! Todas as tabelas, índices, triggers e políticas RLS foram configurados.' as message;
