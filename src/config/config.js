@@ -5,8 +5,8 @@ const CONFIG = {
   
   // Configurações do Supabase
   SUPABASE: {
-    URL: 'https://your-project.supabase.co', // Substituir pela URL real
-    ANON_KEY: 'your-anon-key' // Substituir pela chave real
+    URL: 'https://ofdlacirerempfjohgsj.supabase.co',
+    ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mZGxhY2lyZXJlbXBmam9oZ3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTczNjg1NzUsImV4cCI6MjA3Mjk0NDU3NX0.1VOaD9QeDepJEZTiYtKrPTdfkBDcn2__jRnCfV-BZtU'
   },
   
   // ID da planilha do Google Sheets (mantido para compatibilidade)
