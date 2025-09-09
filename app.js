@@ -2065,7 +2065,7 @@ function initDistributeModal() {
     
     // Confirmar distribuição
     if (confirmBtn) {
-        confirmBtn.addEventListener('click', () => {
+        confirmBtn.addEventListener('click', async () => {
             if (selectedPlayers.size === 0 || selectedItems.size === 0) {
                 showToast('Selecione jogadores e itens para distribuir');
                 return;
@@ -2101,44 +2101,83 @@ function initDistributeModal() {
                 return;
             }
             
-            // Aplicar distribuição
-            const distributionSummary = {};
-            assignments.forEach(({ item, player }) => {
-                const playerObj = state.players.find(p => p.name === player);
-                if (playerObj) {
-                    if (!playerObj.counts) playerObj.counts = {};
-                    playerObj.counts[item] = (playerObj.counts[item] || 0) + 1;
-                    
-                    // Para o histórico
-                    if (!distributionSummary[player]) distributionSummary[player] = {};
-                    distributionSummary[player][item] = (distributionSummary[player][item] || 0) + 1;
+            // Aplicar distribuição via API do Supabase
+            try {
+                const distributions = assignments.map(({ item, player }) => ({
+                    player_name: player,
+                    item_name: item,
+                    quantity: 1,
+                    notes: `Distribuição automática - ${fmtDate()}`
+                }));
+                
+                const response = await fetch('/.netlify/functions/supabase-api/distribute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ distributions })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro na API: ${response.status}`);
                 }
-            });
-            
-            // Adicionar faltas aos jogadores não presentes (não selecionados)
-            const selectedPlayerNames = Array.from(selectedPlayers);
-            state.players.forEach(player => {
-                if (player.active !== false && !selectedPlayerNames.includes(player.name)) {
-                    // Jogador ativo que não foi selecionado recebe +1 falta
-                    player.faults = (player.faults || 0) + 1;
+                
+                const result = await response.json();
+                
+                if (result.errors && result.errors.length > 0) {
+                    console.warn('Alguns erros na distribuição:', result.error_details);
+                    showToast(`Distribuição parcial: ${result.success} sucessos, ${result.errors} erros`, 'warning');
+                } else {
+                    showToast(`Distribuição realizada com sucesso! ${result.success} itens distribuídos`, 'success');
                 }
-            });
-            
-            // Adicionar ao histórico
-            Object.entries(distributionSummary).forEach(([player, items]) => {
-                Object.entries(items).forEach(([item, qty]) => {
-                    state.history.push({
-                        date: fmtDate(),
-                        player,
-                        item,
-                        qty
+                
+                // Atualizar estado local para manter compatibilidade
+                const distributionSummary = {};
+                assignments.forEach(({ item, player }) => {
+                    const playerObj = state.players.find(p => p.name === player);
+                    if (playerObj) {
+                        if (!playerObj.counts) playerObj.counts = {};
+                        playerObj.counts[item] = (playerObj.counts[item] || 0) + 1;
+                        
+                        // Para o histórico local
+                        if (!distributionSummary[player]) distributionSummary[player] = {};
+                        distributionSummary[player][item] = (distributionSummary[player][item] || 0) + 1;
+                    }
+                });
+                
+                // Adicionar faltas aos jogadores não presentes (não selecionados)
+                const selectedPlayerNames = Array.from(selectedPlayers);
+                state.players.forEach(player => {
+                    if (player.active !== false && !selectedPlayerNames.includes(player.name)) {
+                        // Jogador ativo que não foi selecionado recebe +1 falta
+                        player.faults = (player.faults || 0) + 1;
+                    }
+                });
+                
+                // Adicionar ao histórico local
+                Object.entries(distributionSummary).forEach(([player, items]) => {
+                    Object.entries(items).forEach(([item, qty]) => {
+                        state.history.push({
+                            date: fmtDate(),
+                            player,
+                            item,
+                            qty
+                        });
                     });
                 });
-            });
-            
-            saveState(state);
-            renderTable();
-            renderHistory();
+                
+                saveState(state);
+                renderTable();
+                renderHistory();
+                
+                // Mostrar modal de resultados
+                showResultsModal(assignments, distributionSummary);
+                
+            } catch (error) {
+                console.error('Erro na distribuição:', error);
+                showToast('Erro ao processar distribuição: ' + error.message, 'error');
+                return;
+            }
             
             // Mostrar modal de resultados
             showResultsModal(assignments, distributionSummary);
