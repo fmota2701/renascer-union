@@ -514,7 +514,7 @@ async function handleDistribute(data) {
  * Criar novo jogador
  */
 async function createPlayer(data) {
-  const { name, status = 'active' } = data;
+  const { name } = data;
   
   if (!name) {
     throw new Error('Nome do jogador é obrigatório');
@@ -522,7 +522,7 @@ async function createPlayer(data) {
 
   const { data: player, error } = await supabase
     .from('players')
-    .insert({ name, status })
+    .insert({ name })
     .select()
     .single();
 
