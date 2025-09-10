@@ -1,0 +1,86 @@
+[build]
+  # Diretório base do projeto
+  base = "."
+  
+  # Comando de build
+  command = "npm run build"
+  
+  # Diretório de saída do build
+  publish = "dist"
+
+[build.environment]
+  # Versão do Node.js
+  NODE_VERSION = "18"
+  
+  # Configurações do npm
+  NPM_FLAGS = "--production=false"
+
+# Configurações de redirecionamento para SPA (Single Page Application)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers de segurança
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:;"
+
+# Headers específicos para assets estáticos
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Headers para arquivos JavaScript e CSS
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Headers para imagens
+[[headers]]
+  for = "*.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Configurações de desenvolvimento local
+[dev]
+  command = "npm run dev"
+  port = 3000
+  publish = "dist"
+
+# Configurações de preview
+[context.deploy-preview]
+  command = "npm run build"
+
+[context.branch-deploy]
+  command = "npm run build"
+
+# Configurações específicas para produção
+[context.production]
+  command = "npm run build"
+  
+# Configurações de funções (se necessário no futuro)
+[functions]
+  directory = "netlify/functions"

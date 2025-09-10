@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Ícones</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .icon-test { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .custom-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; }
+        .item-with-icon { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Teste de Ícones dos Itens</h1>
+    
+    <div class="icon-test">
+        <h3>Ícones SVG Carregados:</h3>
+        <div id="svg-icons"></div>
+    </div>
+    
+    <div class="icon-test">
+        <h3>Ícones com Emojis (Fallback):</h3>
+        <div id="emoji-icons">
+            <div class="item-with-icon"><span>💎</span><span>Cristal do Caos</span></div>
+            <div class="item-with-icon"><span>🪶</span><span>Pena do Condor</span></div>
+            <div class="item-with-icon"><span>🔥</span><span>Chama do Condor</span></div>
+            <div class="item-with-icon"><span>⚡</span><span>Despertar</span></div>
+            <div class="item-with-icon"><span>⭐</span><span>Arcanjo</span></div>
+        </div>
+    </div>
+    
+    <script>
+        // Testar carregamento de ícones SVG
+        const items = ['Cristal do Caos', 'Pena do Condor', 'Chama do Condor', 'Despertar', 'Arcanjo'];
+        const svgContainer = document.getElementById('svg-icons');
+        
+        async function testSvgIcons() {
+            for (const itemName of items) {
+                const fileName = itemName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                const iconPath = `icons/${fileName}.svg`;
+                
+                try {
+                    const response = await fetch(iconPath);
+                    if (response.ok) {
+                        const svgContent = await response.text();
+                        const div = document.createElement('div');
+                        div.className = 'item-with-icon';
+                        div.innerHTML = `<div class="custom-icon">${svgContent}</div><span>${itemName}</span>`;
+                        svgContainer.appendChild(div);
+                        console.log(`✅ Ícone SVG carregado: ${itemName}`);
+                    } else {
+                        console.log(`❌ Falha ao carregar: ${iconPath}`);
+                        const div = document.createElement('div');
+                        div.innerHTML = `❌ Falha ao carregar: ${itemName}`;
+                        svgContainer.appendChild(div);
+                    }
+                } catch (error) {
+                    console.log(`❌ Erro ao carregar ${itemName}:`, error);
+                    const div = document.createElement('div');
+                    div.innerHTML = `❌ Erro: ${itemName}`;
+                    svgContainer.appendChild(div);
+                }
+            }
+        }
+        
+        testSvgIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "netlify-functions",
+  "version": "1.0.0",
+  "description": "Funções serverless do Netlify para integração com Supabase",
+  "main": "supabase-api.js",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.2",
+    "dotenv": "^17.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "migrate": "node ../migrate-to-supabase.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  }
+}
