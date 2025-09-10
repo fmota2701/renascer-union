@@ -840,8 +840,8 @@
                     
                 case 'distribute':
                     // Carregar funcionalidades de distribuição
-                    if (window.renderTable && window.renderItemsTable) {
-                        window.renderTable();
+                    // Não chamar renderTable pois os elementos não existem no admin-dashboard
+                    if (window.renderItemsTable) {
                         window.renderItemsTable();
                         // Inicializar eventos da tabela de itens
                         if (window.initItemsTableEvents) {
