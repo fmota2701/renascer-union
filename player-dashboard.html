@@ -2051,8 +2051,8 @@
             const supabaseClient = window.getSupabaseClient ? window.getSupabaseClient() : null;
             
             if (!supabaseClient) {
-                console.warn('Cliente Supabase não disponível, usando fallback local');
-                toggleItemSelectionLocal(currentPlayerName, itemName);
+                console.error('❌ Cliente Supabase não disponível');
+                alert('Erro: Sistema offline. Verifique sua conexão com a internet.');
                 return;
             }
             
@@ -2060,37 +2060,67 @@
             const isCurrentlySelected = playerSelections.has(itemName);
             
             if (isCurrentlySelected) {
-                // Remover seleção do Supabase
-                const { error } = await supabaseClient
+                // Primeiro, verificar se o registro existe
+                console.log(`🔍 Verificando registro para remoção: player=${currentPlayerName}, item=${itemName}`);
+                
+                const { data: existingRecords, error: checkError } = await supabaseClient
                     .from('player_item_selections')
-                    .delete()
+                    .select('*')
                     .eq('player_name', currentPlayerName)
                     .eq('item_name', itemName);
                 
+                console.log('📋 Registros encontrados:', existingRecords);
+                
+                if (checkError) {
+                    console.error('❌ Erro ao verificar registros:', checkError);
+                }
+                
+                // Remover seleção do Supabase
+                const { data: deletedData, error } = await supabaseClient
+                    .from('player_item_selections')
+                    .delete()
+                    .eq('player_name', currentPlayerName)
+                    .eq('item_name', itemName)
+                    .select();
+                
+                console.log('🗑️ Dados deletados:', deletedData);
+                
                 if (error) {
-                    console.error('Erro ao remover seleção do Supabase:', error);
-                    // Fallback para método local
-                    removePlayerSelectionLocal(currentPlayerName, itemName);
+                    console.error('❌ Erro ao remover seleção do Supabase:', error);
+                    alert('Erro ao remover seleção. Verifique sua conexão.');
+                    return;
                 } else {
-                    console.log(`Seleção removida: ${currentPlayerName} - ${itemName}`);
+                    console.log(`✅ Seleção removida do Supabase: ${currentPlayerName} - ${itemName}`);
+                    if (deletedData && deletedData.length === 0) {
+                        console.warn('⚠️ Nenhum registro foi deletado - pode não existir no banco');
+                    }
                 }
             } else {
                 // Adicionar seleção no Supabase
-                const { error } = await supabaseClient
+                console.log(`➕ Adicionando seleção: player=${currentPlayerName}, item=${itemName}`);
+                
+                const insertData = {
+                    player_name: currentPlayerName,
+                    item_name: itemName,
+                    selected_at: new Date().toISOString(),
+                    status: 'pending'
+                };
+                
+                console.log('📝 Dados para inserção:', insertData);
+                
+                const { data: insertedData, error } = await supabaseClient
                     .from('player_item_selections')
-                    .insert({
-                        player_name: currentPlayerName,
-                        item_name: itemName,
-                        selected_at: new Date().toISOString(),
-                        status: 'active'
-                    });
+                    .insert(insertData)
+                    .select();
+                
+                console.log('💾 Dados inseridos:', insertedData);
                 
                 if (error) {
-                    console.error('Erro ao salvar seleção no Supabase:', error);
-                    // Fallback para método local
-                    addPlayerSelectionLocal(currentPlayerName, itemName);
+                    console.error('❌ Erro ao salvar seleção no Supabase:', error);
+                    alert('Erro ao salvar seleção. Verifique sua conexão.');
+                    return;
                 } else {
-                    console.log(`Seleção adicionada: ${currentPlayerName} - ${itemName}`);
+                    console.log(`✅ Seleção adicionada no Supabase: ${currentPlayerName} - ${itemName}`);
                 }
             }
             
@@ -2098,9 +2128,8 @@
             setTimeout(loadReleasedItems, 100);
             
         } catch (error) {
-            console.error('Erro ao alternar seleção:', error);
-            // Fallback para método local
-            toggleItemSelectionLocal(currentPlayerName, itemName);
+            console.error('❌ Erro ao alternar seleção:', error);
+            alert('Erro inesperado ao processar seleção. Tente novamente.');
         }
     }
     
