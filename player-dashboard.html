@@ -824,15 +824,34 @@
                 </div>
             </div>
             
+            <!-- Seção da Última Distribuição -->
+            <div style="margin-bottom: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>🏆 Ganhadores da Última Distribuição</h3>
+                    <button class="refresh-btn" onclick="loadLastDistribution()">
+                        🔄 Atualizar
+                    </button>
+                </div>
+                
+                <div id="last-distribution-container" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; color: white; min-height: 80px;">
+                    <div class="empty-state" id="empty-last-distribution" style="text-align: center; color: white;">
+                        <div class="empty-state-icon">🎯</div>
+                        <p>Carregando última distribuição...</p>
+                    </div>
+                    
+                    <div id="last-distribution-content" style="display: none;">
+                        <!-- Conteúdo da última distribuição será inserido aqui -->
+                    </div>
+                </div>
+            </div>
+            
             <!-- Grid com duas colunas: Meus Últimos Itens e Itens Liberados -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
                 <!-- Coluna Esquerda: Meus Últimos Itens -->
                 <div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3>🎯 Meus Últimos Itens</h3>
-                        <button class="refresh-btn" onclick="loadOverviewData()">
-                            🔄 Atualizar
-                        </button>
+
                     </div>
                     
                     <div id="recent-items">
@@ -866,11 +885,16 @@
                 </div>
             </div>
             
+            <div class="player-positions-alert">
+                <h4>🎯 Suas Posições:</h4>
+                <div class="positions-grid">
+                    <span class="position-badge">Chama do Condor: 🥉</span><span class="position-badge">Cristal do Caos: 🥈</span><span class="position-badge">Despertar: 🥈</span><span class="position-badge">Despertar Botton: 🥈</span><span class="position-badge">Despertar Mid: 🥈</span><span class="position-badge">Despertar Top: 🥈</span><span class="position-badge">Pena do Condor: 🥈</span>
+                </div>
+            </div>
+            
             <div style="display: flex; justify-content: space-between; align-items: center; margin: 40px 0 20px 0;">
                 <h3>🏆 Ranking de Jogadores</h3>
-                <button class="refresh-btn" onclick="loadPlayersRanking()">
-                    🔄 Atualizar
-                </button>
+
             </div>
             
             <div id="players-ranking">
@@ -1094,6 +1118,9 @@
                 // Carregar ranking de jogadores
                 loadPlayersRanking();
                 
+                // Carregar última distribuição
+                loadLastDistribution();
+                
             } catch (error) {
                 console.error('Erro ao carregar dados da visão geral:', error);
             }
@@ -1145,18 +1172,14 @@
                 
                 const container = document.getElementById('players-ranking');
                 
-                // Mostrar aviso de posições do jogador
-                const positionsHtml = Object.keys(playerPositions).length > 0 ? `
-                    <div class="player-positions-alert">
-                        <h4>🎯 Suas Posições:</h4>
-                        <div class="positions-grid">
-                            ${Object.entries(playerPositions).map(([item, position]) => {
-                                const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : `#${position}`;
-                                return `<span class="position-badge">${item}: ${medal}</span>`;
-                            }).join('')}
-                        </div>
-                    </div>
-                ` : '';
+                // Atualizar posições do jogador no div fixo
+                const positionsContainer = document.querySelector('.player-positions-alert .positions-grid');
+                if (positionsContainer && Object.keys(playerPositions).length > 0) {
+                    positionsContainer.innerHTML = Object.entries(playerPositions).map(([item, position]) => {
+                        const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : `#${position}`;
+                        return `<span class="position-badge">${item}: ${medal}</span>`;
+                    }).join('');
+                }
                 
                 const html = itemRankings.map((ranking, itemIndex) => {
                     const displayLimit = allRankingsExpanded ? ranking.players.length : 8;
@@ -1198,7 +1221,7 @@
                     `;
                 }).join('');
                 
-                container.innerHTML = positionsHtml + `<div class="rankings-container">${html}</div>`;
+                container.innerHTML = `<div class="rankings-container">${html}</div>`;
                 
             } catch (error) {
                 console.error('Erro ao carregar ranking de jogadores:', error);
@@ -1763,6 +1786,74 @@
             }
         } catch (error) {
             console.error('Erro ao remover seleção local:', error);
+        }
+    }
+    
+    // Carregar última distribuição
+    async function loadLastDistribution() {
+        try {
+            const response = await fetch('/.netlify/functions/supabase-api/last-distribution');
+            const data = await response.json();
+            
+            const emptyState = document.getElementById('empty-last-distribution');
+            const content = document.getElementById('last-distribution-content');
+            
+            if (!emptyState || !content) return;
+            
+            if (!data || !data.distributions || data.distributions.length === 0) {
+                emptyState.style.display = 'block';
+                content.style.display = 'none';
+                emptyState.innerHTML = `
+                    <div class="empty-state-icon">🎯</div>
+                    <p>Nenhuma distribuição realizada ainda</p>
+                `;
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            content.style.display = 'block';
+            
+            const date = new Date(data.date).toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            
+            content.innerHTML = `
+                <div style="margin-bottom: 15px; text-align: center; padding: 10px; background: rgba(76, 175, 80, 0.1); border-radius: 8px;">
+                    <div style="font-size: 16px; font-weight: bold; color: #4CAF50; margin-bottom: 5px;">📅 ${date}</div>
+                    <div style="font-size: 14px; opacity: 0.8;">${data.distributions.length} item${data.distributions.length > 1 ? 'ns' : ''} distribuído${data.distributions.length > 1 ? 's' : ''}</div>
+                </div>
+                <table class="history-table" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">🏆 Ganhador</th>
+                            <th style="text-align: left;">🎁 Item</th>
+                            <th style="text-align: center;">📦 Qtd</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.distributions.map(dist => `
+                            <tr>
+                                <td><span class="player-badge">${dist.player}</span></td>
+                                <td><span class="item-badge">${dist.item}</span></td>
+                                <td style="text-align: center;"><span class="quantity-badge">${dist.quantity}</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+        } catch (error) {
+            console.error('Erro ao carregar última distribuição:', error);
+            const emptyState = document.getElementById('empty-last-distribution');
+            if (emptyState) {
+                emptyState.style.display = 'block';
+                emptyState.innerHTML = `
+                    <div class="empty-state-icon">❌</div>
+                    <p>Erro ao carregar última distribuição</p>
+                `;
+            }
         }
     }
     

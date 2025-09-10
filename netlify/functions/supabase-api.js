@@ -97,6 +97,8 @@ async function handleGet(path, params) {
       return await getItemsData(params);
     case '/history':
       return await getHistoryData(params);
+    case '/last-distribution':
+      return await getLastDistribution();
     case '/stats':
       return await getStatsData();
     case '/check-updates':
@@ -342,6 +344,62 @@ async function getHistoryData(params = {}) {
   };
 
   return result;
+}
+
+/**
+ * Buscar última distribuição
+ */
+async function getLastDistribution() {
+  try {
+    // Primeiro, buscar a data da última distribuição
+    const { data: lastDistribution, error: lastError } = await supabase
+      .from('history')
+      .select('created_at')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (lastError || !lastDistribution) {
+      console.error('Erro ao buscar última distribuição:', lastError);
+      return null;
+    }
+
+    const lastDate = lastDistribution.created_at;
+
+    // Buscar todos os itens distribuídos na mesma data
+    const { data, error } = await supabase
+      .from('history')
+      .select(`
+        *,
+        players!inner(name),
+        items!inner(name)
+      `)
+      .gte('created_at', new Date(new Date(lastDate).getTime() - 60000).toISOString()) // 1 minuto antes
+      .lte('created_at', new Date(new Date(lastDate).getTime() + 60000).toISOString()) // 1 minuto depois
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Erro ao buscar última distribuição:', error);
+      return null;
+    }
+
+    if (!data || data.length === 0) {
+      return null;
+    }
+
+    return {
+      date: lastDate,
+      distributions: data.map(item => ({
+        player: item.players.name,
+        item: item.items.name,
+        quantity: item.quantity,
+        notes: item.notes || ''
+      }))
+    };
+  } catch (error) {
+    console.error('Erro ao buscar última distribuição:', error);
+    return null;
+  }
 }
 
 /**
