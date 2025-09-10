@@ -657,6 +657,7 @@ function renderItemsManager() {
         </div>
         <span class="actions">
           <button class="secondary btn-edit">✏️ Editar</button>
+          <button class="primary btn-icon">🎨 Ícone</button>
           <button class="danger btn-delete">🗑️ Excluir</button>
         </span>
       </div>
@@ -673,9 +674,16 @@ function renderItemsManager() {
     });
   });
   
-  // Atualizar também o select de itens para ícones
-  updateItemSelectForIcons();
-  renderCurrentIcons();
+  wrap.querySelectorAll('.btn-icon').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = btn.closest('.row');
+      const itemName = row?.dataset.name;
+      if (!itemName) return;
+      openIconUploadModal(itemName);
+    });
+  });
+  
+
   
   wrap.querySelectorAll('.btn-delete').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -688,72 +696,13 @@ function renderItemsManager() {
   });
 }
 
-// Atualizar select de itens para upload de ícones
-function updateItemSelectForIcons() {
-  const select = document.getElementById('icon-item-select');
-  if (!select || !state.items) return;
-  select.innerHTML = '<option value="">Selecione um item...</option>' + state.items.map(item => `<option value="${item}">${item}</option>`).join('');
-}
 
-// Renderizar ícones atuais
-function renderCurrentIcons() {
-  const container = document.getElementById('current-icons-list');
-  if (!container) return;
-  const iconEntries = Object.entries(customIcons);
-  if (iconEntries.length === 0) {
-    container.innerHTML = '<p style="color: #666; font-style: italic;">Nenhum ícone personalizado cadastrado.</p>';
-    return;
-  }
-  container.innerHTML = iconEntries.map(([itemName, svgContent]) => `<div class="icon-item" style="display: flex; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px;"><div style="width: 30px; height: 30px; margin-right: 15px; display: flex; align-items: center; justify-content: center;">${svgContent}</div><span style="flex: 1; font-weight: bold;">${itemName}</span><button onclick="removeIcon('${itemName}')" class="danger" style="padding: 5px 10px; font-size: 12px;">🗑️ Remover</button></div>`).join('');
-}
-
-// Manipular upload de arquivo SVG
-function handleIconUpload() {
-  const fileInput = document.getElementById('icon-file-input');
-  const file = fileInput.files[0];
-  if (!file) { alert('Por favor, selecione um arquivo SVG.'); return; }
-  if (!file.type.includes('svg') && !file.name.toLowerCase().endsWith('.svg')) { alert('Por favor, selecione apenas arquivos SVG.'); return; }
-  if (file.size > 100000) { alert('Arquivo muito grande. O limite é de 100KB.'); return; }
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const svgContent = e.target.result;
-    if (!svgContent.includes('<svg')) { alert('Arquivo SVG inválido.'); return; }
-    previewIcon(svgContent);
-  };
-  reader.readAsText(file);
-}
-
-// Pré-visualizar ícone
-function previewIcon(svgContent) {
-  const preview = document.getElementById('icon-preview');
-  const saveBtn = document.getElementById('save-icon-btn');
-  if (preview) { preview.innerHTML = svgContent; preview.style.display = 'block'; }
-  if (saveBtn) { saveBtn.style.display = 'inline-block'; saveBtn.onclick = () => saveIcon(svgContent); }
-}
-
-// Salvar ícone personalizado
-function saveIcon(svgContent) {
-  const select = document.getElementById('icon-item-select');
-  const itemName = select.value;
-  if (!itemName) { alert('Por favor, selecione um item.'); return; }
-  const cleanSvg = svgContent.replace(/width="[^"]*"/g, 'width="20"').replace(/height="[^"]*"/g, 'height="20"').replace(/\s+/g, ' ').trim();
-  customIcons[itemName] = cleanSvg;
-  saveCustomIcons();
-  document.getElementById('icon-file-input').value = '';
-  document.getElementById('icon-preview').style.display = 'none';
-  document.getElementById('save-icon-btn').style.display = 'none';
-  select.value = '';
-  renderCurrentIcons();
-  renderItemsManager();
-  showToast(`Ícone personalizado salvo para ${itemName}!`, 'success');
-}
 
 // Remover ícone personalizado
 function removeIcon(itemName) {
   if (!confirm(`Remover ícone personalizado de "${itemName}"?`)) return;
   delete customIcons[itemName];
   saveCustomIcons();
-  renderCurrentIcons();
   renderItemsManager();
   showToast(`Ícone personalizado removido de ${itemName}.`, 'info');
 }
@@ -763,9 +712,125 @@ function clearAllIcons() {
   if (!confirm('Remover todos os ícones personalizados? Esta ação não pode ser desfeita.')) return;
   customIcons = {};
   saveCustomIcons();
-  renderCurrentIcons();
   renderItemsManager();
   showToast('Todos os ícones personalizados foram removidos.', 'info');
+}
+
+// Abrir modal de upload de ícone para um item específico
+function openIconUploadModal(itemName) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3>🎨 Gerenciar Ícone - ${itemName}</h3>
+        <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="icon-upload-section">
+          <div class="upload-controls" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+            <input type="file" id="modal-icon-file-input" accept=".svg" style="display: none;">
+            <button type="button" id="modal-btn-upload-icon" class="secondary" onclick="document.getElementById('modal-icon-file-input').click()">
+              📁 Escolher Ícone SVG
+            </button>
+            <button type="button" id="modal-btn-save-icon" class="primary" disabled>
+              💾 Salvar Ícone
+            </button>
+            ${customIcons[itemName] ? `<button type="button" id="modal-btn-remove-icon" class="danger">
+              🗑️ Remover Ícone Atual
+            </button>` : ''}
+          </div>
+          
+          <div id="modal-icon-preview" class="icon-preview" style="display: none; padding: 15px; border: 2px dashed #ddd; border-radius: 8px; text-align: center; background: #f9f9f9;">
+            <h4>Prévia do Ícone:</h4>
+            <div id="modal-icon-preview-content" style="margin: 10px 0;"></div>
+            <p style="font-size: 12px; color: #666; margin: 5px 0;">Nome do arquivo: <span id="modal-icon-filename"></span></p>
+          </div>
+          
+          ${customIcons[itemName] ? `<div class="current-icon" style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
+            <h4>Ícone Atual:</h4>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 24px; height: 24px;">${customIcons[itemName]}</div>
+              <span>${itemName}</span>
+            </div>
+          </div>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Event listeners para o modal
+  const fileInput = modal.querySelector('#modal-icon-file-input');
+  const saveBtn = modal.querySelector('#modal-btn-save-icon');
+  const removeBtn = modal.querySelector('#modal-btn-remove-icon');
+  
+  let currentSvgContent = null;
+  
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (!file.name.toLowerCase().endsWith('.svg')) {
+      showToast('Por favor, selecione apenas arquivos SVG!', 'error');
+      return;
+    }
+    
+    if (file.size > 100 * 1024) {
+      showToast('Arquivo muito grande! Máximo 100KB.', 'error');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      currentSvgContent = e.target.result;
+      
+      // Otimizar SVG
+      const optimizedSvg = currentSvgContent
+        .replace(/width="[^"]*"/g, 'width="20"')
+        .replace(/height="[^"]*"/g, 'height="20"')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      currentSvgContent = optimizedSvg;
+      
+      // Mostrar prévia
+      const preview = modal.querySelector('#modal-icon-preview');
+      const previewContent = modal.querySelector('#modal-icon-preview-content');
+      const filename = modal.querySelector('#modal-icon-filename');
+      
+      preview.style.display = 'block';
+      previewContent.innerHTML = optimizedSvg;
+      filename.textContent = file.name;
+      saveBtn.disabled = false;
+    };
+    reader.readAsText(file);
+  });
+  
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+      if (!currentSvgContent) return;
+      
+      customIcons[itemName] = currentSvgContent;
+      saveCustomIcons();
+      renderItemsManager();
+      showToast(`Ícone salvo para ${itemName}!`, 'success');
+      modal.remove();
+    });
+  }
+  
+  if (removeBtn) {
+    removeBtn.addEventListener('click', () => {
+      if (!confirm(`Remover ícone personalizado de "${itemName}"?`)) return;
+      
+      delete customIcons[itemName];
+      saveCustomIcons();
+      renderItemsManager();
+      showToast(`Ícone removido de ${itemName}!`, 'success');
+      modal.remove();
+    });
+  }
 }
 
 // Renderização da tabela de itens para distribuição
