@@ -3009,7 +3009,7 @@ async function loadPlayerSelectionFromStorage() {
     console.log('DEBUG - Carregando seleções do Supabase...');
     
     // Buscar seleções do Supabase
-    const response = await fetch('/.netlify/functions/supabase-api/player-selections?selected_only=true');
+    const response = await fetch('/.netlify/functions/supabase-api/player-selections');
     
     if (!response.ok) {
       throw new Error(`Erro HTTP: ${response.status}`);

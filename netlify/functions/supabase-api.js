@@ -1026,10 +1026,8 @@ async function getPlayerSelections(params = {}) {
       query = query.eq('player_name', params.player_name);
     }
     
-    // Filtrar apenas selecionados se fornecido
-    if (params.selected_only === 'true') {
-      query = query.eq('is_selected', true);
-    }
+    // Remover filtro selected_only pois a tabela player_item_selections não tem coluna is_selected
+    // Todas as entradas nesta tabela representam seleções ativas
     
     const { data, error } = await query;
     
