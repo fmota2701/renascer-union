@@ -773,11 +773,9 @@
         </div>
     </div>
     
-    <script src="src/config/config.js"></script>
-    <!-- Supabase Scripts -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js" onload="console.log('Supabase script carregado')"></script>
-    <script src="supabase-client.js"></script>
-    <script src="app.js"></script>
+    <!-- Configuração será carregada dinamicamente -->
+    
+    <!-- Aguardar CONFIG estar disponível antes de carregar Supabase -->
     <script>
         // Verificar autenticação
         if (localStorage.getItem('isLoggedIn') !== 'true' || localStorage.getItem('userType') !== 'admin') {
@@ -791,6 +789,52 @@
                 window.location.href = 'index.html';
             }
         }
+        
+        // Carregar config.js primeiro
+        const configScript = document.createElement('script');
+        configScript.src = 'src/config/config.js';
+        configScript.onload = function() {
+            console.log('✅ Config.js carregado');
+            
+            // Aguardar CONFIG estar disponível
+            function waitForConfig(callback) {
+                if (typeof CONFIG !== 'undefined') {
+                    callback();
+                } else {
+                    setTimeout(() => waitForConfig(callback), 50);
+                }
+            }
+            
+            // Carregar scripts do Supabase após CONFIG estar disponível
+            waitForConfig(function() {
+            console.log('✅ CONFIG carregado, iniciando Supabase...');
+            
+            // Carregar Supabase
+            const supabaseScript = document.createElement('script');
+            supabaseScript.src = 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js';
+            supabaseScript.onload = function() {
+                console.log('✅ Supabase script carregado');
+                
+                // Carregar supabase-client.js
+                const clientScript = document.createElement('script');
+                clientScript.src = 'supabase-client.js';
+                clientScript.onload = function() {
+                    console.log('✅ Supabase client carregado');
+                    
+                    // Carregar app.js
+                    const appScript = document.createElement('script');
+                    appScript.src = 'app.js';
+                    appScript.onload = function() {
+                        console.log('✅ App.js carregado');
+                    };
+                    document.head.appendChild(appScript);
+                };
+                document.head.appendChild(clientScript);
+            };
+            document.head.appendChild(supabaseScript);
+        });
+        };
+        document.head.appendChild(configScript);
         
         // Aguardar carregamento completo e inicializar Supabase
         window.addEventListener('load', function() {
@@ -916,30 +960,65 @@
         // Função para carregar estatísticas do dashboard
         async function loadDashboardStats() {
             try {
+                // Verificar se elementos existem antes de manipulá-los
+                const totalPlayersEl = document.getElementById('total-players');
+                const totalItemsEl = document.getElementById('total-items');
+                const totalHistoryEl = document.getElementById('total-history');
+                const lastSyncEl = document.getElementById('last-sync');
+                
                 // Carregar jogadores
                 const playersResponse = await fetch('/.netlify/functions/supabase-api/players');
-                const playersData = await playersResponse.json();
-                document.getElementById('total-players').textContent = playersData.players?.length || 0;
+                if (playersResponse.ok) {
+                    const playersData = await playersResponse.json();
+                    if (totalPlayersEl) {
+                        totalPlayersEl.textContent = playersData.players?.length || 0;
+                    }
+                } else {
+                    console.warn('Erro ao carregar jogadores:', playersResponse.status);
+                    if (totalPlayersEl) totalPlayersEl.textContent = '?';
+                }
                 
                 // Carregar itens
                 const itemsResponse = await fetch('/.netlify/functions/supabase-api/items');
-                const itemsData = await itemsResponse.json();
-                document.getElementById('total-items').textContent = itemsData.items?.length || 0;
+                if (itemsResponse.ok) {
+                    const itemsData = await itemsResponse.json();
+                    if (totalItemsEl) {
+                        totalItemsEl.textContent = itemsData.items?.length || 0;
+                    }
+                } else {
+                    console.warn('Erro ao carregar itens:', itemsResponse.status);
+                    if (totalItemsEl) totalItemsEl.textContent = '?';
+                }
                 
                 // Carregar histórico
                 const historyResponse = await fetch('/.netlify/functions/supabase-api/history');
-                const historyData = await historyResponse.json();
-                document.getElementById('total-history').textContent = historyData.history?.length || 0;
+                if (historyResponse.ok) {
+                    const historyData = await historyResponse.json();
+                    if (totalHistoryEl) {
+                        totalHistoryEl.textContent = historyData.history?.length || 0;
+                    }
+                } else {
+                    console.warn('Erro ao carregar histórico:', historyResponse.status);
+                    if (totalHistoryEl) totalHistoryEl.textContent = '?';
+                }
                 
                 // Última sincronização
-                const now = new Date();
-                document.getElementById('last-sync').textContent = now.toLocaleTimeString('pt-BR', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+                if (lastSyncEl) {
+                    const now = new Date();
+                    lastSyncEl.textContent = now.toLocaleTimeString('pt-BR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
                 
             } catch (error) {
                 console.error('Erro ao carregar estatísticas:', error);
+                // Definir valores de erro nos elementos se existirem
+                const elements = ['total-players', 'total-items', 'total-history'];
+                elements.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = 'Erro';
+                });
             }
         }
         
@@ -969,9 +1048,13 @@
                 section.style.display = 'none';
             });
             // Mostrar dashboard
-            document.getElementById('dashboard-section').style.display = 'block';
+            const dashboardSection = document.getElementById('dashboard-section');
+            if (dashboardSection) {
+                dashboardSection.style.display = 'block';
+            }
             // Ativar item do menu
-            setActiveMenuItem(document.querySelector('.menu-item[onclick="showDashboard()"]'));
+            const menuItem = document.querySelector('.menu-item[onclick="showDashboard()"]');
+            setActiveMenuItem(menuItem);
         };
         
         // Sobrescrever função showAdminSection para gerenciar menu
@@ -981,7 +1064,10 @@
                 originalShowAdminSection(sectionName);
             }
             // Esconder dashboard
-            document.getElementById('dashboard-section').style.display = 'none';
+            const dashboardSection = document.getElementById('dashboard-section');
+            if (dashboardSection) {
+                dashboardSection.style.display = 'none';
+            }
             // Ativar item do menu correspondente
             const menuItem = document.querySelector(`.menu-item[onclick="showAdminSection('${sectionName}')"]`);
             setActiveMenuItem(menuItem);

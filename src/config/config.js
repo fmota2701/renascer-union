@@ -23,9 +23,7 @@ const CONFIG = {
   }
 };
 
-// Exportar configurações
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = CONFIG;
-} else {
+// Exportar configurações para o navegador
+if (typeof window !== 'undefined') {
   window.CONFIG = CONFIG;
 }
