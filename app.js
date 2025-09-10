@@ -594,13 +594,39 @@ function renderItemsSelect() {
   }
 }
 
-// Gerenciador de Itens (renomear/remover)
-function renderItemsManager() {
-  const wrap = document.getElementById('items-manager');
-  if (!wrap || !state.items) return;
+// Estado global para ícones personalizados
+let customIcons = {};
+
+// Carregar ícones personalizados do localStorage
+function loadCustomIcons() {
+  try {
+    const saved = localStorage.getItem('customIcons');
+    if (saved) {
+      customIcons = JSON.parse(saved);
+    }
+  } catch (error) {
+    console.warn('Erro ao carregar ícones personalizados:', error);
+    customIcons = {};
+  }
+}
+
+// Salvar ícones personalizados no localStorage
+function saveCustomIcons() {
+  try {
+    localStorage.setItem('customIcons', JSON.stringify(customIcons));
+  } catch (error) {
+    console.error('Erro ao salvar ícones personalizados:', error);
+  }
+}
+
+// Obter ícone de um item (personalizado ou padrão)
+function getItemIcon(itemName) {
+  if (customIcons[itemName]) {
+    return customIcons[itemName];
+  }
   
-  // Mapear emojis dos itens
-  const itemEmojis = {
+  // Mapear emojis padrão dos itens
+  const defaultEmojis = {
     'Cristal do Caos': '💎',
     'Pena do Condor': '🪶',
     'Chama do Condor': '🔥',
@@ -608,14 +634,25 @@ function renderItemsManager() {
     'Arcanjo': '⭐'
   };
   
+  return defaultEmojis[itemName] || '🎁';
+}
+
+// Gerenciador de Itens (renomear/remover)
+function renderItemsManager() {
+  const wrap = document.getElementById('items-manager');
+  if (!wrap || !state.items) return;
+  
   wrap.innerHTML = state.items.map(name => {
-    const emoji = itemEmojis[name] || '🎁';
+    const icon = getItemIcon(name);
+    const isCustomIcon = customIcons[name];
+    const iconDisplay = isCustomIcon ? `<div style="width: 20px; height: 20px; display: inline-block; vertical-align: middle;">${icon}</div>` : icon;
+    
     return `
       <div class="row" data-name="${name}" style="border-left: 4px solid #ff9800; margin-bottom: 10px; padding: 10px;">
         <div class="item-info">
-          <span class="name" style="font-weight: bold; font-size: 16px;">${emoji} ${name}</span>
+          <span class="name" style="font-weight: bold; font-size: 16px;">${iconDisplay} ${name}</span>
           <div class="item-meta" style="font-size: 12px; color: #666; margin-top: 5px;">
-            <div>🎯 Item do sistema</div>
+            <div>🎯 Item do sistema ${isCustomIcon ? '(ícone personalizado)' : ''}</div>
           </div>
         </div>
         <span class="actions">
@@ -636,6 +673,10 @@ function renderItemsManager() {
     });
   });
   
+  // Atualizar também o select de itens para ícones
+  updateItemSelectForIcons();
+  renderCurrentIcons();
+  
   wrap.querySelectorAll('.btn-delete').forEach(btn => {
     btn.addEventListener('click', () => {
       const row = btn.closest('.row');
@@ -645,6 +686,86 @@ function renderItemsManager() {
       removeItem(name);
     });
   });
+}
+
+// Atualizar select de itens para upload de ícones
+function updateItemSelectForIcons() {
+  const select = document.getElementById('icon-item-select');
+  if (!select || !state.items) return;
+  select.innerHTML = '<option value="">Selecione um item...</option>' + state.items.map(item => `<option value="${item}">${item}</option>`).join('');
+}
+
+// Renderizar ícones atuais
+function renderCurrentIcons() {
+  const container = document.getElementById('current-icons-list');
+  if (!container) return;
+  const iconEntries = Object.entries(customIcons);
+  if (iconEntries.length === 0) {
+    container.innerHTML = '<p style="color: #666; font-style: italic;">Nenhum ícone personalizado cadastrado.</p>';
+    return;
+  }
+  container.innerHTML = iconEntries.map(([itemName, svgContent]) => `<div class="icon-item" style="display: flex; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px;"><div style="width: 30px; height: 30px; margin-right: 15px; display: flex; align-items: center; justify-content: center;">${svgContent}</div><span style="flex: 1; font-weight: bold;">${itemName}</span><button onclick="removeIcon('${itemName}')" class="danger" style="padding: 5px 10px; font-size: 12px;">🗑️ Remover</button></div>`).join('');
+}
+
+// Manipular upload de arquivo SVG
+function handleIconUpload() {
+  const fileInput = document.getElementById('icon-file-input');
+  const file = fileInput.files[0];
+  if (!file) { alert('Por favor, selecione um arquivo SVG.'); return; }
+  if (!file.type.includes('svg') && !file.name.toLowerCase().endsWith('.svg')) { alert('Por favor, selecione apenas arquivos SVG.'); return; }
+  if (file.size > 100000) { alert('Arquivo muito grande. O limite é de 100KB.'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const svgContent = e.target.result;
+    if (!svgContent.includes('<svg')) { alert('Arquivo SVG inválido.'); return; }
+    previewIcon(svgContent);
+  };
+  reader.readAsText(file);
+}
+
+// Pré-visualizar ícone
+function previewIcon(svgContent) {
+  const preview = document.getElementById('icon-preview');
+  const saveBtn = document.getElementById('save-icon-btn');
+  if (preview) { preview.innerHTML = svgContent; preview.style.display = 'block'; }
+  if (saveBtn) { saveBtn.style.display = 'inline-block'; saveBtn.onclick = () => saveIcon(svgContent); }
+}
+
+// Salvar ícone personalizado
+function saveIcon(svgContent) {
+  const select = document.getElementById('icon-item-select');
+  const itemName = select.value;
+  if (!itemName) { alert('Por favor, selecione um item.'); return; }
+  const cleanSvg = svgContent.replace(/width="[^"]*"/g, 'width="20"').replace(/height="[^"]*"/g, 'height="20"').replace(/\s+/g, ' ').trim();
+  customIcons[itemName] = cleanSvg;
+  saveCustomIcons();
+  document.getElementById('icon-file-input').value = '';
+  document.getElementById('icon-preview').style.display = 'none';
+  document.getElementById('save-icon-btn').style.display = 'none';
+  select.value = '';
+  renderCurrentIcons();
+  renderItemsManager();
+  showToast(`Ícone personalizado salvo para ${itemName}!`, 'success');
+}
+
+// Remover ícone personalizado
+function removeIcon(itemName) {
+  if (!confirm(`Remover ícone personalizado de "${itemName}"?`)) return;
+  delete customIcons[itemName];
+  saveCustomIcons();
+  renderCurrentIcons();
+  renderItemsManager();
+  showToast(`Ícone personalizado removido de ${itemName}.`, 'info');
+}
+
+// Limpar todos os ícones
+function clearAllIcons() {
+  if (!confirm('Remover todos os ícones personalizados? Esta ação não pode ser desfeita.')) return;
+  customIcons = {};
+  saveCustomIcons();
+  renderCurrentIcons();
+  renderItemsManager();
+  showToast('Todos os ícones personalizados foram removidos.', 'info');
 }
 
 // Renderização da tabela de itens para distribuição
@@ -1593,6 +1714,9 @@ async function main() {
 
   // Inicializar sistema de sincronização em tempo real
   initRealtimeSync();
+
+  // Carregar ícones personalizados
+  loadCustomIcons();
 
   // Listener do tema
   if (themeSwitch) {

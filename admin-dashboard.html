@@ -567,6 +567,38 @@
                 </form>
                 <div id="items-manager" class="items-manager"></div>
             </div>
+            
+            <!-- Seção de Upload de Ícones -->
+            <div class="card" style="margin-top: 20px;">
+                <h3>🎨 Gerenciar Ícones dos Itens</h3>
+                <p>Faça upload de ícones SVG personalizados para os itens. Os ícones devem estar no formato SVG.</p>
+                
+                <div class="icon-upload-section">
+                    <div class="upload-controls" style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px;">
+                        <select id="item-select-for-icon" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="">Selecione um item...</option>
+                        </select>
+                        <input type="file" id="icon-file-input" accept=".svg" style="display: none;">
+                        <button type="button" id="btn-upload-icon" class="secondary" onclick="document.getElementById('icon-file-input').click()" disabled>
+                            📁 Escolher Ícone SVG
+                        </button>
+                        <button type="button" id="btn-save-icon" class="primary" disabled>
+                            💾 Salvar Ícone
+                        </button>
+                    </div>
+                    
+                    <div id="icon-preview" class="icon-preview" style="display: none; padding: 15px; border: 2px dashed #ddd; border-radius: 8px; text-align: center; background: #f9f9f9;">
+                        <h4>Prévia do Ícone:</h4>
+                        <div id="icon-preview-content" style="margin: 10px 0;"></div>
+                        <p style="font-size: 12px; color: #666; margin: 5px 0;">Nome do arquivo: <span id="icon-filename"></span></p>
+                    </div>
+                </div>
+                
+                <div id="current-icons" class="current-icons" style="margin-top: 20px;">
+                    <h4>Ícones Atuais:</h4>
+                    <div id="icons-list" class="icons-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;"></div>
+                </div>
+            </div>
         </div>
         
         <div id="distribute-section" class="section" style="display: none;">
