@@ -489,6 +489,146 @@
             color: #666;
         }
 
+        /* Estilos para Sorteio em Tempo Real */
+        .draw-item {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .draw-item.new {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            animation: newDrawItem 1s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes newDrawItem {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(-20px);
+                border-color: #ffc107;
+                background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            }
+            50% {
+                transform: scale(1.05) translateY(-5px);
+                border-color: #28a745;
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                border-color: #28a745;
+                background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            }
+        }
+
+        .draw-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .draw-item-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .draw-item-time {
+            font-size: 12px;
+            color: #666;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 4px 8px;
+            border-radius: 10px;
+        }
+
+        .draw-winners {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .draw-winner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .draw-winner.multiple {
+            background: rgba(255, 193, 7, 0.1);
+            border-left-color: #ffc107;
+        }
+
+        .draw-winner-icon {
+            font-size: 18px;
+        }
+
+        .draw-winner-name {
+            font-weight: 500;
+            color: #333;
+            flex: 1;
+        }
+
+        .draw-winner-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .draw-winner.multiple .draw-winner-badge {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .draw-status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #28a745;
+            font-weight: 500;
+        }
+
+        .draw-status-indicator::before {
+            content: '●';
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsividade para o grid */
+        @media (max-width: 768px) {
+            .content-section > div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+        }
+
         /* Modal de Seleção de Itens */
         .modal {
             display: none;
@@ -738,17 +878,39 @@
                 </div>
             </div>
             
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3>🎯 Meus Últimos Itens</h3>
-                <button class="refresh-btn" onclick="loadOverviewData()">
-                    🔄 Atualizar
-                </button>
-            </div>
-            
-            <div id="recent-items">
-                <div class="empty-state">
-                    <div class="empty-state-icon">📦</div>
-                    <p>Carregando seus itens...</p>
+            <!-- Grid com duas colunas: Meus Últimos Itens e Sorteio em Tempo Real -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
+                <!-- Coluna Esquerda: Meus Últimos Itens -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>🎯 Meus Últimos Itens</h3>
+                        <button class="refresh-btn" onclick="loadOverviewData()">
+                            🔄 Atualizar
+                        </button>
+                    </div>
+                    
+                    <div id="recent-items">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📦</div>
+                            <p>Carregando seus itens...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Coluna Direita: Sorteio em Tempo Real -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>🎲 Sorteio em Tempo Real</h3>
+                        <div id="draw-status" style="font-size: 12px; color: #666;">Aguardando sorteios...</div>
+                    </div>
+                    
+                    <div id="realtime-draw" style="background: #f8f9fa; border-radius: 12px; padding: 20px; min-height: 200px;">
+                        <div class="empty-state" style="padding: 40px 20px;">
+                            <div class="empty-state-icon">🎲</div>
+                            <p>Nenhum sorteio ativo no momento</p>
+                            <small style="color: #999; margin-top: 10px; display: block;">Os sorteios aparecerão aqui quando o admin distribuir itens</small>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -1209,8 +1371,193 @@
             }
         }
 
+        // Variáveis globais para sorteio em tempo real
+        let realtimeDraws = [];
+        let drawSubscription = null;
+
+        // Função para inicializar sorteio em tempo real
+        function initializeRealtimeDraw() {
+            // Configurar escuta em tempo real para mudanças na tabela de distribuição
+            if (typeof supabase !== 'undefined' && supabase.channel) {
+                drawSubscription = supabase
+                    .channel('item-distribution')
+                    .on('postgres_changes', {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'item_distribution'
+                    }, handleNewDraw)
+                    .on('postgres_changes', {
+                        event: 'UPDATE', 
+                        schema: 'public',
+                        table: 'item_distribution'
+                    }, handleDrawUpdate)
+                    .subscribe();
+                
+                console.log('Sorteio em tempo real inicializado');
+                updateDrawStatus('Conectado - Aguardando sorteios...');
+            } else {
+                console.warn('Supabase não disponível para sorteio em tempo real');
+                updateDrawStatus('Offline - Sorteios não disponíveis');
+            }
+        }
+
+        // Função para lidar com novos sorteios
+        function handleNewDraw(payload) {
+            console.log('Novo sorteio detectado:', payload);
+            const drawData = payload.new;
+            
+            // Buscar detalhes do sorteio
+            fetchDrawDetails(drawData.id);
+        }
+
+        // Função para lidar com atualizações de sorteio
+        function handleDrawUpdate(payload) {
+            console.log('Sorteio atualizado:', payload);
+            const drawData = payload.new;
+            
+            // Atualizar sorteio existente
+            fetchDrawDetails(drawData.id);
+        }
+
+        // Função para buscar detalhes do sorteio
+        async function fetchDrawDetails(drawId) {
+            try {
+                const response = await fetch(`/.netlify/functions/supabase-api/draw-details/${drawId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    addDrawToDisplay(data.draw);
+                }
+            } catch (error) {
+                console.error('Erro ao buscar detalhes do sorteio:', error);
+            }
+        }
+
+        // Função para adicionar sorteio à exibição
+        function addDrawToDisplay(drawData) {
+            const container = document.getElementById('realtime-draw');
+            const existingDraw = realtimeDraws.find(d => d.id === drawData.id);
+            
+            if (existingDraw) {
+                // Atualizar sorteio existente
+                updateExistingDraw(drawData);
+            } else {
+                // Adicionar novo sorteio
+                realtimeDraws.unshift(drawData);
+                
+                // Limitar a 5 sorteios mais recentes
+                if (realtimeDraws.length > 5) {
+                    realtimeDraws = realtimeDraws.slice(0, 5);
+                }
+                
+                renderDraws();
+                updateDrawStatus(`Último sorteio: ${new Date().toLocaleTimeString()}`);
+            }
+        }
+
+        // Função para atualizar sorteio existente
+        function updateExistingDraw(drawData) {
+            const index = realtimeDraws.findIndex(d => d.id === drawData.id);
+            if (index !== -1) {
+                realtimeDraws[index] = drawData;
+                renderDraws();
+            }
+        }
+
+        // Função para renderizar sorteios
+        function renderDraws() {
+            const container = document.getElementById('realtime-draw');
+            
+            if (realtimeDraws.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="padding: 40px 20px;">
+                        <div class="empty-state-icon">🎲</div>
+                        <p>Nenhum sorteio ativo no momento</p>
+                        <small style="color: #999; margin-top: 10px; display: block;">Os sorteios aparecerão aqui quando o admin distribuir itens</small>
+                    </div>
+                `;
+                return;
+            }
+            
+            const drawsHtml = realtimeDraws.map((draw, index) => {
+                const isNew = index === 0; // Primeiro item é sempre o mais novo
+                const winners = Array.isArray(draw.winners) ? draw.winners : [draw.winners].filter(Boolean);
+                const hasMultipleWinners = winners.length > 1;
+                
+                const winnersHtml = winners.map(winner => `
+                    <div class="draw-winner ${hasMultipleWinners ? 'multiple' : ''}">
+                        <div class="draw-winner-icon">${hasMultipleWinners ? '🏆' : '👑'}</div>
+                        <div class="draw-winner-name">${winner}</div>
+                        <div class="draw-winner-badge">${hasMultipleWinners ? 'Múltiplo' : 'Vencedor'}</div>
+                    </div>
+                `).join('');
+                
+                return `
+                    <div class="draw-item ${isNew ? 'new' : ''}">
+                        <div class="draw-item-header">
+                            <div class="draw-item-name">🎁 ${draw.item_name}</div>
+                            <div class="draw-item-time">${new Date(draw.created_at).toLocaleTimeString()}</div>
+                        </div>
+                        <div class="draw-winners">
+                            ${winnersHtml}
+                        </div>
+                        ${hasMultipleWinners ? `<small style="color: #666; margin-top: 8px; display: block;">⚡ ${winners.length} ganhadores simultâneos</small>` : ''}
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = drawsHtml;
+            
+            // Remover classe 'new' após animação
+            setTimeout(() => {
+                const newItems = container.querySelectorAll('.draw-item.new');
+                newItems.forEach(item => item.classList.remove('new'));
+            }, 1000);
+        }
+
+        // Função para atualizar status do sorteio
+        function updateDrawStatus(status) {
+            const statusElement = document.getElementById('draw-status');
+            if (statusElement) {
+                statusElement.innerHTML = `<span class="draw-status-indicator">${status}</span>`;
+            }
+        }
+
+        // Função para simular sorteio (para testes)
+        function simulateDraw() {
+            const testItems = ['Espada Lendária', 'Armadura Épica', 'Poção Rara', 'Gema Mística'];
+            const testPlayers = ['João', 'Maria', 'Pedro', 'Ana', 'Carlos'];
+            
+            const randomItem = testItems[Math.floor(Math.random() * testItems.length)];
+            const numWinners = Math.random() > 0.7 ? 2 : 1; // 30% chance de múltiplos ganhadores
+            const winners = [];
+            
+            for (let i = 0; i < numWinners; i++) {
+                const availablePlayers = testPlayers.filter(p => !winners.includes(p));
+                if (availablePlayers.length > 0) {
+                    const randomPlayer = availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
+                    winners.push(randomPlayer);
+                }
+            }
+            
+            const mockDraw = {
+                id: Date.now(),
+                item_name: randomItem,
+                winners: winners,
+                created_at: new Date().toISOString()
+            };
+            
+            addDrawToDisplay(mockDraw);
+        }
+
         // Carregar dados iniciais
         loadOverviewData();
+        
+        // Inicializar sorteio em tempo real
+        initializeRealtimeDraw();
+        
+        // Para testes - remover em produção
+        // setInterval(simulateDraw, 10000); // Simula sorteio a cada 10 segundos
     </script>
 </body>
 </html>
