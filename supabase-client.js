@@ -25,7 +25,8 @@ function waitForSupabase(callback, maxAttempts = 50) {
   function check() {
     attempts++;
     
-    if (typeof window.supabase !== 'undefined') {
+    // Verificar se o Supabase está disponível (pode estar em window.supabase ou apenas supabase)
+    if (typeof window.supabase !== 'undefined' || typeof supabase !== 'undefined') {
       callback();
     } else if (attempts < maxAttempts) {
       setTimeout(check, 100);
@@ -41,13 +42,14 @@ function waitForSupabase(callback, maxAttempts = 50) {
 function initSupabaseClient() {
   try {
     // Verificar se o Supabase está disponível
-    if (typeof window.supabase === 'undefined') {
+    const supabaseLib = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+    if (!supabaseLib) {
       console.error('Supabase não está disponível. Certifique-se de incluir o script do Supabase.');
       return null;
     }
     
     const config = getSupabaseConfig();
-    supabaseClient = window.supabase.createClient(config.URL, config.ANON_KEY);
+    supabaseClient = supabaseLib.createClient(config.URL, config.ANON_KEY);
     console.log('✅ Cliente Supabase inicializado');
     return supabaseClient;
   } catch (error) {

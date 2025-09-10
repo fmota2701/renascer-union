@@ -130,6 +130,12 @@ function renderTable() {
   const thead = $("#table-head");
   const tbody = $("#table-body");
   
+  // Verificar se os elementos existem antes de manipulá-los
+  if (!thead || !tbody || !state.items || !state.players) {
+    console.warn('Elementos da tabela ou dados do estado não encontrados');
+    return;
+  }
+  
   // Preservar jogadores destacados antes de limpar a tabela
   const highlightedPlayers = new Set();
   document.querySelectorAll('.player-not-selected').forEach(row => {
@@ -577,17 +583,21 @@ function renderItemsSelect() {
   updateButtons();
 
   // Atualiza opções dos selects existentes para refletir itens atuais
-  for (const sel of rows.querySelectorAll("select")) {
-    const current = sel.value;
-    sel.innerHTML = state.items.map((i) => `<option value="${i}">${i}</option>`).join("");
-    if (state.items.includes(current)) sel.value = current; else sel.value = state.items[0];
+  if (rows) {
+    for (const sel of rows.querySelectorAll("select")) {
+      const current = sel.value;
+      if (sel && state.items) {
+        sel.innerHTML = state.items.map((i) => `<option value="${i}">${i}</option>`).join("");
+        if (state.items.includes(current)) sel.value = current; else sel.value = state.items[0];
+      }
+    }
   }
 }
 
 // Gerenciador de Itens (renomear/remover)
 function renderItemsManager() {
   const wrap = document.getElementById('items-manager');
-  if (!wrap) return;
+  if (!wrap || !state.items) return;
   
   // Mapear emojis dos itens
   const itemEmojis = {
@@ -640,7 +650,7 @@ function renderItemsManager() {
 // Renderização da tabela de itens para distribuição
 function renderItemsTable() {
   const tbody = document.getElementById('items-table-body');
-  if (!tbody) return;
+  if (!tbody || !state.items) return;
   
   tbody.innerHTML = state.items.map(item => {
     const isSelected = selectedDistributionItems.has(item);
@@ -801,9 +811,7 @@ async function triggerAutomaticDraw(itemName) {
 // Gerenciador de Jogadores (lista simples com editar/excluir)
 function renderPlayersManager() {
   const wrap = document.getElementById('players-manager');
-  if (!wrap) return;
-  
-
+  if (!wrap || !state.players) return;
   
   wrap.innerHTML = state.players.map(p => `
     <div class="row" data-name="${p.name}" style="border-left: 4px solid #4caf50; margin-bottom: 10px; padding: 10px;">
@@ -983,7 +991,7 @@ async function removeItem(name) {
 
 function renderHistory() {
   const body = document.getElementById('history-body');
-  if (!body) return;
+  if (!body || !state.history) return;
   body.innerHTML = state.history
     .slice()
     .reverse()
