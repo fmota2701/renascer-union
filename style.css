@@ -1385,8 +1385,9 @@ body.dark{
 .custom-icon {
     width: 32px;
     height: 32px;
-    display: inline-block;
-    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
 }
 
@@ -1396,11 +1397,32 @@ body.dark{
     object-fit: contain;
 }
 
+/* Item com ícone */
+.item-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.item-with-icon .custom-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.item-with-icon span {
+    flex: 1;
+}
+
 /* Responsividade para ícones */
 @media (max-width: 768px) {
     .custom-icon {
         width: 28px;
         height: 28px;
+    }
+    
+    .item-with-icon .custom-icon {
+        width: 20px;
+        height: 20px;
     }
 }
 
@@ -1408,6 +1430,11 @@ body.dark{
     .custom-icon {
         width: 24px;
         height: 24px;
+    }
+    
+    .item-with-icon .custom-icon {
+        width: 18px;
+        height: 18px;
     }
 }
 

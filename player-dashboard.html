@@ -540,6 +540,42 @@
             gap: 8px;
         }
         
+        /* Estilos para ícones personalizados */
+        .item-with-icon {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .custom-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        
+        .custom-icon svg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        @media (max-width: 768px) {
+            .custom-icon {
+                width: 18px;
+                height: 18px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .custom-icon {
+                width: 16px;
+                height: 16px;
+            }
+        }
+        
         .select-item-btn {
             background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
@@ -1212,9 +1248,14 @@
                         </button>
                     ` : '';
                     
+                    const iconSvg = getItemIcon(ranking.item);
+                    const itemTitleDisplay = iconSvg ? 
+                        `<div class="item-with-icon"><div class="custom-icon">${iconSvg}</div><span>${ranking.item}</span></div>` : 
+                        ranking.item;
+                    
                     return `
                         <div class="item-ranking">
-                            <h4 class="item-title">${ranking.item}</h4>
+                            <h4 class="item-title">${itemTitleDisplay}</h4>
                             <div class="ranking-list">
                                 ${playersHtml}
                             </div>
@@ -1296,7 +1337,12 @@
                                     <div class="history-item-content">
                                         <div class="history-item-icon">📦</div>
                                         <div class="history-item-details">
-                                            <div class="history-item-item">${entry.item}</div>
+                                            <div class="history-item-item">${(() => {
+                                                const iconSvg = getItemIcon(entry.item);
+                                                return iconSvg ? 
+                                                    `<div class="item-with-icon"><div class="custom-icon">${iconSvg}</div><span>${entry.item}</span></div>` : 
+                                                    entry.item;
+                                            })()}</div>
                                             <div class="history-item-description">Item recebido pelo jogador</div>
                                         </div>
                                     </div>
@@ -1361,7 +1407,12 @@
                                     <div class="history-item-content">
                                         <div class="history-item-icon">📦</div>
                                         <div class="history-item-details">
-                                            <div class="history-item-item">${entry.item}</div>
+                                            <div class="history-item-item">${(() => {
+                                                const iconSvg = getItemIcon(entry.item);
+                                                return iconSvg ? 
+                                                    `<div class="item-with-icon"><div class="custom-icon">${iconSvg}</div><span>${entry.item}</span></div>` : 
+                                                    entry.item;
+                                            })()}</div>
                                             <div class="history-item-description">Item recebido por você</div>
                                         </div>
                                     </div>
@@ -1504,10 +1555,15 @@
             const buttonText = isSelected ? 'Remover' : 'Selecionar';
             const buttonClass = isSelected ? 'selected' : '';
             
+            const iconSvg = getItemIcon(itemName);
+            const itemDisplay = iconSvg ? 
+                `<div class="item-with-icon"><div class="custom-icon">${iconSvg}</div><span>${itemName}</span></div>` : 
+                itemName;
+            
             return `
                 <div class="released-item ${isSelected ? 'selected' : ''}">
                     <div class="released-item-info">
-                        <span class="released-item-name">${itemName}</span>
+                        <span class="released-item-name">${itemDisplay}</span>
                         <span class="released-item-quantity">${quantity}x</span>
                     </div>
                     <div class="released-item-actions">
@@ -1833,13 +1889,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${data.distributions.map(dist => `
-                            <tr>
-                                <td><span class="player-badge">${dist.player}</span></td>
-                                <td><span class="item-badge">${dist.item}</span></td>
-                                <td style="text-align: center;"><span class="quantity-badge">${dist.quantity}</span></td>
-                            </tr>
-                        `).join('')}
+                        ${data.distributions.map(dist => {
+                            const iconSvg = getItemIcon(dist.item);
+                            const itemDisplay = iconSvg ? 
+                                `<div class="item-with-icon"><div class="custom-icon">${iconSvg}</div><span>${dist.item}</span></div>` : 
+                                dist.item;
+                            return `
+                                <tr>
+                                    <td><span class="player-badge">${dist.player}</span></td>
+                                    <td><span class="item-badge">${itemDisplay}</span></td>
+                                    <td style="text-align: center;"><span class="quantity-badge">${dist.quantity}</span></td>
+                                </tr>
+                            `;
+                        }).join('')}
                     </tbody>
                 </table>
             `;
@@ -1856,6 +1918,35 @@
             }
         }
     }
+    
+    // ===== SISTEMA DE ÍCONES PERSONALIZADOS =====
+    
+    let customIcons = {};
+    
+    // Carregar ícones personalizados do localStorage
+    function loadCustomIcons() {
+        try {
+            const saved = localStorage.getItem('customIcons');
+            if (saved) {
+                customIcons = JSON.parse(saved);
+            } else {
+                customIcons = {};
+            }
+        } catch (e) {
+            customIcons = {};
+        }
+    }
+    
+    // Obter ícone de um item
+    function getItemIcon(itemName) {
+        if (customIcons[itemName]) {
+            return customIcons[itemName];
+        }
+        return null;
+    }
+    
+    // Carregar ícones ao inicializar
+    loadCustomIcons();
     
     </script>
     

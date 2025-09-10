@@ -162,10 +162,22 @@ function renderTable() {
   const trh = document.createElement("tr");
   for (const col of columns) {
     const th = document.createElement("th");
-    th.textContent = col;
     th.dataset.col = col;
     th.style.cursor = "pointer";
     th.title = "Clique para ordenar";
+    
+    // Verificar se é uma coluna de item e tem ícone
+    if (state.items && state.items.includes(col)) {
+      const iconSvg = getItemIcon(col);
+      if (iconSvg) {
+        th.innerHTML = `<div class="item-with-icon"><div class="custom-icon">${iconSvg}</div><span>${col}</span></div>`;
+      } else {
+        th.textContent = col;
+      }
+    } else {
+      th.textContent = col;
+    }
+    
     th.addEventListener("click", () => sortBy(col));
     trh.appendChild(th);
   }
@@ -546,7 +558,14 @@ function renderItemsSelect() {
     const sel = document.createElement("select");
     for (const it of state.items) {
       const opt = document.createElement("option");
-      opt.value = it; opt.textContent = it; sel.appendChild(opt);
+      opt.value = it;
+      const iconSvg = getItemIcon(it);
+      if (iconSvg) {
+        opt.textContent = `🎯 ${it}`; // Emoji temporário até implementar ícones nos selects
+      } else {
+        opt.textContent = it;
+      }
+      sel.appendChild(opt);
     }
     if (value) sel.value = value;
     return sel;
@@ -587,7 +606,11 @@ function renderItemsSelect() {
     for (const sel of rows.querySelectorAll("select")) {
       const current = sel.value;
       if (sel && state.items) {
-        sel.innerHTML = state.items.map((i) => `<option value="${i}">${i}</option>`).join("");
+        sel.innerHTML = state.items.map((i) => {
+          const iconSvg = getItemIcon(i);
+          const displayText = iconSvg ? `🎯 ${i}` : i;
+          return `<option value="${i}">${displayText}</option>`;
+        }).join("");
         if (state.items.includes(current)) sel.value = current; else sel.value = state.items[0];
       }
     }
@@ -840,13 +863,17 @@ function renderItemsTable() {
   
   tbody.innerHTML = state.items.map(item => {
     const isSelected = selectedDistributionItems.has(item);
+    const iconSvg = getItemIcon(item);
+    const itemDisplay = iconSvg ? 
+      `<div class="item-with-icon"><div class="custom-icon">${iconSvg}</div><span>${item}</span></div>` : 
+      item;
     return `
       <tr data-item="${item}">
         <td>
           <input type="checkbox" ${isSelected ? 'checked' : ''} 
                  onchange="toggleItemSelection('${item}')">
         </td>
-        <td>${item}</td>
+        <td>${itemDisplay}</td>
         <td>
           <input type="number" min="1" value="1" 
                  id="qty-${item}" class="item-quantity" 
@@ -1186,10 +1213,14 @@ function renderHistory() {
       // Usar o ID real da base de dados se disponível, senão usar o índice
       const identifier = h.id ? h.id : originalIndex;
       const dataAttribute = h.id ? 'data-id' : 'data-index';
+      const iconSvg = getItemIcon(h.item);
+      const itemDisplay = iconSvg ? 
+        `<div class="item-with-icon"><div class="custom-icon">${iconSvg}</div><span>${h.item}</span></div>` : 
+        h.item;
       return `<tr>
         <td>${h.date}</td>
         <td>${h.player}</td>
-        <td>${h.item}</td>
+        <td>${itemDisplay}</td>
         <td class="num">${h.qty||1}</td>
         <td><button class="danger btn-delete-history" ${dataAttribute}="${identifier}" title="Excluir esta distribuição">🗑️</button></td>
       </tr>`;
@@ -1406,9 +1437,14 @@ function renderRankingByItems() {
       </button>
     ` : '';
     
+    const iconSvg = getItemIcon(ranking.item);
+    const itemTitleDisplay = iconSvg ? 
+      `<div class="item-with-icon"><div class="custom-icon">${iconSvg}</div><span>${ranking.item}</span></div>` : 
+      ranking.item;
+    
     return `
       <div class="item-ranking">
-        <h4 class="item-title">${ranking.item}</h4>
+        <h4 class="item-title">${itemTitleDisplay}</h4>
         <div class="ranking-list">
           ${playersHtml}
         </div>
