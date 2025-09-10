@@ -3233,6 +3233,9 @@ async function initItemReleaseSystem() {
   updateDistributeButtonState();
   renderPlayerSelectionsLog();
   renderReleasedItems();
+  
+  // Inicializar subscriptions em tempo real
+  initRealtimeItemReleaseSubscriptions();
 }
 
 // Abrir modal de seleção de itens
@@ -3633,8 +3636,24 @@ function calculateDistributions() {
     const interestedPlayers = [];
     for (const [playerName, selectedItems] of playerSelections) {
       if (selectedItems.has(itemName)) {
-        const player = state.players.find(p => p.name === playerName);
-        if (player && player.active) {
+        // Buscar jogador no estado, considerando que pode não estar no state.players
+        let player = state.players.find(p => p.name === playerName);
+        
+        // Se não encontrou no state.players, criar um jogador temporário
+        if (!player) {
+          player = {
+            name: playerName,
+            active: true,
+            counts: {}
+          };
+          // Inicializar counts para todos os itens
+          for (const itemName of state.items) {
+            player.counts[itemName] = 0;
+          }
+        }
+        
+        // Só adicionar se o jogador estiver ativo
+        if (player.active !== false) {
           interestedPlayers.push(player);
         }
       }
@@ -3847,6 +3866,111 @@ async function executeDistribution(distributions) {
     showToast('Erro ao processar distribuição: ' + error.message, 'error');
   }
 }
+
+// Variáveis para subscriptions em tempo real
+let releasedItemsSubscription = null;
+let playerSelectionsSubscription = null;
+
+// Inicializar subscriptions em tempo real
+function initRealtimeItemReleaseSubscriptions() {
+  const supabaseClient = getSupabaseClient();
+  if (!supabaseClient) {
+    console.warn('Cliente Supabase não disponível para subscriptions em tempo real');
+    return;
+  }
+
+  // Subscription para released_items
+  releasedItemsSubscription = supabaseClient
+    .channel('released_items_changes')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'released_items'
+    }, (payload) => {
+      console.log('Mudança em released_items:', payload);
+      handleReleasedItemsChange(payload);
+    })
+    .subscribe();
+
+  // Subscription para player_item_selections
+  playerSelectionsSubscription = supabaseClient
+    .channel('player_selections_changes')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'player_item_selections'
+    }, (payload) => {
+      console.log('Mudança em player_item_selections:', payload);
+      handlePlayerSelectionsRealtimeChange(payload);
+    })
+    .subscribe();
+
+  console.log('Subscriptions em tempo real inicializadas');
+}
+
+// Manipular mudanças em released_items
+async function handleReleasedItemsChange(payload) {
+  console.log('Processando mudança em released_items:', payload);
+  
+  // Recarregar itens liberados
+  await loadReleasedItems();
+  
+  // Atualizar interface
+  renderReleasedItems();
+  updateDistributeButtonState();
+  
+  // Mostrar notificação se necessário
+  if (payload.eventType === 'INSERT') {
+    showToast('Novos itens foram liberados!', 'success');
+  } else if (payload.eventType === 'DELETE') {
+    showToast('Itens foram removidos da liberação', 'info');
+  }
+}
+
+// Manipular mudanças em player_item_selections
+async function handlePlayerSelectionsRealtimeChange(payload) {
+  console.log('Processando mudança em player_item_selections:', payload);
+  
+  // Recarregar seleções dos jogadores
+  await loadPlayerSelections();
+  
+  // Atualizar interface
+  renderPlayerSelectionsLog();
+  updateDistributeButtonState();
+  
+  // Mostrar notificação se necessário
+  if (payload.eventType === 'INSERT') {
+    const playerName = payload.new?.player_name;
+    const itemName = payload.new?.item_name;
+    if (playerName && itemName) {
+      showToast(`${playerName} selecionou ${itemName}`, 'info');
+    }
+  } else if (payload.eventType === 'DELETE') {
+    const playerName = payload.old?.player_name;
+    const itemName = payload.old?.item_name;
+    if (playerName && itemName) {
+      showToast(`${playerName} removeu seleção de ${itemName}`, 'info');
+    }
+  }
+}
+
+// Limpar subscriptions
+function cleanupRealtimeSubscriptions() {
+  if (releasedItemsSubscription) {
+    releasedItemsSubscription.unsubscribe();
+    releasedItemsSubscription = null;
+  }
+  
+  if (playerSelectionsSubscription) {
+    playerSelectionsSubscription.unsubscribe();
+    playerSelectionsSubscription = null;
+  }
+  
+  console.log('Subscriptions em tempo real limpas');
+}
+
+// Limpar subscriptions quando a página for fechada
+window.addEventListener('beforeunload', cleanupRealtimeSubscriptions);
 
 window.registerPlayerSelection = registerPlayerSelection;
 window.removePlayerSelection = removePlayerSelection;
