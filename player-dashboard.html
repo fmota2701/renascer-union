@@ -1459,6 +1459,7 @@
             const { data, error } = await supabaseClient
                 .from('released_items')
                 .select('item_name, quantity')
+                .eq('status', 'active')
                 .order('created_at', { ascending: false });
             
             if (error) {
