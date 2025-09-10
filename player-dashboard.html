@@ -1975,6 +1975,13 @@
             if (!playerSelectionsData) return new Set();
             
             const allSelections = JSON.parse(playerSelectionsData) || [];
+            console.log('getPlayerSelections - allSelections:', allSelections, 'type:', typeof allSelections, 'isArray:', Array.isArray(allSelections));
+            
+            // Garantir que allSelections é um array
+            if (!Array.isArray(allSelections)) {
+                console.error('getPlayerSelections - allSelections não é um array:', allSelections);
+                return new Set();
+            }
             
             // Encontrar seleções do jogador atual
             const playerData = allSelections.find(([playerName]) => playerName === currentPlayerName);
@@ -1992,7 +1999,16 @@
             if (!playerSelectionsData) return new Set();
             
             const allSelections = JSON.parse(playerSelectionsData) || [];
+            console.log('getPlayerSelectionsSync - allSelections:', allSelections, 'type:', typeof allSelections, 'isArray:', Array.isArray(allSelections));
+            
             const currentPlayerName = getCurrentPlayerName();
+            console.log('getPlayerSelectionsSync - currentPlayerName:', currentPlayerName);
+            
+            // Garantir que allSelections é um array
+            if (!Array.isArray(allSelections)) {
+                console.error('allSelections não é um array:', allSelections);
+                return new Set();
+            }
             
             // Encontrar seleções do jogador atual
             const playerData = allSelections.find(([playerName]) => playerName === currentPlayerName);
@@ -2131,7 +2147,7 @@
             const playerSelectionsData = localStorage.getItem('playerSelections');
             if (!playerSelectionsData) return;
             
-            let allSelections = JSON.parse(playerSelectionsData);
+            let allSelections = JSON.parse(playerSelectionsData) || [];
             
             // Encontrar entrada do jogador
             let playerIndex = allSelections.findIndex(([name]) => name === playerName);
