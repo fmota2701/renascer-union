@@ -3220,7 +3220,6 @@ function initItemReleaseSystem() {
   }
   
   // Carregar dados salvos
-  loadReleasedItems();
   loadPlayerSelections();
   updateDistributeButtonState();
   renderPlayerSelectionsLog();
@@ -3309,9 +3308,6 @@ async function releaseSelectedItems() {
     }
   });
   
-  // Salvar no localStorage
-  saveReleasedItems();
-  
   // Atualizar interface
   updateDistributeButtonState();
   
@@ -3329,22 +3325,7 @@ async function releaseSelectedItems() {
   renderPlayerSelectionsLog();
 }
 
-// Salvar itens liberados no localStorage
-function saveReleasedItems() {
-  const data = Array.from(releasedItems.entries());
-  localStorage.setItem('releasedItems', JSON.stringify(data));
-}
 
-// Carregar itens liberados do localStorage
-function loadReleasedItems() {
-  try {
-    const data = JSON.parse(localStorage.getItem('releasedItems') || '[]');
-    releasedItems = new Map(data);
-  } catch (error) {
-    console.error('Erro ao carregar itens liberados:', error);
-    releasedItems = new Map();
-  }
-}
 
 // Salvar seleções dos jogadores
 function savePlayerSelections() {
@@ -3468,7 +3449,6 @@ async function distributeReleasedItems() {
     // Limpar itens liberados e seleções após distribuição
     releasedItems.clear();
     playerSelections.clear();
-    saveReleasedItems();
     savePlayerSelections();
     
     // Atualizar interface

@@ -1047,13 +1047,7 @@
                             </div>
                         </div>
                         
-                        <!-- Histórico de Sorteios -->
-                        <div id="draw-history-section" style="margin-top: 20px;">
-                            <h4 style="color: #666; margin-bottom: 10px; font-size: 14px;">Últimos Sorteios</h4>
-                            <div id="draw-history-list" style="max-height: 150px; overflow-y: auto;">
-                                <p style="color: #999; font-size: 12px; text-align: center; padding: 20px;">Nenhum histórico ainda</p>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -1517,7 +1511,6 @@
 
         // Variáveis globais para sorteio em tempo real
         let currentDraw = null;
-        let drawHistory = [];
         let drawSubscription = null;
         let currentPlayerName = localStorage.getItem('currentPlayer') || '';
 
@@ -1710,56 +1703,13 @@
             if (activeTurn) activeTurn.style.display = 'none';
         }
         
-        // Função para adicionar ao histórico
-        function addToHistory(drawData) {
-            drawHistory.unshift({
-                item: drawData.item_name,
-                player: drawData.player_name,
-                time: drawData.draw_time || drawData.created_at
-            });
-            
-            // Manter apenas os últimos 10
-            if (drawHistory.length > 10) {
-                drawHistory = drawHistory.slice(0, 10);
-            }
-            
-            updateHistoryDisplay();
-        }
-        
-        // Função para atualizar exibição do histórico
-        function updateHistoryDisplay() {
-            const historyList = document.getElementById('draw-history-list');
-            
-            if (drawHistory.length === 0) {
-                historyList.innerHTML = '<p style="color: #999; font-size: 12px; text-align: center; padding: 20px;">Nenhum histórico ainda</p>';
-                return;
-            }
-            
-            const historyHtml = drawHistory.map(entry => `
-                <div style="background: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <strong style="color: #2196F3;">${entry.item}</strong>
-                            <div style="font-size: 12px; color: #666;">👤 ${entry.player}</div>
-                        </div>
-                        <div style="font-size: 11px; color: #999;">
-                            ${new Date(entry.time).toLocaleTimeString()}
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            
-            historyList.innerHTML = historyHtml;
-        }
+
         
         // Função para passar o turno
         async function skipCurrentTurn() {
             if (!currentDraw) return;
             
             try {
-                // Adicionar ao histórico antes de remover
-                addToHistory(currentDraw);
-                
                 // Remover registro de sorteio ativo da tabela players
                 await supabase
                     .from('players')
@@ -1837,8 +1787,6 @@
                 winners: winners,
                 created_at: new Date().toISOString()
             };
-            
-            addDrawToDisplay(mockDraw);
         }
 
         // Carregar dados iniciais
@@ -1857,28 +1805,43 @@
     
     // Inicializar sistema de itens liberados
     function initializeReleasedItems() {
-        // Carregar itens liberados do localStorage
+        // Carregar itens liberados do Supabase
         loadReleasedItems();
         
-        // Configurar escuta em tempo real para mudanças nos itens liberados
-        if (typeof window.addEventListener !== 'undefined') {
-            window.addEventListener('storage', function(e) {
-                if (e.key === 'releasedItems') {
-                    loadReleasedItems();
-                }
-            });
-        }
-        
-        // Verificar periodicamente por atualizações
-        setInterval(loadReleasedItems, 5000);
+        // Configurar sincronização em tempo real
+        setupReleasedItemsRealtime();
     }
     
-    // Carregar itens liberados
-    function loadReleasedItems() {
+    // Configurar sincronização em tempo real para itens liberados
+    function setupReleasedItemsRealtime() {
+        // Escutar mudanças na tabela released_items
+        const subscription = supabase
+            .channel('released-items-changes')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'released_items'
+            }, () => {
+                loadReleasedItems();
+            })
+            .subscribe();
+    }
+    
+    // Carregar itens liberados do Supabase
+    async function loadReleasedItems() {
         try {
-            const releasedItemsData = localStorage.getItem('releasedItems');
-            const releasedItems = releasedItemsData ? JSON.parse(releasedItemsData) : [];
+            const { data, error } = await supabase
+                .from('released_items')
+                .select('item_name, quantity')
+                .order('created_at', { ascending: false });
             
+            if (error) {
+                console.error('Erro ao carregar itens liberados:', error);
+                return;
+            }
+            
+            // Converter para formato esperado [nome, quantidade]
+            const releasedItems = data.map(item => [item.item_name, item.quantity]);
             renderReleasedItems(releasedItems);
         } catch (error) {
             console.error('Erro ao carregar itens liberados:', error);
