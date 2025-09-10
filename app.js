@@ -3293,36 +3293,81 @@ async function releaseSelectedItems() {
   const modal = document.getElementById('item-selection-modal');
   const selectedRows = modal.querySelectorAll('.item-selection-row.selected');
   
-  // Limpar itens liberados anteriores
-  releasedItems.clear();
-  
-  // Coletar itens selecionados
-  selectedRows.forEach(row => {
-    const checkbox = row.querySelector('.item-checkbox');
-    const quantityInput = row.querySelector('.quantity-input');
-    const itemName = row.querySelector('.item-name').textContent;
-    
-    if (checkbox.checked) {
-      const quantity = parseInt(quantityInput.value) || 1;
-      releasedItems.set(itemName, quantity);
+  try {
+    // Obter cliente Supabase
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      showToast('Erro: Cliente Supabase não disponível', 'error');
+      return;
     }
-  });
-  
-  // Atualizar interface
-  updateDistributeButtonState();
-  
-  // Fechar modal
-  closeItemSelectionModal();
-  
-  // Mostrar toast
-  const itemCount = releasedItems.size;
-  const totalQuantity = Array.from(releasedItems.values()).reduce((sum, qty) => sum + qty, 0);
-  showToast(`${itemCount} tipos de itens liberados (${totalQuantity} itens no total)`, 'success');
-  
-  // Limpar seleções dos jogadores (novos itens disponíveis)
-  playerSelections.clear();
-  savePlayerSelections();
-  renderPlayerSelectionsLog();
+    
+    // Limpar itens liberados anteriores no Supabase
+    const { error: deleteError } = await supabaseClient
+      .from('released_items')
+      .delete()
+      .eq('status', 'active');
+    
+    if (deleteError) {
+      console.error('Erro ao limpar itens anteriores:', deleteError);
+    }
+    
+    // Limpar itens liberados locais
+    releasedItems.clear();
+    
+    // Coletar e salvar itens selecionados no Supabase
+    const itemsToInsert = [];
+    selectedRows.forEach(row => {
+      const checkbox = row.querySelector('.item-checkbox');
+      const quantityInput = row.querySelector('.quantity-input');
+      const itemName = row.querySelector('.item-name').textContent;
+      
+      if (checkbox.checked) {
+        const quantity = parseInt(quantityInput.value) || 1;
+        releasedItems.set(itemName, quantity);
+        
+        // Preparar para inserção no Supabase
+        itemsToInsert.push({
+          item_name: itemName,
+          quantity: quantity,
+          released_by: 'Admin', // Pode ser personalizado
+          status: 'active'
+        });
+      }
+    });
+    
+    // Inserir itens no Supabase
+    if (itemsToInsert.length > 0) {
+      const { error: insertError } = await supabaseClient
+        .from('released_items')
+        .insert(itemsToInsert);
+      
+      if (insertError) {
+        console.error('Erro ao salvar itens no Supabase:', insertError);
+        showToast('Erro ao salvar itens no banco de dados', 'error');
+        return;
+      }
+    }
+    
+    // Atualizar interface
+    updateDistributeButtonState();
+    
+    // Fechar modal
+    closeItemSelectionModal();
+    
+    // Mostrar toast
+    const itemCount = releasedItems.size;
+    const totalQuantity = Array.from(releasedItems.values()).reduce((sum, qty) => sum + qty, 0);
+    showToast(`${itemCount} tipos de itens liberados (${totalQuantity} itens no total)`, 'success');
+    
+    // Limpar seleções dos jogadores (novos itens disponíveis)
+    playerSelections.clear();
+    savePlayerSelections();
+    renderPlayerSelectionsLog();
+    
+  } catch (error) {
+    console.error('Erro ao liberar itens:', error);
+    showToast('Erro ao liberar itens', 'error');
+  }
 }
 
 
@@ -3446,7 +3491,10 @@ async function distributeReleasedItems() {
     // Aplicar distribuições
     await applyDistributions(distributions);
     
-    // Limpar itens liberados e seleções após distribuição
+    // Limpar tabelas do Supabase após distribuição
+    await cleanupAfterDistribution();
+    
+    // Limpar itens liberados e seleções locais após distribuição
     releasedItems.clear();
     playerSelections.clear();
     savePlayerSelections();
@@ -3460,6 +3508,44 @@ async function distributeReleasedItems() {
   } catch (error) {
     console.error('Erro na distribuição:', error);
     showToast('Erro ao processar distribuição: ' + error.message, 'error');
+  }
+}
+
+// Limpar tabelas do Supabase após distribuição
+async function cleanupAfterDistribution() {
+  try {
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      console.warn('Cliente Supabase não disponível para limpeza');
+      return;
+    }
+    
+    // Limpar tabela released_items
+    const { error: releasedItemsError } = await supabaseClient
+      .from('released_items')
+      .delete()
+      .eq('status', 'active');
+    
+    if (releasedItemsError) {
+      console.error('Erro ao limpar released_items:', releasedItemsError);
+    } else {
+      console.log('Tabela released_items limpa com sucesso');
+    }
+    
+    // Limpar tabela player_item_selections
+    const { error: selectionsError } = await supabaseClient
+      .from('player_item_selections')
+      .delete()
+      .eq('status', 'active');
+    
+    if (selectionsError) {
+      console.error('Erro ao limpar player_item_selections:', selectionsError);
+    } else {
+      console.log('Tabela player_item_selections limpa com sucesso');
+    }
+    
+  } catch (error) {
+    console.error('Erro na limpeza pós-distribuição:', error);
   }
 }
 

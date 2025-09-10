@@ -1885,15 +1885,15 @@
             
             // Converter para formato esperado [nome, quantidade]
             const releasedItems = data ? data.map(item => [item.item_name, item.quantity]) : [];
-            renderReleasedItems(releasedItems);
+            await renderReleasedItems(releasedItems);
         } catch (error) {
             console.error('Erro ao carregar itens liberados:', error);
-            renderReleasedItems([]);
+            await renderReleasedItems([]);
         }
     }
     
     // Renderizar itens liberados
-    function renderReleasedItems(releasedItems) {
+    async function renderReleasedItems(releasedItems) {
         const container = document.getElementById('released-items-container');
         const emptyState = document.getElementById('empty-released-items');
         const itemsList = document.getElementById('released-items-list');
@@ -1915,7 +1915,7 @@
         countElement.textContent = `${releasedItems.length} tipos (${totalQuantity} itens)`;
         
         // Carregar seleções do jogador atual
-        const playerSelections = getPlayerSelections();
+        const playerSelections = await getPlayerSelections();
         
         const itemsHtml = releasedItems.map(([itemName, quantity]) => {
             const isSelected = playerSelections.has(itemName);
@@ -1942,7 +1942,44 @@
     }
     
     // Obter seleções do jogador atual
-    function getPlayerSelections() {
+    async function getPlayerSelections() {
+        try {
+            const currentPlayerName = getCurrentPlayerName();
+            
+            // Tentar buscar do Supabase primeiro
+            const supabaseClient = window.getSupabaseClient ? window.getSupabaseClient() : null;
+            
+            if (supabaseClient) {
+                const { data, error } = await supabaseClient
+                    .from('player_item_selections')
+                    .select('item_name')
+                    .eq('player_name', currentPlayerName)
+                    .eq('status', 'active');
+                
+                if (!error && data) {
+                    return new Set(data.map(selection => selection.item_name));
+                }
+                
+                console.warn('Erro ao buscar seleções do Supabase:', error);
+            }
+            
+            // Fallback para localStorage
+            const playerSelectionsData = localStorage.getItem('playerSelections');
+            if (!playerSelectionsData) return new Set();
+            
+            const allSelections = JSON.parse(playerSelectionsData);
+            
+            // Encontrar seleções do jogador atual
+            const playerData = allSelections.find(([playerName]) => playerName === currentPlayerName);
+            return playerData ? new Set(playerData[1]) : new Set();
+        } catch (error) {
+            console.error('Erro ao carregar seleções do jogador:', error);
+            return new Set();
+        }
+    }
+    
+    // Versão síncrona para compatibilidade
+    function getPlayerSelectionsSync() {
         try {
             const playerSelectionsData = localStorage.getItem('playerSelections');
             if (!playerSelectionsData) return new Set();
@@ -1978,7 +2015,7 @@
     }
     
     // Alternar seleção de item
-    function toggleItemSelection(itemName) {
+    async function toggleItemSelection(itemName) {
         const currentPlayerName = getCurrentPlayerName();
         
         if (!currentPlayerName || currentPlayerName === 'Jogador Desconhecido') {
@@ -1987,23 +2024,50 @@
         }
         
         try {
-            const playerSelections = getPlayerSelections();
+            // Obter cliente Supabase
+            const supabaseClient = window.getSupabaseClient ? window.getSupabaseClient() : null;
             
-            if (playerSelections.has(itemName)) {
-                // Remover seleção
-                if (typeof window.removePlayerSelection === 'function') {
-                    window.removePlayerSelection(currentPlayerName, itemName);
-                } else {
-                    // Fallback local
+            if (!supabaseClient) {
+                console.warn('Cliente Supabase não disponível, usando fallback local');
+                toggleItemSelectionLocal(currentPlayerName, itemName);
+                return;
+            }
+            
+            const playerSelections = getPlayerSelections();
+            const isCurrentlySelected = playerSelections.has(itemName);
+            
+            if (isCurrentlySelected) {
+                // Remover seleção do Supabase
+                const { error } = await supabaseClient
+                    .from('player_item_selections')
+                    .delete()
+                    .eq('player_name', currentPlayerName)
+                    .eq('item_name', itemName);
+                
+                if (error) {
+                    console.error('Erro ao remover seleção do Supabase:', error);
+                    // Fallback para método local
                     removePlayerSelectionLocal(currentPlayerName, itemName);
+                } else {
+                    console.log(`Seleção removida: ${currentPlayerName} - ${itemName}`);
                 }
             } else {
-                // Adicionar seleção
-                if (typeof window.registerPlayerSelection === 'function') {
-                    window.registerPlayerSelection(currentPlayerName, itemName);
-                } else {
-                    // Fallback local
+                // Adicionar seleção no Supabase
+                const { error } = await supabaseClient
+                    .from('player_item_selections')
+                    .insert({
+                        player_name: currentPlayerName,
+                        item_name: itemName,
+                        selected_at: new Date().toISOString(),
+                        status: 'active'
+                    });
+                
+                if (error) {
+                    console.error('Erro ao salvar seleção no Supabase:', error);
+                    // Fallback para método local
                     addPlayerSelectionLocal(currentPlayerName, itemName);
+                } else {
+                    console.log(`Seleção adicionada: ${currentPlayerName} - ${itemName}`);
                 }
             }
             
@@ -2012,8 +2076,23 @@
             
         } catch (error) {
             console.error('Erro ao alternar seleção:', error);
-            alert('Erro ao processar seleção. Tente novamente.');
+            // Fallback para método local
+            toggleItemSelectionLocal(currentPlayerName, itemName);
         }
+    }
+    
+    // Fallback para alternar seleção localmente
+    function toggleItemSelectionLocal(playerName, itemName) {
+        const playerSelections = getPlayerSelections();
+        
+        if (playerSelections.has(itemName)) {
+            removePlayerSelectionLocal(playerName, itemName);
+        } else {
+            addPlayerSelectionLocal(playerName, itemName);
+        }
+        
+        // Recarregar itens para atualizar interface
+        setTimeout(loadReleasedItems, 100);
     }
     
     // Adicionar seleção local (fallback)
