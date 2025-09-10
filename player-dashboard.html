@@ -778,30 +778,181 @@
             
             .dashboard-nav {
                 justify-content: center;
+                gap: 10px;
             }
             
             .nav-button {
                 flex: 1;
                 min-width: 120px;
                 justify-content: center;
+                padding: 12px 16px;
+                font-size: 14px;
             }
             
             .history-filters {
                 flex-direction: column;
                 align-items: stretch;
+                gap: 10px;
             }
             
             .stats-grid {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+            }
+            
+            .rankings-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .item-ranking {
+                padding: 15px;
+            }
+            
+            .ranking-player {
+                padding: 10px 12px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .ranking-player .position {
+                min-width: 30px;
+                font-size: 14px;
+            }
+            
+            .ranking-player .player-name {
+                margin: 0 10px;
+                font-size: 14px;
+            }
+            
+            .ranking-player .player-count {
+                padding: 3px 10px;
+                font-size: 12px;
             }
             
             .modal-content {
                 width: 95%;
                 margin: 10% auto;
+                padding: 20px;
             }
             
             .items-grid {
                 grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .history-table {
+                font-size: 14px;
+            }
+            
+            .history-table th,
+            .history-table td {
+                padding: 10px 8px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                max-width: 100%;
+            }
+            
+            .player-header {
+                padding: 20px 15px;
+                margin-bottom: 20px;
+            }
+            
+            .player-details h2 {
+                font-size: 24px;
+            }
+            
+            .player-details p {
+                font-size: 14px;
+            }
+            
+            .dashboard-nav {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .nav-button {
+                width: 100%;
+                min-width: auto;
+                padding: 15px;
+                font-size: 16px;
+            }
+            
+            .content-section {
+                padding: 20px 15px;
+            }
+            
+            .section-title {
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .stat-card {
+                padding: 20px 15px;
+            }
+            
+            .stat-number {
+                font-size: 28px;
+            }
+            
+            .item-ranking {
+                padding: 12px;
+            }
+            
+            .item-title {
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+            
+            .ranking-player {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+            
+            .ranking-player .position {
+                min-width: 25px;
+                font-size: 13px;
+            }
+            
+            .ranking-player .player-name {
+                margin: 0 8px;
+                font-size: 13px;
+            }
+            
+            .ranking-player .player-count {
+                padding: 2px 8px;
+                font-size: 11px;
+            }
+            
+            .history-table {
+                font-size: 12px;
+            }
+            
+            .history-table th,
+            .history-table td {
+                padding: 8px 6px;
+            }
+            
+            .item-badge {
+                font-size: 11px;
+                padding: 3px 8px;
+            }
+            
+            .date-badge {
+                font-size: 10px;
+                padding: 3px 8px;
             }
         }
     </style>

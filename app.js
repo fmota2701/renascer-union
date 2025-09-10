@@ -1852,13 +1852,24 @@ async function main() {
     showToast('Erro ao carregar dados. Usando itens padrão.', 'warning');
   }
 
-  renderItemsSelect();
-  renderPlayersManager();
-  renderItemsManager();
-  renderTable();
-  renderHistory();
-  setupEvents();
-  initDistributeModal();
+  // Aguardar um pouco para garantir que todos os elementos DOM estejam disponíveis
+  setTimeout(() => {
+    console.log('Renderizando componentes do dashboard...');
+    renderItemsSelect();
+    renderPlayersManager();
+    renderItemsManager();
+    renderTable();
+    renderHistory();
+    renderDashboard(); // Renderizar dashboard principal com tabelas
+    setupEvents();
+    initDistributeModal();
+    
+    // Seção inicial: Dashboard
+    showSection('#section-dashboard');
+    
+    console.log('Dashboard inicializado com sucesso');
+  }, 100);
+
   saveState(state);
 
   // Inicializar sistema de sincronização em tempo real
@@ -1875,9 +1886,6 @@ async function main() {
       localStorage.setItem('theme', dark ? 'dark' : 'light');
     });
   }
-
-  // Seção inicial: Dashboard
-  showSection('#section-dashboard');
 }
 
 function initFocusControls() {

@@ -790,51 +790,39 @@
             }
         }
         
-        // Carregar config.js primeiro
-        const configScript = document.createElement('script');
-        configScript.src = 'src/config/config.js';
-        configScript.onload = function() {
-            console.log('✅ Config.js carregado');
-            
-            // Aguardar CONFIG estar disponível
-            function waitForConfig(callback) {
-                if (typeof CONFIG !== 'undefined') {
-                    callback();
-                } else {
-                    setTimeout(() => waitForConfig(callback), 50);
-                }
+        // Definir CONFIG diretamente
+        window.CONFIG = {
+            NETLIFY_FUNCTION_URL: '/.netlify/functions/supabase-api',
+            SUPABASE: {
+                URL: 'https://ofdlacirerempfjohgsj.supabase.co',
+                ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mZGxhY2lyZXJlbXBmam9oZ3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTczNjg1NzUsImV4cCI6MjA3Mjk0NDU3NX0.1VOaD9QeDepJEZTiYtKrPTdfkBDcn2__jRnCfV-BZtU'
             }
-            
-            // Carregar scripts do Supabase após CONFIG estar disponível
-            waitForConfig(function() {
-            console.log('✅ CONFIG carregado, iniciando Supabase...');
-            
-            // Carregar Supabase
-            const supabaseScript = document.createElement('script');
-            supabaseScript.src = 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js';
-            supabaseScript.onload = function() {
-                console.log('✅ Supabase script carregado');
-                
-                // Carregar supabase-client.js
-                const clientScript = document.createElement('script');
-                clientScript.src = 'supabase-client.js';
-                clientScript.onload = function() {
-                    console.log('✅ Supabase client carregado');
-                    
-                    // Carregar app.js
-                    const appScript = document.createElement('script');
-                    appScript.src = 'app.js';
-                    appScript.onload = function() {
-                        console.log('✅ App.js carregado');
-                    };
-                    document.head.appendChild(appScript);
-                };
-                document.head.appendChild(clientScript);
-            };
-            document.head.appendChild(supabaseScript);
-        });
         };
-        document.head.appendChild(configScript);
+        console.log('✅ CONFIG definido diretamente');
+        
+        // Carregar Supabase
+        const supabaseScript = document.createElement('script');
+        supabaseScript.src = 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js';
+        supabaseScript.onload = function() {
+            console.log('✅ Supabase script carregado');
+            
+            // Carregar supabase-client.js
+            const clientScript = document.createElement('script');
+            clientScript.src = 'supabase-client.js';
+            clientScript.onload = function() {
+                console.log('✅ Supabase client carregado');
+                
+                // Carregar app.js
+                const appScript = document.createElement('script');
+                appScript.src = 'app.js';
+                appScript.onload = function() {
+                    console.log('✅ App.js carregado');
+                };
+                document.head.appendChild(appScript);
+            };
+            document.head.appendChild(clientScript);
+        };
+        document.head.appendChild(supabaseScript);
         
         // Aguardar carregamento completo e inicializar Supabase
         window.addEventListener('load', function() {
@@ -889,46 +877,60 @@
         
         // Função para carregar conteúdo das seções do admin
         function loadAdminSectionContent(sectionName) {
-            // Carregar apenas o conteúdo específico de cada seção
-            switch(sectionName) {
-                case 'players':
-                    // Carregar apenas gerenciamento de jogadores
-                    if (window.renderPlayersManager) {
-                        window.renderPlayersManager();
-                    }
-                    break;
-                    
-                case 'items':
-                    // Carregar apenas gerenciamento de itens
-                    if (window.renderItemsManager) {
-                        window.renderItemsManager();
-                    }
-                    break;
-                    
-                case 'distribute':
-                    // Carregar funcionalidades de distribuição
-                    // Não chamar renderTable pois os elementos não existem no admin-dashboard
-                    if (window.renderItemsTable) {
-                        window.renderItemsTable();
-                        // Inicializar eventos da tabela de itens
-                        if (window.initItemsTableEvents) {
-                            window.initItemsTableEvents();
+            // Aguardar um pouco para garantir que os elementos estejam disponíveis
+            setTimeout(() => {
+                // Carregar apenas o conteúdo específico de cada seção
+                switch(sectionName) {
+                    case 'players':
+                        // Carregar apenas gerenciamento de jogadores
+                        if (window.renderPlayersManager && typeof window.renderPlayersManager === 'function') {
+                            console.log('Carregando gerenciamento de jogadores...');
+                            window.renderPlayersManager();
+                        } else {
+                            console.error('Função renderPlayersManager não encontrada');
                         }
-                    }
-                    break;
-                    
-                case 'stats':
-                    // Carregar apenas histórico
-                    if (window.renderHistory) {
-                        window.renderHistory();
-                    }
-                    break;
-                    
-                case 'config':
-                    // Redirecionar para a página de configurações
-                    window.location.href = 'config.html';
-                    break;
-            }
+                        break;
+                        
+                    case 'items':
+                        // Carregar apenas gerenciamento de itens
+                        if (window.renderItemsManager && typeof window.renderItemsManager === 'function') {
+                            console.log('Carregando gerenciamento de itens...');
+                            window.renderItemsManager();
+                        } else {
+                            console.error('Função renderItemsManager não encontrada');
+                        }
+                        break;
+                        
+                    case 'distribute':
+                        // Carregar funcionalidades de distribuição
+                        if (window.renderItemsTable && typeof window.renderItemsTable === 'function') {
+                            console.log('Carregando tabela de itens...');
+                            window.renderItemsTable();
+                            // Inicializar eventos da tabela de itens
+                            if (window.initItemsTableEvents && typeof window.initItemsTableEvents === 'function') {
+                                window.initItemsTableEvents();
+                            }
+                        } else {
+                            console.error('Função renderItemsTable não encontrada');
+                        }
+                        break;
+                        
+                    case 'stats':
+                        // Carregar apenas histórico
+                        if (window.renderHistory && typeof window.renderHistory === 'function') {
+                            console.log('Carregando histórico...');
+                            window.renderHistory();
+                        } else {
+                            console.error('Função renderHistory não encontrada');
+                        }
+                        break;
+                        
+                    case 'config':
+                        // Redirecionar para a página de configurações
+                        window.location.href = 'config.html';
+                        break;
+                }
+            }, 100);
         }
         
         // Função para sincronizar dados
@@ -1072,6 +1074,25 @@
             const menuItem = document.querySelector(`.menu-item[onclick="showAdminSection('${sectionName}')"]`);
             setActiveMenuItem(menuItem);
         };
+        
+        // Inicialização quando a página carrega
+        document.addEventListener('DOMContentLoaded', function() {
+            // Aguardar o carregamento completo do app.js
+            setTimeout(() => {
+                console.log('Inicializando admin dashboard...');
+                // Carregar estatísticas do dashboard
+                loadDashboardStats();
+                
+                // Se houver uma seção específica na URL, carregá-la
+                const hash = window.location.hash;
+                if (hash) {
+                    const sectionName = hash.replace('#', '');
+                    if (['players', 'items', 'stats', 'distribute'].includes(sectionName)) {
+                        showAdminSection(sectionName);
+                    }
+                }
+            }, 500);
+        });
     </script>
 </body>
 </html>
