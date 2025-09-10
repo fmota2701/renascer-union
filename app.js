@@ -665,10 +665,137 @@ function renderItemsTable() {
 function toggleItemSelection(itemName) {
   if (selectedDistributionItems.has(itemName)) {
     selectedDistributionItems.delete(itemName);
+    // Remove do sorteio quando desmarcado
+    clearCurrentDraw();
   } else {
     selectedDistributionItems.add(itemName);
+    // Trigger sorteio automático quando selecionado
+    triggerAutomaticDraw(itemName);
   }
   renderItemsTable();
+}
+
+// Função para limpar sorteio atual
+async function clearCurrentDraw() {
+  try {
+    // Limpar sorteio ativo usando localStorage e tabela players
+    const currentDraw = localStorage.getItem('currentDraw');
+    if (currentDraw) {
+      const drawData = JSON.parse(currentDraw);
+      await supabase
+        .from('players')
+        .delete()
+        .eq('id', drawData.id);
+      
+      localStorage.removeItem('currentDraw');
+    }
+  } catch (error) {
+    console.error('Erro ao limpar sorteio:', error);
+  }
+}
+
+// Sistema de fila de prioridade baseado em menor quantidade
+function getPriorityQueue(itemName) {
+  const activePlayers = state.players.filter(p => p.active !== false);
+  
+  if (activePlayers.length === 0) return [];
+  
+  // Agrupar jogadores por quantidade do item
+  const playersByQuantity = {};
+  activePlayers.forEach(player => {
+    const quantity = player.counts[itemName] || 0;
+    if (!playersByQuantity[quantity]) {
+      playersByQuantity[quantity] = [];
+    }
+    playersByQuantity[quantity].push(player);
+  });
+  
+  // Ordenar por quantidade (menor primeiro) e depois por ordem na lista
+  const sortedQuantities = Object.keys(playersByQuantity)
+    .map(q => parseInt(q))
+    .sort((a, b) => a - b);
+  
+  const priorityQueue = [];
+  sortedQuantities.forEach(quantity => {
+    // Manter ordem original da lista para jogadores com mesma quantidade
+    const playersWithSameQuantity = playersByQuantity[quantity]
+      .sort((a, b) => {
+        const indexA = state.players.findIndex(p => p.name === a.name);
+        const indexB = state.players.findIndex(p => p.name === b.name);
+        return indexA - indexB;
+      });
+    
+    priorityQueue.push(...playersWithSameQuantity.map(p => ({
+      name: p.name,
+      quantity: quantity,
+      priority: priorityQueue.length + 1
+    })));
+  });
+  
+  return priorityQueue;
+}
+
+// Função para trigger do sorteio automático com sistema de fila de prioridade
+async function triggerAutomaticDraw(itemName) {
+  try {
+    // Verificar se já existe um sorteio ativo
+    const existingDraw = localStorage.getItem('currentDraw');
+    if (existingDraw) {
+      console.log('Já existe um sorteio ativo. Cancelando novo sorteio.');
+      return;
+    }
+    
+    // Obter fila de prioridade para o item
+    const priorityQueue = getPriorityQueue(itemName);
+    
+    if (priorityQueue.length === 0) {
+      console.log('Nenhum jogador ativo disponível para sorteio.');
+      return;
+    }
+    
+    // Selecionar o primeiro da fila (maior prioridade)
+    const selectedPlayer = priorityQueue[0];
+    
+    // Criar registro especial na tabela players para o sorteio ativo
+    const drawName = `DRAW_ACTIVE_${selectedPlayer.name}_${itemName}_${Date.now()}`;
+    
+    const { data, error } = await supabase
+      .from('players')
+      .insert({
+        name: drawName,
+        total_received: 1, // Flag para sorteio ativo
+        faults: 0,
+        total_distributions: 0
+      })
+      .select();
+    
+    if (error) {
+      console.error('Erro ao salvar sorteio:', error);
+      return;
+    }
+    
+    // Salvar dados do sorteio no localStorage para referência
+    const drawData = {
+      id: data[0].id,
+      player_name: selectedPlayer.name,
+      item_name: itemName,
+      draw_time: new Date().toISOString(),
+      status: 'active',
+      priority_position: selectedPlayer.priority,
+      player_quantity: selectedPlayer.quantity,
+      total_queue_size: priorityQueue.length
+    };
+    
+    localStorage.setItem('currentDraw', JSON.stringify(drawData));
+    
+    console.log(`Sorteio automático (Prioridade ${selectedPlayer.priority}/${priorityQueue.length}): ${selectedPlayer.name} para ${itemName} (possui ${selectedPlayer.quantity})`);
+    
+    // Log da fila de prioridade para debug
+    console.log('Fila de prioridade:', priorityQueue.slice(0, 5).map(p => `${p.name} (${p.quantity})`));
+    
+  } catch (error) {
+    console.error('Erro no sorteio automático:', error);
+  }
 }
 
 // Gerenciador de Jogadores (lista simples com editar/excluir)
