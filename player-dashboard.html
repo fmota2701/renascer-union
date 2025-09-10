@@ -1645,6 +1645,11 @@
                     if (deletedData && deletedData.length === 0) {
                         console.warn('⚠️ Nenhum registro foi deletado - pode não existir no banco');
                     }
+                    
+                    // Notificar admin dashboard sobre remoção de seleção
+                    if (window.removePlayerSelection) {
+                        window.removePlayerSelection(currentPlayerName, itemName);
+                    }
                 }
             } else {
                 // Adicionar seleção no Supabase
@@ -1672,6 +1677,11 @@
                     return;
                 } else {
                     console.log(`✅ Seleção adicionada no Supabase: ${currentPlayerName} - ${itemName}`);
+                    
+                    // Notificar admin dashboard sobre nova seleção
+                    if (window.registerPlayerSelection) {
+                        window.registerPlayerSelection(currentPlayerName, itemName);
+                    }
                 }
             }
             

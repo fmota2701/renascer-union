@@ -3198,9 +3198,9 @@ function initToggleEdit() {
 }
 
 // Inicializar toggle edit após DOM carregado
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   initToggleEdit();
-  initItemReleaseSystem();
+  await initItemReleaseSystem();
 });
 
 // ===== SISTEMA DE LIBERAÇÃO DE ITENS =====
@@ -3210,7 +3210,7 @@ let releasedItems = new Map(); // Map<itemName, quantity>
 let playerSelections = new Map(); // Map<playerName, Set<itemName>>
 
 // Inicializar sistema de liberação de itens
-function initItemReleaseSystem() {
+async function initItemReleaseSystem() {
   const btnSelectItems = document.getElementById('btn-select-items');
   const btnDistributeItems = document.getElementById('btn-distribute-items');
   const btnReleaseItems = document.getElementById('btn-release-items');
@@ -3228,7 +3228,7 @@ function initItemReleaseSystem() {
   }
   
   // Carregar dados salvos
-  loadPlayerSelections();
+  await loadPlayerSelections();
   updateDistributeButtonState();
   renderPlayerSelectionsLog();
 }
@@ -3390,10 +3390,32 @@ function savePlayerSelections() {
 }
 
 // Carregar seleções dos jogadores
-function loadPlayerSelections() {
+async function loadPlayerSelections() {
   try {
-    const data = JSON.parse(localStorage.getItem('playerSelections') || '[]');
-    playerSelections = new Map(data.map(([player, items]) => [player, new Set(items)]));
+    // Buscar seleções do Supabase
+    const response = await fetch('/.netlify/functions/supabase-api/player-selections');
+    
+    if (!response.ok) {
+      throw new Error(`Erro HTTP: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Erro ao buscar seleções');
+    }
+    
+    // Organizar dados por jogador
+    playerSelections = new Map();
+    result.data.forEach(selection => {
+      if (!playerSelections.has(selection.player_name)) {
+        playerSelections.set(selection.player_name, new Set());
+      }
+      playerSelections.get(selection.player_name).add(selection.item_name);
+    });
+    
+    console.log('✅ Seleções carregadas do Supabase:', playerSelections);
+    
   } catch (error) {
     console.error('Erro ao carregar seleções dos jogadores:', error);
     playerSelections = new Map();
