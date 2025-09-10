@@ -3518,22 +3518,8 @@ async function distributeReleasedItems() {
       return;
     }
     
-    // Aplicar distribuições
-    await applyDistributions(distributions);
-    
-    // Limpar tabelas do Supabase após distribuição
-    await cleanupAfterDistribution();
-    
-    // Limpar itens liberados e seleções locais após distribuição
-    releasedItems.clear();
-    playerSelections.clear();
-    savePlayerSelections();
-    
-    // Atualizar interface
-    renderPlayerSelectionsLog();
-    updateDistributeButtonState();
-    
-    showToast(`Distribuição realizada com sucesso! ${distributions.length} itens distribuídos`, 'success');
+    // Mostrar prévia da distribuição
+    showDistributionPreview(distributions);
     
   } catch (error) {
     console.error('Erro na distribuição:', error);
@@ -3704,6 +3690,106 @@ function hasPlayerSelectedItem(playerName, itemName) {
 }
 
 // Expor funções globalmente para uso em outros arquivos
+// Mostrar prévia da distribuição
+function showDistributionPreview(distributions) {
+  const modal = document.getElementById('distribution-preview-modal');
+  if (!modal) {
+    console.error('Modal de prévia da distribuição não encontrado');
+    return;
+  }
+  
+  const previewContent = document.getElementById('distribution-preview-content');
+  if (!previewContent) {
+    console.error('Conteúdo da prévia não encontrado');
+    return;
+  }
+  
+  // Agrupar distribuições por jogador
+  const playerDistributions = {};
+  distributions.forEach(dist => {
+    if (!playerDistributions[dist.player]) {
+      playerDistributions[dist.player] = [];
+    }
+    playerDistributions[dist.player].push(dist);
+  });
+  
+  // Gerar HTML da prévia
+  let html = `
+    <div class="distribution-summary">
+      <h3>📋 Prévia da Distribuição</h3>
+      <p><strong>Total de itens a distribuir:</strong> ${distributions.length}</p>
+      <p><strong>Jogadores contemplados:</strong> ${Object.keys(playerDistributions).length}</p>
+    </div>
+    <div class="distribution-details">
+  `;
+  
+  Object.entries(playerDistributions).forEach(([playerName, playerDists]) => {
+    html += `
+      <div class="player-distribution">
+        <h4>🎮 ${playerName}</h4>
+        <ul>
+    `;
+    
+    playerDists.forEach(dist => {
+      html += `<li>${dist.quantity}x ${dist.item}</li>`;
+    });
+    
+    html += `
+        </ul>
+      </div>
+    `;
+  });
+  
+  html += `
+    </div>
+    <div class="distribution-actions">
+      <button id="confirm-distribution" class="btn btn-success">✅ Confirmar Distribuição</button>
+      <button id="cancel-distribution" class="btn btn-secondary">❌ Cancelar</button>
+    </div>
+  `;
+  
+  previewContent.innerHTML = html;
+  
+  // Configurar eventos dos botões
+  document.getElementById('confirm-distribution').addEventListener('click', async () => {
+    modal.style.display = 'none';
+    await executeDistribution(distributions);
+  });
+  
+  document.getElementById('cancel-distribution').addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+  
+  // Mostrar modal
+  modal.style.display = 'block';
+}
+
+// Executar a distribuição após confirmação
+async function executeDistribution(distributions) {
+  try {
+    // Aplicar distribuições
+    await applyDistributions(distributions);
+    
+    // Limpar tabelas do Supabase após distribuição
+    await cleanupAfterDistribution();
+    
+    // Limpar itens liberados e seleções locais após distribuição
+    releasedItems.clear();
+    playerSelections.clear();
+    savePlayerSelections();
+    
+    // Atualizar interface
+    renderPlayerSelectionsLog();
+    updateDistributeButtonState();
+    
+    showToast(`Distribuição realizada com sucesso! ${distributions.length} itens distribuídos`, 'success');
+    
+  } catch (error) {
+    console.error('Erro na distribuição:', error);
+    showToast('Erro ao processar distribuição: ' + error.message, 'error');
+  }
+}
+
 window.registerPlayerSelection = registerPlayerSelection;
 window.removePlayerSelection = removePlayerSelection;
 window.getReleasedItems = getReleasedItems;

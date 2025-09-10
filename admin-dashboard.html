@@ -750,6 +750,21 @@
         </div>
     </div>
     
+    <!-- Modal de Prévia da Distribuição -->
+    <div id="distribution-preview-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🎯 Prévia da Distribuição</h2>
+                <span class="close" onclick="document.getElementById('distribution-preview-modal').style.display='none'">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="distribution-preview-content">
+                    <!-- Conteúdo da prévia será carregado aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="src/config/config.js"></script>
     <!-- Supabase Scripts -->
     <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js" onload="console.log('Supabase script carregado')"></script>
