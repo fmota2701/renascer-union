@@ -18,17 +18,36 @@ function getSupabaseConfig() {
 // Importar Supabase (assumindo que está disponível globalmente ou via CDN)
 let supabaseClient = null;
 
+// Aguardar carregamento do Supabase
+function waitForSupabase(callback, maxAttempts = 50) {
+  let attempts = 0;
+  
+  function check() {
+    attempts++;
+    
+    if (typeof window.supabase !== 'undefined') {
+      callback();
+    } else if (attempts < maxAttempts) {
+      setTimeout(check, 100);
+    } else {
+      console.error('Timeout: Supabase não foi carregado após', maxAttempts * 100, 'ms');
+    }
+  }
+  
+  check();
+}
+
 // Inicializar cliente Supabase
 function initSupabaseClient() {
   try {
     // Verificar se o Supabase está disponível
-    if (typeof supabase === 'undefined') {
+    if (typeof window.supabase === 'undefined') {
       console.error('Supabase não está disponível. Certifique-se de incluir o script do Supabase.');
       return null;
     }
     
     const config = getSupabaseConfig();
-    supabaseClient = supabase.createClient(config.URL, config.ANON_KEY);
+    supabaseClient = window.supabase.createClient(config.URL, config.ANON_KEY);
     console.log('✅ Cliente Supabase inicializado');
     return supabaseClient;
   } catch (error) {
@@ -207,4 +226,5 @@ if (typeof window !== 'undefined') {
   window.getSupabaseClient = getSupabaseClient;
   window.initRealtimeManager = initRealtimeManager;
   window.getRealtimeManager = getRealtimeManager;
+  window.waitForSupabase = waitForSupabase;
 }

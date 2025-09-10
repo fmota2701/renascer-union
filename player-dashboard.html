@@ -1143,9 +1143,39 @@
             window.location.href = 'index.html';
         }
         
-        // Obter nick do jogador
-        const playerNick = localStorage.getItem('playerNick');
-        document.getElementById('player-name').textContent = playerNick || 'Jogador';
+        // Aguardar carregamento completo da página e scripts
+        window.addEventListener('load', function() {
+            // Aguardar carregamento do Supabase
+             if (typeof waitForSupabase === 'function') {
+                 waitForSupabase(function() {
+                     // Inicializar Supabase
+                     if (typeof initSupabaseClient === 'function') {
+                         const client = initSupabaseClient();
+                         if (client) {
+                             console.log('Cliente Supabase inicializado com sucesso');
+                             
+                             // Agora que o Supabase está pronto, inicializar os sistemas que dependem dele
+                             loadOverviewData();
+                             initializeRealtimeDraw();
+                             initializeReleasedItems();
+                         } else {
+                             console.error('Falha ao inicializar cliente Supabase');
+                         }
+                     } else {
+                         console.error('Função initSupabaseClient não encontrada');
+                     }
+                 });
+             } else {
+                 console.error('Função waitForSupabase não encontrada');
+             }
+            
+            // Obter nick do jogador
+            const playerNick = localStorage.getItem('playerNick');
+            const playerNameElement = document.getElementById('player-name');
+            if (playerNameElement) {
+                playerNameElement.textContent = playerNick || 'Jogador';
+            }
+        });
 
         // Função para logout
         function logout() {
@@ -1789,14 +1819,7 @@
             };
         }
 
-        // Carregar dados iniciais
-        loadOverviewData();
-        
-        // Inicializar sorteio em tempo real
-        initializeRealtimeDraw();
-        
-        // Inicializar sistema de itens liberados
-        initializeReleasedItems();
+        // Os dados serão carregados após a inicialização do Supabase
         
         // Para testes - remover em produção
         // setInterval(simulateDraw, 10000); // Simula sorteio a cada 10 segundos
@@ -1814,37 +1837,58 @@
     
     // Configurar sincronização em tempo real para itens liberados
     function setupReleasedItemsRealtime() {
-        // Escutar mudanças na tabela released_items
-        const subscription = supabase
-            .channel('released-items-changes')
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'released_items'
-            }, () => {
-                loadReleasedItems();
-            })
-            .subscribe();
+        try {
+            // Obter cliente Supabase
+            const supabaseClient = getSupabaseClient();
+            if (!supabaseClient) {
+                console.error('Cliente Supabase não disponível');
+                return;
+            }
+            
+            // Escutar mudanças na tabela released_items
+            const subscription = supabaseClient
+                .channel('released-items-changes')
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'released_items'
+                }, () => {
+                    loadReleasedItems();
+                })
+                .subscribe();
+        } catch (error) {
+            console.error('Erro ao configurar sincronização em tempo real:', error);
+        }
     }
     
     // Carregar itens liberados do Supabase
     async function loadReleasedItems() {
         try {
-            const { data, error } = await supabase
+            // Obter cliente Supabase
+            const supabaseClient = getSupabaseClient();
+            if (!supabaseClient) {
+                console.error('Cliente Supabase não disponível');
+                renderReleasedItems([]);
+                return;
+            }
+            
+            const { data, error } = await supabaseClient
                 .from('released_items')
                 .select('item_name, quantity')
                 .order('created_at', { ascending: false });
             
             if (error) {
                 console.error('Erro ao carregar itens liberados:', error);
+                renderReleasedItems([]);
                 return;
             }
             
             // Converter para formato esperado [nome, quantidade]
-            const releasedItems = data.map(item => [item.item_name, item.quantity]);
+            const releasedItems = data ? data.map(item => [item.item_name, item.quantity]) : [];
             renderReleasedItems(releasedItems);
         } catch (error) {
             console.error('Erro ao carregar itens liberados:', error);
+            renderReleasedItems([]);
         }
     }
     
