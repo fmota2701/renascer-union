@@ -19,19 +19,28 @@ function getSupabaseConfig() {
 let supabaseClient = null;
 
 // Aguardar carregamento do Supabase
-function waitForSupabase(callback, maxAttempts = 50) {
+function waitForSupabase(callback, maxAttempts = 100) {
   let attempts = 0;
   
   function check() {
     attempts++;
     
-    // Verificar se o Supabase está disponível (pode estar em window.supabase ou apenas supabase)
-    if (typeof window.supabase !== 'undefined' || typeof supabase !== 'undefined') {
+    // Verificar múltiplas formas de disponibilidade do Supabase
+    const supabaseAvailable = (
+      (typeof window !== 'undefined' && typeof window.supabase !== 'undefined') ||
+      (typeof supabase !== 'undefined') ||
+      (typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function')
+    );
+    
+    if (supabaseAvailable) {
+      console.log('✅ Supabase detectado, inicializando...');
       callback();
     } else if (attempts < maxAttempts) {
-      setTimeout(check, 100);
+      setTimeout(check, 50); // Verificar mais frequentemente
     } else {
-      console.error('Timeout: Supabase não foi carregado após', maxAttempts * 100, 'ms');
+      console.error('❌ Timeout: Supabase não foi carregado após', maxAttempts * 50, 'ms');
+      console.log('Debug: window.supabase =', typeof window !== 'undefined' ? typeof window.supabase : 'window undefined');
+      console.log('Debug: supabase =', typeof supabase);
     }
   }
   

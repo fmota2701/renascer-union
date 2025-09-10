@@ -752,7 +752,7 @@
     
     <script src="src/config/config.js"></script>
     <!-- Supabase Scripts -->
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="supabase-client.js"></script>
     <script src="app.js"></script>
     <script>
@@ -768,6 +768,28 @@
                 window.location.href = 'index.html';
             }
         }
+        
+        // Aguardar carregamento completo e inicializar Supabase
+        window.addEventListener('load', function() {
+            if (typeof waitForSupabase === 'function') {
+                waitForSupabase(function() {
+                    if (typeof initSupabaseClient === 'function') {
+                        const client = initSupabaseClient();
+                        if (client) {
+                            console.log('✅ Cliente Supabase inicializado no admin dashboard');
+                            // Inicializar sistemas que dependem do Supabase
+                            if (typeof loadData === 'function') {
+                                loadData();
+                            }
+                        } else {
+                            console.error('❌ Falha ao inicializar cliente Supabase');
+                        }
+                    }
+                });
+            } else {
+                console.error('❌ Função waitForSupabase não encontrada');
+            }
+        });
         
         // Função para mostrar seção específica do admin
         function showAdminSection(sectionName) {
