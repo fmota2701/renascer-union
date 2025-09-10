@@ -829,6 +829,7 @@ async function handleCheckUpdates() {
       players: playersData.players || [],
       items: (itemsData.items || []).map(item => item.name), // Extrair apenas os nomes dos itens
       history: (historyData.history || []).map(h => ({
+        id: h.id, // Incluir o ID da base de dados
         player: h.player,
         item: h.item,
         qty: h.quantity || 1,

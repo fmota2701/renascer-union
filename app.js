@@ -997,12 +997,15 @@ function renderHistory() {
     .reverse()
     .map((h, index) => {
       const originalIndex = state.history.length - 1 - index;
+      // Usar o ID real da base de dados se disponível, senão usar o índice
+      const identifier = h.id ? h.id : originalIndex;
+      const dataAttribute = h.id ? 'data-id' : 'data-index';
       return `<tr>
         <td>${h.date}</td>
         <td>${h.player}</td>
         <td>${h.item}</td>
         <td class="num">${h.qty||1}</td>
-        <td><button class="danger btn-delete-history" data-index="${originalIndex}" title="Excluir esta distribuição">🗑️</button></td>
+        <td><button class="danger btn-delete-history" ${dataAttribute}="${identifier}" title="Excluir esta distribuição">🗑️</button></td>
       </tr>`;
     })
     .join("");
@@ -1010,13 +1013,82 @@ function renderHistory() {
   // Adicionar event listeners para os botões de excluir
   body.querySelectorAll('.btn-delete-history').forEach(btn => {
     btn.addEventListener('click', () => {
-      const index = parseInt(btn.dataset.index);
-      deleteHistoryEntry(index);
+      if (btn.dataset.id) {
+        // Se tem ID da base de dados, usar deleteHistoryEntryById
+        const id = parseInt(btn.dataset.id);
+        deleteHistoryEntryById(id);
+      } else {
+        // Se não tem ID, usar o método antigo com índice
+        const index = parseInt(btn.dataset.index);
+        deleteHistoryEntry(index);
+      }
     });
   });
 }
 
-// Função para excluir uma entrada específica do histórico
+// Função para excluir uma entrada específica do histórico por ID da base de dados
+async function deleteHistoryEntryById(id) {
+  const entry = state.history.find(h => h.id === id);
+  if (!entry) {
+    showToast('Entrada do histórico não encontrada', 'error');
+    return;
+  }
+  
+  if (!confirm(`Excluir distribuição: ${entry.item} para ${entry.player} em ${entry.date}?`)) return;
+  
+  try {
+    console.log('Deletando entrada do histórico da base de dados:', id);
+    const response = await fetch(`/.netlify/functions/supabase-api/history?id=${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Erro ao deletar da base de dados: ${errorText}`);
+    }
+    
+    console.log('Entrada deletada da base de dados com sucesso');
+    
+    // Reverter contadores do jogador
+    const player = state.players.find(p => p.name === entry.player);
+    if (player && player.counts) {
+      const currentCount = player.counts[entry.item] || 0;
+      const qtyToRemove = entry.qty || 1;
+      player.counts[entry.item] = Math.max(0, currentCount - qtyToRemove);
+    }
+    
+    // Remover entrada do histórico local
+    const index = state.history.findIndex(h => h.id === id);
+    if (index !== -1) {
+      state.history.splice(index, 1);
+    }
+    
+    // Recalcular rotação baseada no histórico restante
+    const order = state.players.map(p => p.name);
+    const lastByItem = new Map();
+    for (const h of state.history) {
+      lastByItem.set(h.item, h.player);
+    }
+    for (const item of Object.keys(state.rotation || {})) {
+      const lastPlayer = lastByItem.get(item);
+      state.rotation[item] = lastPlayer ? order.indexOf(lastPlayer) : -1;
+    }
+    
+    saveState(state);
+    syncStateToSupabase(state);
+    renderTable();
+    renderHistory();
+    showToast('Distribuição excluída com sucesso', 'success');
+  } catch (error) {
+    console.error('Erro ao excluir entrada do histórico:', error);
+    showToast('Erro ao excluir entrada do histórico: ' + error.message, 'error');
+  }
+}
+
+// Função para excluir uma entrada específica do histórico por índice (método antigo)
 async function deleteHistoryEntry(index) {
   if (index < 0 || index >= state.history.length) return;
   

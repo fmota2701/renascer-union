@@ -1482,14 +1482,12 @@
         const container = document.getElementById('released-items-container');
         const emptyState = document.getElementById('empty-released-items');
         const itemsList = document.getElementById('released-items-list');
-        const countElement = document.getElementById('released-items-count');
         
-        if (!container || !emptyState || !itemsList || !countElement) return;
+        if (!container || !emptyState || !itemsList) return;
         
         if (releasedItems.length === 0) {
             emptyState.style.display = 'block';
             itemsList.style.display = 'none';
-            countElement.textContent = '0 itens disponíveis';
             return;
         }
         
@@ -1497,7 +1495,6 @@
         itemsList.style.display = 'block';
         
         const totalQuantity = releasedItems.reduce((sum, [, quantity]) => sum + quantity, 0);
-        countElement.textContent = `${releasedItems.length} tipos (${totalQuantity} itens)`;
         
         // Carregar seleções do jogador atual
         const playerSelections = await getPlayerSelections();
