@@ -1017,9 +1017,9 @@ async function getPlayerSelections(params = {}) {
     console.log('🔍 Buscando seleções de jogadores:', params);
     
     let query = supabase
-      .from('player_selections')
+      .from('player_item_selections')
       .select('*')
-      .order('updated_at', { ascending: false });
+      .order('selected_at', { ascending: false });
     
     // Filtrar por jogador específico se fornecido
     if (params.player_name) {
@@ -1072,9 +1072,9 @@ async function handlePlayerSelections(data) {
     
     // Usar upsert para inserir ou atualizar seleções
     const { data: result, error } = await supabase
-      .from('player_selections')
+      .from('player_item_selections')
       .upsert(selections, {
-        onConflict: 'player_name',
+        onConflict: 'player_name,item_name',
         ignoreDuplicates: false
       })
       .select();
