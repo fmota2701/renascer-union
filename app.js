@@ -3446,10 +3446,26 @@ async function releaseSelectedItems() {
     const totalQuantity = Array.from(releasedItems.values()).reduce((sum, qty) => sum + qty, 0);
     showToast(`${itemCount} tipos de itens liberados (${totalQuantity} itens no total)`, 'success');
     
-    // Limpar seleções dos jogadores (novos itens disponíveis)
+    // Limpar seleções dos jogadores no localStorage (novos itens disponíveis)
     playerSelections.clear();
     savePlayerSelections();
     renderPlayerSelectionsLog();
+    
+    // Limpar seleções antigas no Supabase para que jogadores possam escolher novamente
+    try {
+      const { error: clearError } = await supabaseClient
+        .from('player_item_selections')
+        .delete()
+        .eq('status', 'pending');
+      
+      if (clearError) {
+        console.warn('Aviso ao limpar seleções antigas:', clearError);
+      } else {
+        console.log('✅ Seleções antigas limpas do Supabase');
+      }
+    } catch (error) {
+      console.warn('Aviso ao limpar seleções antigas:', error);
+    }
     
   } catch (error) {
     console.error('Erro ao liberar itens:', error);
