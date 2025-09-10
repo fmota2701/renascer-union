@@ -1607,7 +1607,7 @@
                 return;
             }
             
-            const playerSelections = getPlayerSelectionsSync();
+            const playerSelections = await getPlayerSelections();
             const isCurrentlySelected = playerSelections.has(itemName);
             
             if (isCurrentlySelected) {
