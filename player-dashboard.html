@@ -1217,6 +1217,8 @@
         // Função para carregar dados da visão geral
         async function loadOverviewData() {
             try {
+                const playerNick = localStorage.getItem('playerNick');
+                
                 // Carregar histórico pessoal para contar itens
                 const historyResponse = await fetch('/.netlify/functions/supabase-api/history');
                 const historyData = await historyResponse.json();
@@ -1291,6 +1293,8 @@
         // Função para carregar ranking de jogadores por item
         async function loadPlayersRanking() {
             try {
+                const playerNick = localStorage.getItem('playerNick');
+                
                 const playersResponse = await fetch('/.netlify/functions/supabase-api/players');
                 const playersData = await playersResponse.json();
                 const itemsResponse = await fetch('/.netlify/functions/supabase-api/items');
@@ -1480,6 +1484,8 @@
         // Função para carregar histórico pessoal
         async function loadPersonalHistory() {
             try {
+                const playerNick = localStorage.getItem('playerNick');
+                
                 const response = await fetch('/.netlify/functions/supabase-api/history');
                 const data = await response.json();
                 
@@ -1968,7 +1974,7 @@
             const playerSelectionsData = localStorage.getItem('playerSelections');
             if (!playerSelectionsData) return new Set();
             
-            const allSelections = JSON.parse(playerSelectionsData);
+            const allSelections = JSON.parse(playerSelectionsData) || [];
             
             // Encontrar seleções do jogador atual
             const playerData = allSelections.find(([playerName]) => playerName === currentPlayerName);
@@ -1985,7 +1991,7 @@
             const playerSelectionsData = localStorage.getItem('playerSelections');
             if (!playerSelectionsData) return new Set();
             
-            const allSelections = JSON.parse(playerSelectionsData);
+            const allSelections = JSON.parse(playerSelectionsData) || [];
             const currentPlayerName = getCurrentPlayerName();
             
             // Encontrar seleções do jogador atual
