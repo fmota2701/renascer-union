@@ -633,6 +633,17 @@ function loadCustomIcons() {
   }
 }
 
+// Pré-carregar ícones SVG padrão
+async function preloadDefaultIcons() {
+  const defaultItems = ['Cristal do Caos', 'Pena do Condor', 'Chama do Condor', 'Despertar', 'Arcanjo'];
+  
+  for (const itemName of defaultItems) {
+    if (!customIcons[itemName] && !svgIconsCache[itemName]) {
+      await loadSvgIcon(itemName);
+    }
+  }
+}
+
 // Salvar ícones personalizados no localStorage
 function saveCustomIcons() {
   try {
@@ -642,13 +653,50 @@ function saveCustomIcons() {
   }
 }
 
-// Obter ícone de um item (personalizado ou padrão)
+// Cache para ícones SVG carregados
+let svgIconsCache = {};
+
+// Carregar ícone SVG da pasta icons/
+async function loadSvgIcon(itemName) {
+  const fileName = itemName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const iconPath = `icons/${fileName}.svg`;
+  
+  try {
+    const response = await fetch(iconPath);
+    if (response.ok) {
+      const svgContent = await response.text();
+      svgIconsCache[itemName] = svgContent;
+      return svgContent;
+    }
+  } catch (error) {
+    console.warn(`Não foi possível carregar ícone SVG para ${itemName}:`, error);
+  }
+  
+  return null;
+}
+
+// Obter ícone de um item (personalizado, SVG ou emoji padrão)
 function getItemIcon(itemName) {
+  // 1. Verificar se há ícone personalizado no localStorage
   if (customIcons[itemName]) {
     return customIcons[itemName];
   }
   
-  // Mapear emojis padrão dos itens
+  // 2. Verificar se há ícone SVG no cache
+  if (svgIconsCache[itemName]) {
+    return svgIconsCache[itemName];
+  }
+  
+  // 3. Tentar carregar ícone SVG da pasta icons/
+  loadSvgIcon(itemName).then(svgContent => {
+    if (svgContent) {
+      // Re-renderizar elementos que usam este ícone
+      renderItemsManager();
+      renderItemsTable();
+    }
+  });
+  
+  // 4. Fallback para emojis padrão
   const defaultEmojis = {
     'Cristal do Caos': '💎',
     'Pena do Condor': '🪶',
@@ -3243,6 +3291,8 @@ function handlePlayerSelectionsChange(payload) {
 window.addEventListener('beforeunload', stopRealtimeSync);
 
 document.addEventListener("DOMContentLoaded", async () => {
+  loadCustomIcons();
+  await preloadDefaultIcons();
   main();
   initItemsTableEvents();
   await initPlayerSelectionSync();
