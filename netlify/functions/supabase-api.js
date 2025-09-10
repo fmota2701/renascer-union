@@ -120,6 +120,20 @@ async function handleGet(path, params) {
 async function handlePost(path, data) {
   const endpoint = path.replace('/.netlify/functions/supabase-api', '');
   
+  // Verificar se é uma chamada com action no body (compatibilidade)
+  if (data.action) {
+    console.log('DEBUG - Chamada com action:', data.action);
+    switch (data.action) {
+      case 'distribute':
+        return await handleDistribute(data.data || data);
+      case 'sync':
+        return await handleSync(data.data || data);
+      default:
+        throw new Error(`Action ${data.action} não encontrada`);
+    }
+  }
+  
+  // Tratamento normal por endpoint
   switch (endpoint) {
     case '/distribute':
       return await handleDistribute(data);
@@ -454,9 +468,12 @@ async function getStatsData() {
  * Distribuir itens para jogadores
  */
 async function handleDistribute(data) {
+  console.log('DEBUG - handleDistribute iniciado com dados:', JSON.stringify(data, null, 2));
+  
   const { distributions, selectedPlayers } = data;
   
   if (!distributions || !Array.isArray(distributions)) {
+    console.error('ERROR - Dados de distribuição inválidos:', { distributions, selectedPlayers });
     throw new Error('Dados de distribuição inválidos');
   }
 
@@ -468,6 +485,8 @@ async function handleDistribute(data) {
   // Processar distribuições em transação
   for (const dist of distributions) {
     try {
+      console.log('DEBUG - Processando distribuição individual:', JSON.stringify(dist, null, 2));
+      
       const { player_name, item_name, quantity = 1, notes = '' } = dist;
       
       console.log('Processando distribuição:', { player_name, item_name, quantity, notes });
@@ -527,6 +546,12 @@ async function handleDistribute(data) {
       });
 
     } catch (error) {
+      console.error('ERROR - Erro ao processar distribuição:', {
+        distribution: dist,
+        error: error.message,
+        stack: error.stack
+      });
+      
       errors.push({
         distribution: dist,
         error: error.message
@@ -575,11 +600,20 @@ async function handleDistribute(data) {
         }
       }
     } catch (error) {
-      console.error('Erro ao aplicar faltas automáticas:', error);
+      console.error('ERROR - Erro ao aplicar faltas automáticas:', {
+        error: error.message,
+        stack: error.stack
+      });
     }
   }
 
   // Cache removido - dados sempre atualizados
+
+  console.log('DEBUG - Finalizando handleDistribute:', {
+    resultsCount: results.length,
+    errorsCount: errors.length,
+    errors: errors
+  });
 
   return {
     success: results.length,
