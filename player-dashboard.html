@@ -2034,7 +2034,7 @@
                 return;
             }
             
-            const playerSelections = getPlayerSelections();
+            const playerSelections = getPlayerSelectionsSync();
             const isCurrentlySelected = playerSelections.has(itemName);
             
             if (isCurrentlySelected) {
@@ -2084,7 +2084,7 @@
     
     // Fallback para alternar seleção localmente
     function toggleItemSelectionLocal(playerName, itemName) {
-        const playerSelections = getPlayerSelections();
+        const playerSelections = getPlayerSelectionsSync();
         
         if (playerSelections.has(itemName)) {
             removePlayerSelectionLocal(playerName, itemName);
