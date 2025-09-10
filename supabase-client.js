@@ -19,28 +19,33 @@ function getSupabaseConfig() {
 let supabaseClient = null;
 
 // Aguardar carregamento do Supabase
-function waitForSupabase(callback, maxAttempts = 100) {
+function waitForSupabase(callback, maxAttempts = 200) {
   let attempts = 0;
   
   function check() {
     attempts++;
     
-    // Verificar múltiplas formas de disponibilidade do Supabase
+    // Verificar se o Supabase está disponível globalmente
     const supabaseAvailable = (
-      (typeof window !== 'undefined' && typeof window.supabase !== 'undefined') ||
-      (typeof supabase !== 'undefined') ||
-      (typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function')
+      (typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function') ||
+      (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function')
     );
     
     if (supabaseAvailable) {
-      console.log('✅ Supabase detectado, inicializando...');
+      console.log('✅ Supabase detectado e createClient disponível, inicializando...');
       callback();
     } else if (attempts < maxAttempts) {
-      setTimeout(check, 50); // Verificar mais frequentemente
+      if (attempts % 20 === 0) {
+        console.log(`🔄 Aguardando Supabase... tentativa ${attempts}/${maxAttempts}`);
+        console.log('Debug: window.supabase =', typeof window !== 'undefined' ? typeof window.supabase : 'window undefined');
+        console.log('Debug: global supabase =', typeof supabase);
+      }
+      setTimeout(check, 25); // Verificar a cada 25ms
     } else {
-      console.error('❌ Timeout: Supabase não foi carregado após', maxAttempts * 50, 'ms');
-      console.log('Debug: window.supabase =', typeof window !== 'undefined' ? typeof window.supabase : 'window undefined');
-      console.log('Debug: supabase =', typeof supabase);
+      console.error('❌ Timeout: Supabase não foi carregado após', maxAttempts * 25, 'ms');
+      console.log('Debug final: window.supabase =', typeof window !== 'undefined' ? typeof window.supabase : 'window undefined');
+      console.log('Debug final: global supabase =', typeof supabase);
+      console.log('Debug final: window keys =', typeof window !== 'undefined' ? Object.keys(window).filter(k => k.toLowerCase().includes('supabase')) : 'window undefined');
     }
   }
   
