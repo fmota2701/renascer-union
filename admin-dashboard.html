@@ -775,7 +775,6 @@
     
     <!-- Configuração será carregada dinamicamente -->
     
-    <!-- Aguardar CONFIG estar disponível antes de carregar Supabase -->
     <script>
         // Verificar autenticação
         if (localStorage.getItem('isLoggedIn') !== 'true' || localStorage.getItem('userType') !== 'admin') {
@@ -836,6 +835,8 @@
                             if (typeof loadData === 'function') {
                                 loadData();
                             }
+                            // Carregar estatísticas do dashboard
+                            loadDashboardStats();
                         } else {
                             console.error('❌ Falha ao inicializar cliente Supabase');
                         }
@@ -936,7 +937,7 @@
         // Função para sincronizar dados
         async function syncData() {
             try {
-                const response = await fetch('/.netlify/functions/supabase-api/sync', {
+                const response = await smartFetch('/.netlify/functions/supabase-api/sync', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -961,6 +962,12 @@
         
         // Função para carregar estatísticas do dashboard
         async function loadDashboardStats() {
+            // Verificar se smartFetch está disponível
+            if (typeof smartFetch === 'undefined') {
+                console.log('smartFetch ainda não está disponível, aguardando...');
+                return;
+            }
+            
             try {
                 // Verificar se elementos existem antes de manipulá-los
                 const totalPlayersEl = document.getElementById('total-players');
@@ -969,9 +976,9 @@
                 const lastSyncEl = document.getElementById('last-sync');
                 
                 // Carregar jogadores
-                const playersResponse = await fetch('/.netlify/functions/supabase-api/players');
-                if (playersResponse.ok) {
-                    const playersData = await playersResponse.json();
+                 const playersResponse = await smartFetch('/.netlify/functions/supabase-api/players');
+                 if (playersResponse.ok) {
+                     const playersData = await playersResponse.json();
                     if (totalPlayersEl) {
                         totalPlayersEl.textContent = playersData.players?.length || 0;
                     }
@@ -981,9 +988,9 @@
                 }
                 
                 // Carregar itens
-                const itemsResponse = await fetch('/.netlify/functions/supabase-api/items');
-                if (itemsResponse.ok) {
-                    const itemsData = await itemsResponse.json();
+                 const itemsResponse = await smartFetch('/.netlify/functions/supabase-api/items');
+                 if (itemsResponse.ok) {
+                     const itemsData = await itemsResponse.json();
                     if (totalItemsEl) {
                         totalItemsEl.textContent = itemsData.items?.length || 0;
                     }
@@ -993,9 +1000,9 @@
                 }
                 
                 // Carregar histórico
-                const historyResponse = await fetch('/.netlify/functions/supabase-api/history');
-                if (historyResponse.ok) {
-                    const historyData = await historyResponse.json();
+                 const historyResponse = await smartFetch('/.netlify/functions/supabase-api/history');
+                 if (historyResponse.ok) {
+                     const historyData = await historyResponse.json();
                     if (totalHistoryEl) {
                         totalHistoryEl.textContent = historyData.history?.length || 0;
                     }
@@ -1024,11 +1031,12 @@
             }
         }
         
-        // Carregar estatísticas ao inicializar
-        loadDashboardStats();
-        
-        // Atualizar estatísticas a cada 30 segundos
-        setInterval(loadDashboardStats, 30000);
+        // Atualizar estatísticas a cada 30 segundos (será iniciado após carregamento do Supabase)
+        setInterval(() => {
+            if (typeof smartFetch !== 'undefined') {
+                loadDashboardStats();
+            }
+        }, 30000);
         
         // Gerenciar menu lateral ativo
         function setActiveMenuItem(activeItem) {

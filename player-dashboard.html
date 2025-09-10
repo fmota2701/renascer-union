@@ -1245,7 +1245,7 @@
                 const playerNick = localStorage.getItem('playerNick');
                 
                 // Carregar histórico pessoal para contar itens
-                const historyResponse = await fetch('/.netlify/functions/supabase-api/history');
+                const historyResponse = await smartFetch('/.netlify/functions/supabase-api/history');
                 const historyData = await historyResponse.json();
                 
                 const myItems = historyData.history?.filter(entry => 
@@ -1255,12 +1255,12 @@
                 document.getElementById('my-items-count').textContent = myItems.length;
                 
                 // Carregar total de jogadores
-                const playersResponse = await fetch('/.netlify/functions/supabase-api/players');
+                const playersResponse = await smartFetch('/.netlify/functions/supabase-api/players');
                 const playersData = await playersResponse.json();
                 document.getElementById('total-players').textContent = playersData.players?.length || 0;
                 
                 // Carregar total de itens
-                const itemsResponse = await fetch('/.netlify/functions/supabase-api/items');
+                const itemsResponse = await smartFetch('/.netlify/functions/supabase-api/items');
                 const itemsData = await itemsResponse.json();
                 document.getElementById('total-items').textContent = itemsData.items?.length || 0;
                 
@@ -1438,7 +1438,7 @@
         // Função para carregar histórico geral
         async function loadGeneralHistory() {
             try {
-                const response = await fetch('/.netlify/functions/supabase-api/history');
+                const response = await smartFetch('/.netlify/functions/supabase-api/history');
                 const data = await response.json();
                 
                 let history = data.history || [];
@@ -1999,7 +1999,7 @@
     // Carregar última distribuição
     async function loadLastDistribution() {
         try {
-            const response = await fetch('/.netlify/functions/supabase-api/last-distribution');
+            const response = await smartFetch('/.netlify/functions/supabase-api/last-distribution');
             const data = await response.json();
             
             const emptyState = document.getElementById('empty-last-distribution');

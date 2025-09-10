@@ -222,6 +222,7 @@
         </div>
     </div>
 
+    <script src="supabase-client.js"></script>
     <script>
         // Constantes
         const ADMIN_PASSWORD = 'f3l1p3';
@@ -269,7 +270,7 @@
         // Função para verificar se jogador existe
         async function checkPlayerExists(nick) {
             try {
-                const response = await fetch('/.netlify/functions/supabase-api/players');
+                const response = await smartFetch('/.netlify/functions/supabase-api/players');
                 const data = await response.json();
                 
                 if (data.players) {

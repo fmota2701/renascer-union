@@ -12,7 +12,7 @@ const DEFAULT_ITEMS = [
 async function loadState() {
   try {
     console.log('Carregando dados do Supabase...');
-    const response = await fetch('/.netlify/functions/supabase-api/check-updates', {
+    const response = await smartFetch('/.netlify/functions/supabase-api/check-updates', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -50,7 +50,7 @@ async function syncStateToSupabase(state) {
   try {
     console.log('Iniciando sincronização com Supabase...', state);
     
-    const response = await fetch('/.netlify/functions/supabase-api/sync', {
+    const response = await smartFetch('/.netlify/functions/supabase-api/sync', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -1129,7 +1129,7 @@ async function deletePlayer(name) {
   
   // Sincronizar com Supabase primeiro
   try {
-    const response = await fetch(`/.netlify/functions/supabase-api/players?name=${encodeURIComponent(name)}`, {
+    const response = await smartFetch(`/.netlify/functions/supabase-api/players?name=${encodeURIComponent(name)}`, {
       method: 'DELETE'
     });
     
@@ -1169,7 +1169,7 @@ async function addItem(name) {
   
   // Sincronizar com Supabase
   try {
-    const response = await fetch('/.netlify/functions/supabase-api/items', {
+    const response = await smartFetch('/.netlify/functions/supabase-api/items', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -1223,7 +1223,7 @@ async function removeItem(name) {
   
   // Sincronizar com Supabase primeiro
   try {
-    const response = await fetch(`/.netlify/functions/supabase-api/items?name=${encodeURIComponent(name)}`, {
+    const response = await smartFetch(`/.netlify/functions/supabase-api/items?name=${encodeURIComponent(name)}`, {
       method: 'DELETE'
     });
     
@@ -1303,7 +1303,7 @@ async function deleteHistoryEntryById(id) {
   
   try {
     console.log('Deletando entrada do histórico da base de dados:', id);
-    const response = await fetch(`/.netlify/functions/supabase-api/history?id=${id}`, {
+    const response = await smartFetch(`/.netlify/functions/supabase-api/history?id=${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'
@@ -1364,7 +1364,7 @@ async function deleteHistoryEntry(index) {
     // Se a entrada tem ID (veio do Supabase), deletar da base de dados
     if (entry.id) {
       console.log('Deletando entrada do histórico da base de dados:', entry.id);
-      const response = await fetch(`/.netlify/functions/supabase-api/history?id=${entry.id}`, {
+      const response = await smartFetch(`/.netlify/functions/supabase-api/history?id=${entry.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
@@ -1544,7 +1544,7 @@ function setupEvents() {
     
     // Sincronizar com Supabase
     try {
-      const response = await fetch('/.netlify/functions/supabase-api/players', {
+      const response = await smartFetch('/.netlify/functions/supabase-api/players', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -2837,7 +2837,7 @@ function initDistributeModal() {
                 // Aplicar destaque visual aos jogadores não selecionados
                 highlightNonSelectedPlayers(selectedPlayers);
                 
-                const response = await fetch('/.netlify/functions/supabase-api/distribute', {
+                const response = await smartFetch('/.netlify/functions/supabase-api/distribute', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -3169,7 +3169,7 @@ async function checkForUpdates() {
   try {
     isCheckingUpdates = true;
     
-    const response = await fetch('/.netlify/functions/supabase-api/check-updates', {
+    const response = await smartFetch('/.netlify/functions/supabase-api/check-updates', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -3365,7 +3365,7 @@ async function loadPlayerSelectionFromStorage() {
     console.log('DEBUG - Carregando seleções do Supabase...');
     
     // Buscar seleções do Supabase
-    const response = await fetch('/.netlify/functions/supabase-api/player-selections');
+    const response = await smartFetch('/.netlify/functions/supabase-api/player-selections');
     
     if (!response.ok) {
       throw new Error(`Erro HTTP: ${response.status}`);
@@ -3440,7 +3440,7 @@ async function updatePlayerStatusInSupabase(playerName, active) {
   try {
     console.log(`Atualizando status do jogador ${playerName} para ${active ? 'presente' : 'ausente'}`);
     
-    const response = await fetch('/.netlify/functions/supabase-api/players/status', {
+    const response = await smartFetch('/.netlify/functions/supabase-api/players/status', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
@@ -3496,7 +3496,7 @@ async function savePlayerSelectionToStorage() {
     // Salvar no Supabase
     console.log('Salvando seleções no Supabase:', selectionsToUpdate);
     
-    const response = await fetch('/.netlify/functions/supabase-api/player-selections', {
+    const response = await smartFetch('/.netlify/functions/supabase-api/player-selections', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -4139,7 +4139,7 @@ async function applyDistributions(distributions) {
   }));
   
   // Enviar para API
-  const response = await fetch('/.netlify/functions/supabase-api', {
+  const response = await smartFetch('/.netlify/functions/supabase-api', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

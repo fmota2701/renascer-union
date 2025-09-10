@@ -236,6 +236,214 @@ function getRealtimeManager() {
 }
 
 // Exportar para uso global
+// Funções auxiliares para substituir chamadas Netlify em desenvolvimento local
+class SupabaseDirectAPI {
+  constructor() {
+    this.client = null;
+  }
+
+  init() {
+    this.client = getSupabaseClient();
+  }
+
+  // Detectar se estamos em ambiente local
+  isLocalEnvironment() {
+    return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  }
+
+  // Buscar jogadores
+  async getPlayers() {
+    if (!this.client) this.init();
+    const { data, error } = await this.client.from('players').select('*').order('name');
+    if (error) throw error;
+    return data;
+  }
+
+  // Buscar itens
+  async getItems() {
+    if (!this.client) this.init();
+    const { data, error } = await this.client.from('items').select('*').order('name');
+    if (error) throw error;
+    return data;
+  }
+
+  // Buscar histórico
+  async getHistory() {
+    if (!this.client) this.init();
+    const { data, error } = await this.client
+      .from('history')
+      .select(`
+        *,
+        players(name),
+        items(name, icon)
+      `)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  }
+
+  // Buscar jogador por nome
+  async getPlayerByName(name) {
+    if (!this.client) this.init();
+    const { data, error } = await this.client
+      .from('players')
+      .select('*')
+      .ilike('name', `%${name}%`);
+    if (error) throw error;
+    return data;
+  }
+
+  // Buscar item por nome
+  async getItemByName(name) {
+    if (!this.client) this.init();
+    const { data, error } = await this.client
+      .from('items')
+      .select('*')
+      .ilike('name', `%${name}%`);
+    if (error) throw error;
+    return data;
+  }
+
+  // Buscar histórico por ID
+  async getHistoryById(id) {
+    if (!this.client) this.init();
+    const { data, error } = await this.client
+      .from('history')
+      .select(`
+        *,
+        players(name),
+        items(name, icon)
+      `)
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  // Sincronização (placeholder - mantém lógica existente)
+  async sync(data) {
+    console.log('Sync em ambiente local - dados:', data);
+    return { success: true, message: 'Sync local executado' };
+  }
+
+  // Distribuir item (placeholder - mantém lógica existente)
+  async distribute(data) {
+    console.log('Distribuição em ambiente local - dados:', data);
+    return { success: true, message: 'Distribuição local executada' };
+  }
+
+  // Verificar atualizações
+  async checkUpdates() {
+    return { hasUpdates: false, message: 'Ambiente local - sem verificação de updates' };
+  }
+
+  // Buscar seleções de jogadores
+  async getPlayerSelections() {
+    if (!this.client) this.init();
+    const { data, error } = await this.client.from('player_selections').select('*');
+    if (error) throw error;
+    return data || [];
+  }
+
+  // Buscar status dos jogadores
+  async getPlayersStatus() {
+    if (!this.client) this.init();
+    const { data, error } = await this.client.from('players').select('id, name, status');
+    if (error) throw error;
+    return data;
+  }
+
+  // Salvar seleções de jogadores
+  async savePlayerSelections(data) {
+    if (!this.client) this.init();
+    const { error } = await this.client.from('player_selections').upsert(data);
+    if (error) throw error;
+    return { success: true };
+  }
+
+  // Buscar última distribuição
+  async getLastDistribution() {
+    if (!this.client) this.init();
+    const { data, error } = await this.client
+      .from('history')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (error) throw error;
+    return data?.[0] || null;
+  }
+}
+
+// Função para fazer fetch inteligente (Netlify em produção, Supabase direto em local)
+async function smartFetch(url, options = {}) {
+  const directAPI = new SupabaseDirectAPI();
+  
+  // Se estiver em ambiente local, usar Supabase direto
+  if (directAPI.isLocalEnvironment()) {
+    console.log('🔄 Ambiente local detectado, usando Supabase direto para:', url);
+    
+    try {
+      // Mapear URLs para métodos diretos
+      if (url.includes('/players') && !url.includes('?')) {
+        return { ok: true, json: async () => await directAPI.getPlayers() };
+      }
+      if (url.includes('/items') && !url.includes('?')) {
+        return { ok: true, json: async () => await directAPI.getItems() };
+      }
+      if (url.includes('/history') && !url.includes('?')) {
+        return { ok: true, json: async () => await directAPI.getHistory() };
+      }
+      if (url.includes('/players?name=')) {
+        const name = decodeURIComponent(url.split('name=')[1]);
+        return { ok: true, json: async () => await directAPI.getPlayerByName(name) };
+      }
+      if (url.includes('/items?name=')) {
+        const name = decodeURIComponent(url.split('name=')[1]);
+        return { ok: true, json: async () => await directAPI.getItemByName(name) };
+      }
+      if (url.includes('/history?id=')) {
+        const id = url.split('id=')[1];
+        return { ok: true, json: async () => await directAPI.getHistoryById(id) };
+      }
+      if (url.includes('/player-selections')) {
+        if (options.method === 'POST') {
+          const data = JSON.parse(options.body);
+          return { ok: true, json: async () => await directAPI.savePlayerSelections(data) };
+        }
+        return { ok: true, json: async () => await directAPI.getPlayerSelections() };
+      }
+      if (url.includes('/players/status')) {
+        return { ok: true, json: async () => await directAPI.getPlayersStatus() };
+      }
+      if (url.includes('/last-distribution')) {
+        return { ok: true, json: async () => await directAPI.getLastDistribution() };
+      }
+      if (url.includes('/sync')) {
+        const data = options.body ? JSON.parse(options.body) : {};
+        return { ok: true, json: async () => await directAPI.sync(data) };
+      }
+      if (url.includes('/distribute')) {
+        const data = JSON.parse(options.body);
+        return { ok: true, json: async () => await directAPI.distribute(data) };
+      }
+      if (url.includes('/check-updates')) {
+        return { ok: true, json: async () => await directAPI.checkUpdates() };
+      }
+      
+      // Fallback para outras URLs
+      console.warn('⚠️ URL não mapeada para Supabase direto:', url);
+      return { ok: false, status: 404, json: async () => ({ error: 'Endpoint não encontrado em ambiente local' }) };
+      
+    } catch (error) {
+      console.error('❌ Erro no Supabase direto:', error);
+      return { ok: false, status: 500, json: async () => ({ error: error.message }) };
+    }
+  }
+  
+  // Em produção, usar fetch normal
+  return fetch(url, options);
+}
+
 if (typeof window !== 'undefined') {
   window.SupabaseRealtimeManager = SupabaseRealtimeManager;
   window.initSupabaseClient = initSupabaseClient;
@@ -243,4 +451,6 @@ if (typeof window !== 'undefined') {
   window.initRealtimeManager = initRealtimeManager;
   window.getRealtimeManager = getRealtimeManager;
   window.waitForSupabase = waitForSupabase;
+  window.SupabaseDirectAPI = SupabaseDirectAPI;
+  window.smartFetch = smartFetch;
 }
