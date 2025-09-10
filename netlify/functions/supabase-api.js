@@ -901,25 +901,33 @@ async function updatePlayerStatus(data) {
   }
 
   // Verificar se o jogador existe
-  const { data: playerData, error } = await supabase
+  const { data: playerData, error: selectError } = await supabase
     .from('players')
     .select('*')
     .eq('name', playerName)
     .single();
 
-  if (error || !playerData) {
+  if (selectError || !playerData) {
     throw new Error('Jogador não encontrado');
   }
 
-  // Como a coluna status não existe, vamos apenas simular o sucesso
-  // O sistema de participação funciona via localStorage no frontend
+  // Atualizar o status do jogador no banco de dados
+  const newStatus = active ? 'active' : 'inactive';
+  const { data: updatedPlayer, error: updateError } = await supabase
+    .from('players')
+    .update({ status: newStatus })
+    .eq('name', playerName)
+    .select()
+    .single();
+
+  if (updateError) {
+    throw new Error(`Erro ao atualizar status do jogador: ${updateError.message}`);
+  }
+
   return {
     success: true,
     message: `Status do jogador ${playerName} atualizado para ${active ? 'ativo' : 'inativo'}`,
-    player: {
-      ...playerData,
-      status: active ? 'active' : 'inactive' // Simular a propriedade status
-    },
+    player: updatedPlayer,
     timestamp: new Date().toISOString()
   };
 }
