@@ -287,6 +287,151 @@
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
         
+        /* Estilos para Log de Seleções */
+        .selections-log {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f9f9f9;
+        }
+        
+        .selection-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .selection-player {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .selection-item {
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .selection-time {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .no-selections {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        /* Modal de Seleção de Itens */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        .item-selection-list {
+            margin-bottom: 20px;
+        }
+        
+        .item-selection-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .item-selection-row.selected {
+            background: #e8f2ff;
+            border-color: #667eea;
+        }
+        
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .item-checkbox {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .item-name {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .quantity-input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
         @media (max-width: 768px) {
             .admin-header {
                 flex-direction: column;
@@ -296,6 +441,12 @@
             
             .dashboard-stats {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 20px;
             }
             
             .quick-actions {
@@ -422,59 +573,32 @@
                 <h2>🎯 Distribuição de Itens</h2>
                 <button class="back-btn" onclick="showDashboard()">← Voltar ao Dashboard</button>
             </div>
+            
+            <!-- Seção de Seleção de Itens -->
             <div class="card">
                 <div class="distribute-new">
-                    <p>Clique no botão abaixo para abrir o modal de distribuição interativa.</p>
-                    <button id="btn-open-distribute-modal" class="primary large">🎯 Distribuir Itens</button>
-                    <button id="btn-undo" type="button" class="ghost" title="Desfaz o último lote distribuído">Desfazer última</button>
+                    <h3>📦 Liberação de Itens</h3>
+                    <p>Selecione os itens que serão disponibilizados para os jogadores escolherem.</p>
+                    <button id="btn-select-items" class="primary large">📦 Selecionar Itens</button>
                 </div>
-            </div>
-            <div class="row-controls">
-                <button type="button" id="btn-toggle-edit" class="secondary" title="Alterna entre edição manual e +/− nas células">Destravar edição</button>
-                <button type="button" id="btn-lock-order" class="secondary" title="Ordenar apenas visual, sem mexer na rotação">Travar ordem</button>
-                <span class="spacer"></span>
-                <button type="button" id="btn-mark-all" class="secondary">Marcar todos</button>
-                <button type="button" id="btn-unmark-all" class="secondary">Desmarcar todos</button>
-                <label class="inline">
-                    <input type="checkbox" id="only-active" /> Só participantes
-                </label>
-                <label class="inline">
-                    Focar em:
-                    <select id="focus-select"><option value="">Todos</option></select>
-                </label>
-            </div>
-            <div class="table-wrap">
-                <h3>👥 Jogadores</h3>
-                <table id="players-table">
-                    <thead id="table-head"></thead>
-                    <tbody id="table-body"></tbody>
-                </table>
             </div>
             
-            <div class="table-wrap" style="margin-top: 30px;">
-                <h3>📦 Itens para Distribuição</h3>
-                <div class="row-controls">
-                    <button type="button" id="btn-mark-all-items" class="secondary">Marcar todos</button>
-                    <button type="button" id="btn-unmark-all-items" class="secondary">Desmarcar todos</button>
+            <!-- Log de Seleções dos Jogadores -->
+            <div class="card">
+                <h3>📋 Log de Seleções dos Jogadores</h3>
+                <div id="player-selections-log" class="selections-log">
+                    <p class="no-selections">Nenhuma seleção de jogador registrada ainda.</p>
                 </div>
-                <table id="items-table">
-                    <thead>
-                        <tr>
-                            <th>Seleção</th>
-                            <th>Item</th>
-                            <th>Quantidade</th>
-                        </tr>
-                    </thead>
-                    <tbody id="items-table-body"></tbody>
-                </table>
             </div>
-            <details>
-                <summary>Regras de sugestão</summary>
-                <ol>
-                    <li>Por item, prioriza quem tem menos daquele item.</li>
-                    <li>Empate: segue a ordem da lista a partir do próximo da última entrega.</li>
-                </ol>
-            </details>
+            
+            <!-- Botão de Distribuição -->
+            <div class="card">
+                <div class="distribute-new">
+                    <h3>🎯 Distribuir Itens</h3>
+                    <p>Execute a distribuição baseada na fila de prioridade e ordem de cadastro dos jogadores.</p>
+                    <button id="btn-distribute-items" class="primary large" disabled>🎯 Distribuir</button>
+                </div>
+            </div>
         </div>
         
         <div id="stats-section" class="section" style="display: none;">
@@ -601,6 +725,26 @@
             <div class="modal-footer">
                 <button id="btn-copy-winners-text" class="secondary">📋 Copiar Texto</button>
                 <button id="btn-close-winners-preview" class="primary">✅ Fechar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Seleção de Itens -->
+    <div id="item-selection-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📦 Selecionar Itens para Liberação</h2>
+                <span class="close" onclick="closeItemSelectionModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Selecione os itens e suas quantidades que serão disponibilizados para os jogadores:</p>
+                <div id="item-selection-list" class="item-selection-list">
+                    <!-- Lista de itens será carregada aqui -->
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="secondary" onclick="closeItemSelectionModal()">Cancelar</button>
+                <button id="btn-release-items" class="primary">Liberar Itens</button>
             </div>
         </div>
     </div>

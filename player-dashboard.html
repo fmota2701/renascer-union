@@ -489,6 +489,81 @@
             color: #666;
         }
 
+        /* Estilos para Itens Liberados */
+        .released-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #FF9800;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .released-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .released-item.selected {
+            border-left-color: #4CAF50;
+            background: linear-gradient(135deg, #f8fff8 0%, #e8f5e8 100%);
+        }
+        
+        .released-item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .released-item-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .released-item-quantity {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .released-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .select-item-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .select-item-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+        }
+        
+        .select-item-btn.selected {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+        
+        .select-item-btn.selected:hover {
+            box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+        }
+
         /* Estilos para Sorteio em Tempo Real */
         .draw-item {
             background: white;
@@ -897,12 +972,34 @@
                     </div>
                 </div>
                 
-                <!-- Coluna Direita: Sorteio em Tempo Real -->
+                <!-- Coluna Direita: Itens Liberados e Sorteio -->
                 <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3>🎲 Sorteio em Tempo Real</h3>
-                        <div id="draw-status" style="font-size: 12px; color: #666;">Aguardando sorteios...</div>
+                    <!-- Seção de Itens Liberados -->
+                    <div id="released-items-section" style="margin-bottom: 30px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3>🎁 Itens Liberados</h3>
+                            <div id="released-items-count" style="font-size: 12px; color: #666;">0 itens disponíveis</div>
+                        </div>
+                        
+                        <div id="released-items-container" style="background: #f8f9fa; border-radius: 12px; padding: 20px; min-height: 120px;">
+                            <div class="empty-state" id="empty-released-items" style="padding: 20px; text-align: center;">
+                                <div class="empty-state-icon">📦</div>
+                                <p>Nenhum item liberado ainda</p>
+                                <small style="color: #999; margin-top: 10px; display: block;">Aguarde o admin liberar itens para seleção</small>
+                            </div>
+                            
+                            <div id="released-items-list" style="display: none;">
+                                <!-- Itens liberados serão inseridos aqui via JavaScript -->
+                            </div>
+                        </div>
                     </div>
+                    
+                    <!-- Seção de Sorteio em Tempo Real -->
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>🎲 Sorteio em Tempo Real</h3>
+                            <div id="draw-status" style="font-size: 12px; color: #666;">Aguardando sorteios...</div>
+                        </div>
                     
                     <div id="realtime-draw" style="background: #f8f9fa; border-radius: 12px; padding: 20px; min-height: 200px;">
                         <div class="empty-state" id="empty-draw-state" style="padding: 40px 20px;">
@@ -1750,8 +1847,220 @@
         // Inicializar sorteio em tempo real
         initializeRealtimeDraw();
         
+        // Inicializar sistema de itens liberados
+        initializeReleasedItems();
+        
         // Para testes - remover em produção
         // setInterval(simulateDraw, 10000); // Simula sorteio a cada 10 segundos
+    
+    // ===== SISTEMA DE ITENS LIBERADOS =====
+    
+    // Inicializar sistema de itens liberados
+    function initializeReleasedItems() {
+        // Carregar itens liberados do localStorage
+        loadReleasedItems();
+        
+        // Configurar escuta em tempo real para mudanças nos itens liberados
+        if (typeof window.addEventListener !== 'undefined') {
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'releasedItems') {
+                    loadReleasedItems();
+                }
+            });
+        }
+        
+        // Verificar periodicamente por atualizações
+        setInterval(loadReleasedItems, 5000);
+    }
+    
+    // Carregar itens liberados
+    function loadReleasedItems() {
+        try {
+            const releasedItemsData = localStorage.getItem('releasedItems');
+            const releasedItems = releasedItemsData ? JSON.parse(releasedItemsData) : [];
+            
+            renderReleasedItems(releasedItems);
+        } catch (error) {
+            console.error('Erro ao carregar itens liberados:', error);
+        }
+    }
+    
+    // Renderizar itens liberados
+    function renderReleasedItems(releasedItems) {
+        const container = document.getElementById('released-items-container');
+        const emptyState = document.getElementById('empty-released-items');
+        const itemsList = document.getElementById('released-items-list');
+        const countElement = document.getElementById('released-items-count');
+        
+        if (!container || !emptyState || !itemsList || !countElement) return;
+        
+        if (releasedItems.length === 0) {
+            emptyState.style.display = 'block';
+            itemsList.style.display = 'none';
+            countElement.textContent = '0 itens disponíveis';
+            return;
+        }
+        
+        emptyState.style.display = 'none';
+        itemsList.style.display = 'block';
+        
+        const totalQuantity = releasedItems.reduce((sum, [, quantity]) => sum + quantity, 0);
+        countElement.textContent = `${releasedItems.length} tipos (${totalQuantity} itens)`;
+        
+        // Carregar seleções do jogador atual
+        const playerSelections = getPlayerSelections();
+        
+        const itemsHtml = releasedItems.map(([itemName, quantity]) => {
+            const isSelected = playerSelections.has(itemName);
+            const buttonText = isSelected ? 'Remover' : 'Selecionar';
+            const buttonClass = isSelected ? 'selected' : '';
+            
+            return `
+                <div class="released-item ${isSelected ? 'selected' : ''}">
+                    <div class="released-item-info">
+                        <span class="released-item-name">${itemName}</span>
+                        <span class="released-item-quantity">${quantity}x</span>
+                    </div>
+                    <div class="released-item-actions">
+                        <button class="select-item-btn ${buttonClass}" 
+                                onclick="toggleItemSelection('${itemName}')">
+                            ${buttonText}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        itemsList.innerHTML = itemsHtml;
+    }
+    
+    // Obter seleções do jogador atual
+    function getPlayerSelections() {
+        try {
+            const playerSelectionsData = localStorage.getItem('playerSelections');
+            if (!playerSelectionsData) return new Set();
+            
+            const allSelections = JSON.parse(playerSelectionsData);
+            const currentPlayerName = getCurrentPlayerName();
+            
+            // Encontrar seleções do jogador atual
+            const playerData = allSelections.find(([playerName]) => playerName === currentPlayerName);
+            return playerData ? new Set(playerData[1]) : new Set();
+        } catch (error) {
+            console.error('Erro ao carregar seleções do jogador:', error);
+            return new Set();
+        }
+    }
+    
+    // Obter nome do jogador atual
+    function getCurrentPlayerName() {
+        // Tentar obter do localStorage primeiro
+        const savedPlayer = localStorage.getItem('currentPlayer');
+        if (savedPlayer) {
+            try {
+                const playerData = JSON.parse(savedPlayer);
+                return playerData.name || playerData;
+            } catch (e) {
+                return savedPlayer;
+            }
+        }
+        
+        // Fallback: tentar obter do elemento da página
+        const playerNameElement = document.querySelector('.player-details h2');
+        return playerNameElement ? playerNameElement.textContent.trim() : 'Jogador Desconhecido';
+    }
+    
+    // Alternar seleção de item
+    function toggleItemSelection(itemName) {
+        const currentPlayerName = getCurrentPlayerName();
+        
+        if (!currentPlayerName || currentPlayerName === 'Jogador Desconhecido') {
+            alert('Erro: Nome do jogador não identificado');
+            return;
+        }
+        
+        try {
+            const playerSelections = getPlayerSelections();
+            
+            if (playerSelections.has(itemName)) {
+                // Remover seleção
+                if (typeof window.removePlayerSelection === 'function') {
+                    window.removePlayerSelection(currentPlayerName, itemName);
+                } else {
+                    // Fallback local
+                    removePlayerSelectionLocal(currentPlayerName, itemName);
+                }
+            } else {
+                // Adicionar seleção
+                if (typeof window.registerPlayerSelection === 'function') {
+                    window.registerPlayerSelection(currentPlayerName, itemName);
+                } else {
+                    // Fallback local
+                    addPlayerSelectionLocal(currentPlayerName, itemName);
+                }
+            }
+            
+            // Recarregar itens para atualizar interface
+            setTimeout(loadReleasedItems, 100);
+            
+        } catch (error) {
+            console.error('Erro ao alternar seleção:', error);
+            alert('Erro ao processar seleção. Tente novamente.');
+        }
+    }
+    
+    // Adicionar seleção local (fallback)
+    function addPlayerSelectionLocal(playerName, itemName) {
+        try {
+            const playerSelectionsData = localStorage.getItem('playerSelections');
+            let allSelections = playerSelectionsData ? JSON.parse(playerSelectionsData) : [];
+            
+            // Encontrar ou criar entrada do jogador
+            let playerIndex = allSelections.findIndex(([name]) => name === playerName);
+            
+            if (playerIndex === -1) {
+                allSelections.push([playerName, [itemName]]);
+            } else {
+                const playerSelections = new Set(allSelections[playerIndex][1]);
+                playerSelections.add(itemName);
+                allSelections[playerIndex][1] = Array.from(playerSelections);
+            }
+            
+            localStorage.setItem('playerSelections', JSON.stringify(allSelections));
+        } catch (error) {
+            console.error('Erro ao adicionar seleção local:', error);
+        }
+    }
+    
+    // Remover seleção local (fallback)
+    function removePlayerSelectionLocal(playerName, itemName) {
+        try {
+            const playerSelectionsData = localStorage.getItem('playerSelections');
+            if (!playerSelectionsData) return;
+            
+            let allSelections = JSON.parse(playerSelectionsData);
+            
+            // Encontrar entrada do jogador
+            let playerIndex = allSelections.findIndex(([name]) => name === playerName);
+            
+            if (playerIndex !== -1) {
+                const playerSelections = new Set(allSelections[playerIndex][1]);
+                playerSelections.delete(itemName);
+                
+                if (playerSelections.size === 0) {
+                    // Remover jogador se não tem mais seleções
+                    allSelections.splice(playerIndex, 1);
+                } else {
+                    allSelections[playerIndex][1] = Array.from(playerSelections);
+                }
+                
+                localStorage.setItem('playerSelections', JSON.stringify(allSelections));
+            }
+        } catch (error) {
+            console.error('Erro ao remover seleção local:', error);
+        }
+    }
+    
     </script>
 </body>
 </html>

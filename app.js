@@ -3192,4 +3192,427 @@ function initToggleEdit() {
 // Inicializar toggle edit após DOM carregado
 document.addEventListener("DOMContentLoaded", () => {
   initToggleEdit();
+  initItemReleaseSystem();
 });
+
+// ===== SISTEMA DE LIBERAÇÃO DE ITENS =====
+
+// Estado global para itens liberados
+let releasedItems = new Map(); // Map<itemName, quantity>
+let playerSelections = new Map(); // Map<playerName, Set<itemName>>
+
+// Inicializar sistema de liberação de itens
+function initItemReleaseSystem() {
+  const btnSelectItems = document.getElementById('btn-select-items');
+  const btnDistributeItems = document.getElementById('btn-distribute-items');
+  const btnReleaseItems = document.getElementById('btn-release-items');
+  
+  if (btnSelectItems) {
+    btnSelectItems.addEventListener('click', openItemSelectionModal);
+  }
+  
+  if (btnDistributeItems) {
+    btnDistributeItems.addEventListener('click', distributeReleasedItems);
+  }
+  
+  if (btnReleaseItems) {
+    btnReleaseItems.addEventListener('click', releaseSelectedItems);
+  }
+  
+  // Carregar dados salvos
+  loadReleasedItems();
+  loadPlayerSelections();
+  updateDistributeButtonState();
+  renderPlayerSelectionsLog();
+}
+
+// Abrir modal de seleção de itens
+function openItemSelectionModal() {
+  const modal = document.getElementById('item-selection-modal');
+  const itemList = document.getElementById('item-selection-list');
+  
+  // Limpar lista
+  itemList.innerHTML = '';
+  
+  // Carregar itens disponíveis
+  state.items.forEach(itemName => {
+    const row = document.createElement('div');
+    row.className = 'item-selection-row';
+    
+    const currentQuantity = releasedItems.get(itemName) || 0;
+    const isSelected = currentQuantity > 0;
+    
+    if (isSelected) {
+      row.classList.add('selected');
+    }
+    
+    row.innerHTML = `
+      <div class="item-info">
+        <input type="checkbox" class="item-checkbox" ${isSelected ? 'checked' : ''} 
+               onchange="toggleItemInModal('${itemName}', this)">
+        <span class="item-name">${itemName}</span>
+      </div>
+      <input type="number" class="quantity-input" min="1" max="99" value="${currentQuantity || 1}"
+             onchange="updateItemQuantityInModal('${itemName}', this.value)">
+    `;
+    
+    itemList.appendChild(row);
+  });
+  
+  modal.style.display = 'block';
+}
+
+// Fechar modal de seleção de itens
+function closeItemSelectionModal() {
+  const modal = document.getElementById('item-selection-modal');
+  modal.style.display = 'none';
+}
+
+// Alternar seleção de item no modal
+function toggleItemInModal(itemName, checkbox) {
+  const row = checkbox.closest('.item-selection-row');
+  const quantityInput = row.querySelector('.quantity-input');
+  
+  if (checkbox.checked) {
+    row.classList.add('selected');
+    quantityInput.disabled = false;
+  } else {
+    row.classList.remove('selected');
+    quantityInput.disabled = true;
+  }
+}
+
+// Atualizar quantidade de item no modal
+function updateItemQuantityInModal(itemName, quantity) {
+  const qty = parseInt(quantity) || 1;
+  const input = event.target;
+  input.value = Math.max(1, Math.min(99, qty));
+}
+
+// Liberar itens selecionados
+async function releaseSelectedItems() {
+  const modal = document.getElementById('item-selection-modal');
+  const selectedRows = modal.querySelectorAll('.item-selection-row.selected');
+  
+  // Limpar itens liberados anteriores
+  releasedItems.clear();
+  
+  // Coletar itens selecionados
+  selectedRows.forEach(row => {
+    const checkbox = row.querySelector('.item-checkbox');
+    const quantityInput = row.querySelector('.quantity-input');
+    const itemName = row.querySelector('.item-name').textContent;
+    
+    if (checkbox.checked) {
+      const quantity = parseInt(quantityInput.value) || 1;
+      releasedItems.set(itemName, quantity);
+    }
+  });
+  
+  // Salvar no localStorage
+  saveReleasedItems();
+  
+  // Atualizar interface
+  updateDistributeButtonState();
+  
+  // Fechar modal
+  closeItemSelectionModal();
+  
+  // Mostrar toast
+  const itemCount = releasedItems.size;
+  const totalQuantity = Array.from(releasedItems.values()).reduce((sum, qty) => sum + qty, 0);
+  showToast(`${itemCount} tipos de itens liberados (${totalQuantity} itens no total)`, 'success');
+  
+  // Limpar seleções dos jogadores (novos itens disponíveis)
+  playerSelections.clear();
+  savePlayerSelections();
+  renderPlayerSelectionsLog();
+}
+
+// Salvar itens liberados no localStorage
+function saveReleasedItems() {
+  const data = Array.from(releasedItems.entries());
+  localStorage.setItem('releasedItems', JSON.stringify(data));
+}
+
+// Carregar itens liberados do localStorage
+function loadReleasedItems() {
+  try {
+    const data = JSON.parse(localStorage.getItem('releasedItems') || '[]');
+    releasedItems = new Map(data);
+  } catch (error) {
+    console.error('Erro ao carregar itens liberados:', error);
+    releasedItems = new Map();
+  }
+}
+
+// Salvar seleções dos jogadores
+function savePlayerSelections() {
+  const data = Array.from(playerSelections.entries()).map(([player, items]) => [
+    player,
+    Array.from(items)
+  ]);
+  localStorage.setItem('playerSelections', JSON.stringify(data));
+}
+
+// Carregar seleções dos jogadores
+function loadPlayerSelections() {
+  try {
+    const data = JSON.parse(localStorage.getItem('playerSelections') || '[]');
+    playerSelections = new Map(data.map(([player, items]) => [player, new Set(items)]));
+  } catch (error) {
+    console.error('Erro ao carregar seleções dos jogadores:', error);
+    playerSelections = new Map();
+  }
+}
+
+// Atualizar estado do botão de distribuir
+function updateDistributeButtonState() {
+  const btnDistribute = document.getElementById('btn-distribute-items');
+  if (btnDistribute) {
+    const hasReleasedItems = releasedItems.size > 0;
+    const hasPlayerSelections = playerSelections.size > 0;
+    
+    btnDistribute.disabled = !hasReleasedItems || !hasPlayerSelections;
+    
+    if (!hasReleasedItems) {
+      btnDistribute.title = 'Nenhum item foi liberado ainda';
+    } else if (!hasPlayerSelections) {
+      btnDistribute.title = 'Nenhum jogador fez seleções ainda';
+    } else {
+      btnDistribute.title = 'Executar distribuição';
+    }
+  }
+}
+
+// Renderizar log de seleções dos jogadores
+function renderPlayerSelectionsLog() {
+  const logContainer = document.getElementById('player-selections-log');
+  if (!logContainer) return;
+  
+  if (playerSelections.size === 0) {
+    logContainer.innerHTML = '<p class="no-selections">Nenhuma seleção de jogador registrada ainda.</p>';
+    return;
+  }
+  
+  let html = '';
+  for (const [playerName, selectedItems] of playerSelections) {
+    for (const itemName of selectedItems) {
+      html += `
+        <div class="selection-entry">
+          <div>
+            <span class="selection-player">${playerName}</span>
+            <span> escolheu </span>
+            <span class="selection-item">${itemName}</span>
+          </div>
+          <div class="selection-time">${new Date().toLocaleTimeString()}</div>
+        </div>
+      `;
+    }
+  }
+  
+  logContainer.innerHTML = html;
+}
+
+// Registrar seleção de jogador (chamada pelo painel do jogador)
+function registerPlayerSelection(playerName, itemName) {
+  if (!playerSelections.has(playerName)) {
+    playerSelections.set(playerName, new Set());
+  }
+  
+  playerSelections.get(playerName).add(itemName);
+  savePlayerSelections();
+  renderPlayerSelectionsLog();
+  updateDistributeButtonState();
+}
+
+// Remover seleção de jogador
+function removePlayerSelection(playerName, itemName) {
+  if (playerSelections.has(playerName)) {
+    playerSelections.get(playerName).delete(itemName);
+    
+    // Remover jogador se não tem mais seleções
+    if (playerSelections.get(playerName).size === 0) {
+      playerSelections.delete(playerName);
+    }
+    
+    savePlayerSelections();
+    renderPlayerSelectionsLog();
+    updateDistributeButtonState();
+  }
+}
+
+// Distribuir itens liberados
+async function distributeReleasedItems() {
+  if (releasedItems.size === 0) {
+    showToast('Nenhum item foi liberado ainda', 'warning');
+    return;
+  }
+  
+  if (playerSelections.size === 0) {
+    showToast('Nenhum jogador fez seleções ainda', 'warning');
+    return;
+  }
+  
+  try {
+    const distributions = calculateDistributions();
+    
+    if (distributions.length === 0) {
+      showToast('Nenhuma distribuição possível com as seleções atuais', 'warning');
+      return;
+    }
+    
+    // Aplicar distribuições
+    await applyDistributions(distributions);
+    
+    // Limpar itens liberados e seleções após distribuição
+    releasedItems.clear();
+    playerSelections.clear();
+    saveReleasedItems();
+    savePlayerSelections();
+    
+    // Atualizar interface
+    renderPlayerSelectionsLog();
+    updateDistributeButtonState();
+    
+    showToast(`Distribuição realizada com sucesso! ${distributions.length} itens distribuídos`, 'success');
+    
+  } catch (error) {
+    console.error('Erro na distribuição:', error);
+    showToast('Erro ao processar distribuição: ' + error.message, 'error');
+  }
+}
+
+// Calcular distribuições baseado na fila de prioridade
+function calculateDistributions() {
+  const distributions = [];
+  
+  // Para cada item liberado
+  for (const [itemName, quantity] of releasedItems) {
+    // Obter jogadores que selecionaram este item
+    const interestedPlayers = [];
+    for (const [playerName, selectedItems] of playerSelections) {
+      if (selectedItems.has(itemName)) {
+        const player = state.players.find(p => p.name === playerName);
+        if (player && player.active) {
+          interestedPlayers.push(player);
+        }
+      }
+    }
+    
+    if (interestedPlayers.length === 0) continue;
+    
+    // Ordenar por menor quantidade do item, depois por ordem de cadastro (ID)
+    interestedPlayers.sort((a, b) => {
+      const aCount = a.counts[itemName] || 0;
+      const bCount = b.counts[itemName] || 0;
+      
+      if (aCount !== bCount) {
+        return aCount - bCount; // Menor quantidade primeiro
+      }
+      
+      // Em caso de empate, usar ordem de cadastro (assumindo que o índice no array representa a ordem)
+      const aIndex = state.players.findIndex(p => p.name === a.name);
+      const bIndex = state.players.findIndex(p => p.name === b.name);
+      return aIndex - bIndex;
+    });
+    
+    // Distribuir quantidade disponível
+    let remainingQuantity = quantity;
+    let playerIndex = 0;
+    
+    while (remainingQuantity > 0 && playerIndex < interestedPlayers.length) {
+      const player = interestedPlayers[playerIndex];
+      
+      distributions.push({
+        item: itemName,
+        player: player.name,
+        quantity: 1
+      });
+      
+      remainingQuantity--;
+      playerIndex++;
+      
+      // Se chegou ao fim da lista e ainda tem itens, recomeçar
+      if (playerIndex >= interestedPlayers.length && remainingQuantity > 0) {
+        playerIndex = 0;
+      }
+    }
+  }
+  
+  return distributions;
+}
+
+// Aplicar distribuições via API
+async function applyDistributions(distributions) {
+  // Agrupar distribuições por jogador e item
+  const distributionMap = new Map();
+  
+  distributions.forEach(({ item, player, quantity }) => {
+    const key = `${player}:${item}`;
+    if (!distributionMap.has(key)) {
+      distributionMap.set(key, { player_name: player, item_name: item, quantity: 0 });
+    }
+    distributionMap.get(key).quantity += quantity;
+  });
+  
+  const distributionsForAPI = Array.from(distributionMap.values()).map(dist => ({
+    ...dist,
+    notes: `Distribuição automática por liberação - ${fmtDate()}`
+  }));
+  
+  // Enviar para API
+  const response = await fetch('/.netlify/functions/supabase-api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'distribute',
+      data: {
+        distributions: distributionsForAPI,
+        selectedPlayers: state.players.filter(p => p.active).map(p => p.name)
+      }
+    })
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Erro na API: ${response.status}`);
+  }
+  
+  const result = await response.json();
+  
+  if (!result.success) {
+    throw new Error(result.error || 'Erro desconhecido na distribuição');
+  }
+  
+  // Atualizar estado local
+  distributionsForAPI.forEach(({ player_name, item_name, quantity }) => {
+    const player = state.players.find(p => p.name === player_name);
+    if (player) {
+      player.counts[item_name] = (player.counts[item_name] || 0) + quantity;
+      player.total_received = (player.total_received || 0) + quantity;
+    }
+  });
+  
+  // Salvar estado
+  await saveState(state);
+}
+
+// Obter itens liberados (para uso no painel do jogador)
+function getReleasedItems() {
+  return Array.from(releasedItems.entries());
+}
+
+// Verificar se jogador já selecionou item
+function hasPlayerSelectedItem(playerName, itemName) {
+  return playerSelections.has(playerName) && playerSelections.get(playerName).has(itemName);
+}
+
+// Expor funções globalmente para uso em outros arquivos
+window.registerPlayerSelection = registerPlayerSelection;
+window.removePlayerSelection = removePlayerSelection;
+window.getReleasedItems = getReleasedItems;
+window.hasPlayerSelectedItem = hasPlayerSelectedItem;
+window.openItemSelectionModal = openItemSelectionModal;
+window.closeItemSelectionModal = closeItemSelectionModal;
+window.toggleItemInModal = toggleItemInModal;
+window.updateItemQuantityInModal = updateItemQuantityInModal;
