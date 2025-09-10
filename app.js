@@ -3630,8 +3630,14 @@ async function cleanupAfterDistribution() {
 function calculateDistributions() {
   const distributions = [];
   
+  console.log('🎯 Iniciando cálculo de distribuições...');
+  console.log('📦 Itens liberados:', Array.from(releasedItems.entries()));
+  console.log('👥 Seleções dos jogadores:', Array.from(playerSelections.entries()).map(([name, items]) => [name, Array.from(items)]));
+  
   // Para cada item liberado
   for (const [itemName, quantity] of releasedItems) {
+    console.log(`\n🔍 Processando item: ${itemName} (quantidade: ${quantity})`);
+    
     // Obter jogadores que selecionaram este item
     const interestedPlayers = [];
     for (const [playerName, selectedItems] of playerSelections) {
@@ -3650,55 +3656,95 @@ function calculateDistributions() {
           for (const itemName of state.items) {
             player.counts[itemName] = 0;
           }
+          console.log(`⚠️ Jogador ${playerName} não encontrado no estado, criando temporário`);
         }
         
         // Só adicionar se o jogador estiver ativo
         if (player.active !== false) {
-          interestedPlayers.push(player);
+          interestedPlayers.push({
+            ...player,
+            currentItemCount: player.counts[itemName] || 0,
+            queuePosition: state.players.findIndex(p => p.name === playerName)
+          });
+          console.log(`✅ Jogador ${playerName} interessado - quantidade atual: ${player.counts[itemName] || 0}`);
+        } else {
+          console.log(`❌ Jogador ${playerName} inativo, ignorando`);
         }
       }
     }
     
-    if (interestedPlayers.length === 0) continue;
+    if (interestedPlayers.length === 0) {
+      console.log(`⚠️ Nenhum jogador interessado em ${itemName}`);
+      continue;
+    }
     
-    // Ordenar por menor quantidade do item, depois por ordem de cadastro (ID)
+    console.log(`👥 ${interestedPlayers.length} jogadores interessados em ${itemName}`);
+    
+    // Ordenar por prioridade:
+    // 1. Menor quantidade do item atual
+    // 2. Posição na fila (ordem de cadastro)
     interestedPlayers.sort((a, b) => {
-      const aCount = a.counts[itemName] || 0;
-      const bCount = b.counts[itemName] || 0;
-      
-      if (aCount !== bCount) {
-        return aCount - bCount; // Menor quantidade primeiro
+      // Primeiro critério: menor quantidade do item
+      if (a.currentItemCount !== b.currentItemCount) {
+        return a.currentItemCount - b.currentItemCount;
       }
       
-      // Em caso de empate, usar ordem de cadastro (assumindo que o índice no array representa a ordem)
-      const aIndex = state.players.findIndex(p => p.name === a.name);
-      const bIndex = state.players.findIndex(p => p.name === b.name);
-      return aIndex - bIndex;
+      // Segundo critério: posição na fila (ordem de cadastro)
+      // Jogadores não encontrados no estado vão para o final
+      const aPos = a.queuePosition === -1 ? 9999 : a.queuePosition;
+      const bPos = b.queuePosition === -1 ? 9999 : b.queuePosition;
+      return aPos - bPos;
     });
     
-    // Distribuir quantidade disponível
-    let remainingQuantity = quantity;
-    let playerIndex = 0;
+    console.log('📋 Ordem de prioridade:', interestedPlayers.map(p => 
+      `${p.name} (${p.currentItemCount} itens, posição ${p.queuePosition === -1 ? 'nova' : p.queuePosition})`
+    ));
     
-    while (remainingQuantity > 0 && playerIndex < interestedPlayers.length) {
-      const player = interestedPlayers[playerIndex];
+    // Distribuir quantidade disponível de forma equitativa
+    let remainingQuantity = quantity;
+    let round = 0;
+    
+    while (remainingQuantity > 0 && interestedPlayers.length > 0) {
+      console.log(`🔄 Rodada ${round + 1} - restam ${remainingQuantity} itens`);
       
-      distributions.push({
-        item: itemName,
-        player: player.name,
-        quantity: 1
+      // Em cada rodada, dar 1 item para cada jogador (até acabar os itens)
+      for (let i = 0; i < interestedPlayers.length && remainingQuantity > 0; i++) {
+        const player = interestedPlayers[i];
+        
+        distributions.push({
+          item: itemName,
+          player: player.name,
+          quantity: 1
+        });
+        
+        console.log(`➡️ ${player.name} recebe 1x ${itemName}`);
+        
+        // Atualizar contagem temporária para próximas rodadas
+        player.currentItemCount++;
+        remainingQuantity--;
+      }
+      
+      // Reordenar para próxima rodada baseado na nova contagem
+      interestedPlayers.sort((a, b) => {
+        if (a.currentItemCount !== b.currentItemCount) {
+          return a.currentItemCount - b.currentItemCount;
+        }
+        const aPos = a.queuePosition === -1 ? 9999 : a.queuePosition;
+        const bPos = b.queuePosition === -1 ? 9999 : b.queuePosition;
+        return aPos - bPos;
       });
       
-      remainingQuantity--;
-      playerIndex++;
+      round++;
       
-      // Se chegou ao fim da lista e ainda tem itens, recomeçar
-      if (playerIndex >= interestedPlayers.length && remainingQuantity > 0) {
-        playerIndex = 0;
+      // Evitar loop infinito
+      if (round > 100) {
+        console.error('⚠️ Muitas rodadas, interrompendo distribuição');
+        break;
       }
     }
   }
   
+  console.log('✅ Distribuições calculadas:', distributions);
   return distributions;
 }
 
@@ -3879,6 +3925,8 @@ function initRealtimeItemReleaseSubscriptions() {
     return;
   }
 
+  console.log('🔄 Inicializando subscriptions em tempo real...');
+
   // Subscription para released_items
   releasedItemsSubscription = supabaseClient
     .channel('released_items_changes')
@@ -3887,10 +3935,18 @@ function initRealtimeItemReleaseSubscriptions() {
       schema: 'public',
       table: 'released_items'
     }, (payload) => {
-      console.log('Mudança em released_items:', payload);
+      console.log('📦 Mudança em released_items:', payload);
       handleReleasedItemsChange(payload);
     })
-    .subscribe();
+    .on('subscribe', (status) => {
+      console.log('📡 Status subscription released_items:', status);
+    })
+    .on('error', (error) => {
+      console.error('❌ Erro subscription released_items:', error);
+    })
+    .subscribe((status) => {
+      console.log('🎯 Subscription released_items status:', status);
+    });
 
   // Subscription para player_item_selections
   playerSelectionsSubscription = supabaseClient
@@ -3900,12 +3956,20 @@ function initRealtimeItemReleaseSubscriptions() {
       schema: 'public',
       table: 'player_item_selections'
     }, (payload) => {
-      console.log('Mudança em player_item_selections:', payload);
+      console.log('👤 Mudança em player_item_selections:', payload);
       handlePlayerSelectionsRealtimeChange(payload);
     })
-    .subscribe();
+    .on('subscribe', (status) => {
+      console.log('📡 Status subscription player_selections:', status);
+    })
+    .on('error', (error) => {
+      console.error('❌ Erro subscription player_selections:', error);
+    })
+    .subscribe((status) => {
+      console.log('🎯 Subscription player_selections status:', status);
+    });
 
-  console.log('Subscriptions em tempo real inicializadas');
+  console.log('✅ Subscriptions em tempo real configuradas');
 }
 
 // Manipular mudanças em released_items
