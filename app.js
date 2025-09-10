@@ -2516,7 +2516,8 @@ function initDistributeModal() {
                     // Para quantidade > 1, usar nextNamesEqualize diretamente com os jogadores selecionados
                     const playersFull = state.players.filter(p => playersArray.includes(p.name));
                     if (playersFull.length > 0) {
-                        const result = nextNamesEqualize(item, quantity, 0, false, playersFull);
+                        // Usar noRepeat=true para distribuir um item por jogador na fila
+                        const result = nextNamesEqualize(item, quantity, 0, true, playersFull);
                         result.names.forEach(playerName => {
                             assignments.push({ item, player: playerName });
                         });
