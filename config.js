@@ -10,37 +10,24 @@ const DEFAULT_CONFIG = {
     darkMode: false
 };
 
-// Load configuration from localStorage
+// Carregar configurações padrão (sem localStorage)
 function loadConfig() {
-    try {
-        const saved = localStorage.getItem(CONFIG_STORAGE_KEY);
-        return saved ? { ...DEFAULT_CONFIG, ...JSON.parse(saved) } : DEFAULT_CONFIG;
-    } catch (error) {
-        console.error('Erro ao carregar configurações:', error);
-        return DEFAULT_CONFIG;
-    }
+    // Removido localStorage para evitar problemas de cache
+    return DEFAULT_CONFIG;
 }
 
-// Save configuration to localStorage
+// Configurações não são mais salvas localmente
 function saveConfig(config) {
-    try {
-        localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
-        return true;
-    } catch (error) {
-        console.error('Erro ao salvar configurações:', error);
-        return false;
-    }
+    // Removido localStorage para evitar problemas de cache
+    // Configurações usam valores padrão
+    return true;
 }
 
-// Load main application state
+// Estado principal carregado do Supabase (sem localStorage)
 function loadMainState() {
-    try {
-        const saved = localStorage.getItem(MAIN_STORAGE_KEY);
-        return saved ? JSON.parse(saved) : null;
-    } catch (error) {
-        console.error('Erro ao carregar estado principal:', error);
-        return null;
-    }
+    // Removido localStorage para evitar problemas de cache
+    // Estado é carregado diretamente do Supabase
+    return null;
 }
 
 // Initialize configuration page
@@ -133,7 +120,7 @@ function resetPresences() {
                 state.players[nick].present = false;
             });
             
-            localStorage.setItem(MAIN_STORAGE_KEY, JSON.stringify(state));
+            // Removido localStorage - dados são gerenciados pelo Supabase
             showNotification('Presenças resetadas com sucesso!', 'success');
             loadSystemStats();
         }
@@ -148,7 +135,7 @@ function resetItems() {
                 state.players[nick].items = {};
             });
             
-            localStorage.setItem(MAIN_STORAGE_KEY, JSON.stringify(state));
+            // Removido localStorage - dados são gerenciados pelo Supabase
             showNotification('Itens resetados com sucesso!', 'success');
             loadSystemStats();
         }
@@ -165,7 +152,7 @@ function resetFaults() {
                 }
             });
             
-            localStorage.setItem(MAIN_STORAGE_KEY, JSON.stringify(state));
+            // Removido localStorage - dados são gerenciados pelo Supabase
             showNotification('Faltas resetadas com sucesso!', 'success');
             loadSystemStats();
         }
@@ -177,7 +164,7 @@ function resetPlayers() {
         const state = loadMainState();
         if (state) {
             state.players = {};
-            localStorage.setItem(MAIN_STORAGE_KEY, JSON.stringify(state));
+            // Removido localStorage - dados são gerenciados pelo Supabase
             showNotification('Jogadores resetados com sucesso!', 'success');
             loadSystemStats();
         }
@@ -187,7 +174,7 @@ function resetPlayers() {
 function resetAll() {
     if (confirm('ATENÇÃO: Tem certeza que deseja resetar TODOS os dados? Esta ação não pode ser desfeita e apagará tudo!')) {
         if (confirm('Esta é sua última chance. Confirma que deseja apagar TODOS os dados?')) {
-            localStorage.removeItem(MAIN_STORAGE_KEY);
+            // Removido localStorage - dados são gerenciados pelo Supabase
             showNotification('Todos os dados foram resetados!', 'success');
             loadSystemStats();
         }
@@ -199,7 +186,7 @@ function resetHistory() {
         const state = loadMainState();
         if (state) {
             state.history = [];
-            localStorage.setItem(MAIN_STORAGE_KEY, JSON.stringify(state));
+            // Removido localStorage - dados são gerenciados pelo Supabase
             showNotification('Histórico resetado com sucesso!', 'success');
             loadSystemStats();
         }
@@ -216,7 +203,7 @@ function resetDistributedItems() {
                     state.players[playerId].distributedItems = [];
                 }
             });
-            localStorage.setItem(MAIN_STORAGE_KEY, JSON.stringify(state));
+            // Removido localStorage - dados são gerenciados pelo Supabase
             showNotification('Itens distribuídos resetados com sucesso!', 'success');
             loadSystemStats();
         }

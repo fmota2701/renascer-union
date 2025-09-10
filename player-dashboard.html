@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co https://*.netlify.app wss://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;">
+    <!-- Meta tags anti-cache -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="cache-control" content="no-cache">
+    <meta name="expires" content="0">
+    <meta name="pragma" content="no-cache">
     <title>Dashboard Jogador - Renascer Union</title>
     <style>
         * {
@@ -14,7 +21,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -25,7 +32,7 @@
         }
 
         .player-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             color: white;
             padding: 25px;
             margin-bottom: 30px;
@@ -105,7 +112,7 @@
         
         /* Estilos para o ranking de jogadores por item */
         .player-positions-alert {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
             color: white;
             padding: 20px;
             border-radius: 12px;
@@ -216,7 +223,7 @@
         }
         
         .show-more-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             color: white;
             border: none;
             padding: 12px 20px;
@@ -303,7 +310,7 @@
         .stat-number {
             font-size: 32px;
             font-weight: bold;
-            color: #667eea;
+            color: #dc2626;
             margin-bottom: 8px;
         }
 
@@ -346,7 +353,7 @@
         .filter-group select:focus,
         .filter-group input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #dc2626;
         }
 
         .history-table {
@@ -1161,8 +1168,8 @@
 
     <!-- Supabase Scripts -->
     <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script src="src/config/config.js"></script>
-    <script src="supabase-client.js"></script>
+    <script src="src/config/config.js?v=20250110001"></script>
+<script src="supabase-client.js?v=20250110001"></script>
     
     <script>
         // Verificar autenticação

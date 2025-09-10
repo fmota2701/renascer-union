@@ -35,10 +35,7 @@ async function loadState() {
 
 function saveState(state) {
   try {
-    // Salvar no localStorage como backup
-    localStorage.setItem('guild_state', JSON.stringify(state));
-    
-    // Sincronizar com Supabase
+    // Sincronizar diretamente com Supabase (sem localStorage)
     syncStateToSupabase(state);
   } catch (error) {
     console.error('Erro ao salvar estado:', error);
@@ -620,17 +617,11 @@ function renderItemsSelect() {
 // Estado global para ícones personalizados
 let customIcons = {};
 
-// Carregar ícones personalizados do localStorage
+// Ícones personalizados carregados dinamicamente (sem localStorage)
 function loadCustomIcons() {
-  try {
-    const saved = localStorage.getItem('customIcons');
-    if (saved) {
-      customIcons = JSON.parse(saved);
-    }
-  } catch (error) {
-    console.warn('Erro ao carregar ícones personalizados:', error);
-    customIcons = {};
-  }
+  // Ícones são carregados dinamicamente conforme necessário
+  // Removido localStorage para evitar problemas de cache
+  customIcons = {};
 }
 
 // Pré-carregar ícones SVG padrão
@@ -644,13 +635,10 @@ async function preloadDefaultIcons() {
   }
 }
 
-// Salvar ícones personalizados no localStorage
+// Ícones personalizados não são mais salvos localmente
 function saveCustomIcons() {
-  try {
-    localStorage.setItem('customIcons', JSON.stringify(customIcons));
-  } catch (error) {
-    console.error('Erro ao salvar ícones personalizados:', error);
-  }
+  // Removido localStorage para evitar problemas de cache
+  // Ícones são carregados dinamicamente conforme necessário
 }
 
 // Cache para ícones SVG carregados
