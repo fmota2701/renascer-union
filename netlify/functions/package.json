@@ -1,13 +1,11 @@
 {
   "name": "netlify-functions",
-  "version": "2.0.0",
-  "description": "Funções serverless do Netlify para integração com Supabase e Google Sheets",
+  "version": "1.0.0",
+  "description": "Funções serverless do Netlify para integração com Supabase",
   "main": "supabase-api.js",
   "dependencies": {
-    "@supabase/supabase-js": "^2.38.5",
-    "google-spreadsheet": "^4.1.2",
-    "google-auth-library": "^9.4.1",
-    "dotenv": "^16.3.1"
+    "@supabase/supabase-js": "^2.57.2",
+    "dotenv": "^17.2.2"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -4,11 +4,10 @@
 
 Antes de fazer o deploy, certifique-se de que você tem:
 
-- ✅ Conta no Google Cloud Platform
-- ✅ Service Account criado com acesso à API do Google Sheets
-- ✅ Arquivo JSON do Service Account baixado
-- ✅ Planilha do Google Sheets criada e compartilhada com o Service Account
-- ✅ ID da planilha copiado
+- ✅ Projeto Supabase configurado
+- ✅ Credenciais do Supabase (URL e chaves)
+- ✅ Tabelas criadas no Supabase
+- ✅ Código atualizado para usar Supabase
 
 ## 2. Deploy no Netlify
 
@@ -53,18 +52,21 @@ Antes de fazer o deploy, certifique-se de que você tem:
 
 2. **Adicione as variáveis necessárias:**
 
-   **GOOGLE_SPREADSHEET_ID**
-   - Key: `GOOGLE_SPREADSHEET_ID`
-   - Value: `1ABC123DEF456GHI789JKL` (o ID da sua planilha)
+   **SUPABASE_URL**
+   - Key: `SUPABASE_URL`
+   - Value: `https://seu-projeto.supabase.co`
    
-   **GOOGLE_SERVICE_ACCOUNT_KEY**
-   - Key: `GOOGLE_SERVICE_ACCOUNT_KEY`
-   - Value: Todo o conteúdo do arquivo JSON do Service Account em uma única linha
+   **SUPABASE_ANON_KEY**
+   - Key: `SUPABASE_ANON_KEY`
+   - Value: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (sua chave anon)
    
-   Exemplo do JSON (remova quebras de linha):
-   ```json
-   {"type":"service_account","project_id":"seu-projeto","private_key_id":"abc123","private_key":"-----BEGIN PRIVATE KEY-----\nSUA_CHAVE_AQUI\n-----END PRIVATE KEY-----\n","client_email":"seu-service@seu-projeto.iam.gserviceaccount.com","client_id":"123456789","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_x509_cert_url":"https://www.googleapis.com/robot/v1/metadata/x509/seu-service%40seu-projeto.iam.gserviceaccount.com"}
-   ```
+   **SUPABASE_SERVICE_KEY**
+   - Key: `SUPABASE_SERVICE_KEY`
+   - Value: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (sua chave service_role)
+   
+   **FRONTEND_URL**
+   - Key: `FRONTEND_URL`
+   - Value: `https://seu-site.netlify.app` (URL do seu site no Netlify)
 
 3. **Clique em "Save" para cada variável**
 
@@ -103,25 +105,25 @@ Antes de fazer o deploy, certifique-se de que você tem:
 - Aguarde alguns minutos após o deploy
 - Verifique se o certificado SSL está ativo
 
-## 7. Testar Integração com Google Sheets
+## 7. Testar Integração com Supabase
 
 1. **Abra o console do navegador (F12)**
 2. **Teste as funcionalidades:**
    - Adicione um jogador
    - Adicione um item
    - Faça uma distribuição
-   - Verifique se os dados aparecem na planilha
+   - Verifique se os dados aparecem no Supabase
 
 ## 8. Solução de Problemas
 
 ### Erro 500 nas funções:
 - Verifique se as variáveis de ambiente estão corretas
-- Confirme se a planilha está compartilhada com o Service Account
+- Confirme se as credenciais do Supabase estão válidas
 - Verifique os logs em "Functions" > "View logs"
 
-### Planilha não atualiza:
-- Confirme o ID da planilha
-- Verifique se o Service Account tem permissão de edição
+### Dados não salvam no Supabase:
+- Confirme as URLs e chaves do Supabase
+- Verifique se as tabelas foram criadas corretamente
 - Teste a conexão nas ferramentas de desenvolvedor
 
 ### Site não carrega:
@@ -137,7 +139,7 @@ Antes de fazer o deploy, certifique-se de que você tem:
 
 ## 10. Backup e Manutenção
 
-- **Backup da planilha:** Faça backup regular da planilha do Google Sheets
+- **Backup do Supabase:** Configure backups automáticos no Supabase
 - **Versionamento:** Use Git para controlar versões do código
 - **Atualizações:** Monitore atualizações das dependências
 
@@ -149,5 +151,5 @@ URL do seu site: `https://seu-site.netlify.app`
 
 Para suporte adicional, consulte:
 - [Documentação do Netlify](https://docs.netlify.com/)
-- [Google Sheets API](https://developers.google.com/sheets/api)
+- [Documentação do Supabase](https://supabase.com/docs)
 - [README.md](./README.md) do projeto

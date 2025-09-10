@@ -1,6 +1,6 @@
 /**
- * API Supabase para Sistema de Distribuição de Itens
- * Substitui o Google Sheets por Supabase para melhor performance
+ * API do Supabase para Sistema de Distribuição de Itens
+ * Sistema de backend usando Supabase para alta performance
  */
 
 const { createClient } = require('@supabase/supabase-js');

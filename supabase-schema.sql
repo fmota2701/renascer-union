@@ -1,5 +1,5 @@
 -- Schema do Supabase para Sistema de Distribuição de Itens
--- Baseado na estrutura atual do Google Sheets
+-- Estrutura do banco de dados para o sistema de distribuição de loot
 
 -- Tabela de Jogadores
 CREATE TABLE players (

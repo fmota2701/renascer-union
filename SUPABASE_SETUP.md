@@ -4,7 +4,7 @@
 
 1. **Acesse**: https://supabase.com
 2. **Clique em "Start your project"**
-3. **Faça login** com GitHub, Google ou email
+3. **Faça login** com GitHub ou email
 4. **Crie um novo projeto**:
    - Nome: `renascer-items-system`
    - Senha do banco: **ANOTE ESTA SENHA!**
@@ -43,10 +43,7 @@ SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-# Google Sheets (manter temporariamente para migração)
-GOOGLE_SHEETS_ID=sua_planilha_id
-GOOGLE_SERVICE_ACCOUNT_EMAIL=seu_email
-GOOGLE_PRIVATE_KEY=sua_chave
+# Configuração completa - apenas Supabase necessário
 ```
 
 ## 🔄 Passo 6: Migrar Dados Existentes
@@ -67,8 +64,7 @@ GOOGLE_PRIVATE_KEY=sua_chave
 
 ## 📈 Passo 8: Monitorar Performance
 
-1. **Compare tempos de resposta**:
-   - Google Sheets: 15+ segundos
+1. **Monitore tempos de resposta**:
    - Supabase: <1 segundo esperado
 
 2. **Verifique logs** no Supabase Dashboard

@@ -9,21 +9,10 @@ const CONFIG = {
     ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mZGxhY2lyZXJlbXBmam9oZ3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTczNjg1NzUsImV4cCI6MjA3Mjk0NDU3NX0.1VOaD9QeDepJEZTiYtKrPTdfkBDcn2__jRnCfV-BZtU'
   },
   
-  // ID da planilha do Google Sheets (mantido para compatibilidade)
-  SPREADSHEET_ID: '1MTQcyUr7vX79-hZGYbFrLqMZzvB2SVxl5OjJLTE3n_4',
-  
-  // Nomes das abas da planilha
-  SHEETS: {
-    PLAYERS: 'Jogadores',
-    ITEMS: 'Itens',
-    HISTORY: 'Histórico',
-    CONFIG: 'Configurações'
-  },
-  
   // Configurações de cache
   CACHE: {
     DURATION: 5 * 60 * 1000, // 5 minutos em millisegundos
-    KEY_PREFIX: 'guild_sheets_'
+    KEY_PREFIX: 'guild_cache_'
   },
   
   // Configurações de sincronização
