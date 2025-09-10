@@ -565,137 +565,7 @@
             box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
         }
 
-        /* Estilos para Sorteio em Tempo Real */
-        .draw-item {
-            background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-            animation: slideIn 0.5s ease-out;
-        }
 
-        .draw-item.new {
-            border-color: #28a745;
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-            animation: newDrawItem 1s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes newDrawItem {
-            0% {
-                opacity: 0;
-                transform: scale(0.8) translateY(-20px);
-                border-color: #ffc107;
-                background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-            }
-            50% {
-                transform: scale(1.05) translateY(-5px);
-                border-color: #28a745;
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-                border-color: #28a745;
-                background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-            }
-        }
-
-        .draw-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .draw-item-name {
-            font-weight: 600;
-            color: #333;
-            font-size: 16px;
-        }
-
-        .draw-item-time {
-            font-size: 12px;
-            color: #666;
-            background: rgba(0, 0, 0, 0.1);
-            padding: 4px 8px;
-            border-radius: 10px;
-        }
-
-        .draw-winners {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .draw-winner {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 8px;
-            border-left: 3px solid #667eea;
-        }
-
-        .draw-winner.multiple {
-            background: rgba(255, 193, 7, 0.1);
-            border-left-color: #ffc107;
-        }
-
-        .draw-winner-icon {
-            font-size: 18px;
-        }
-
-        .draw-winner-name {
-            font-weight: 500;
-            color: #333;
-            flex: 1;
-        }
-
-        .draw-winner-badge {
-            background: #667eea;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-
-        .draw-winner.multiple .draw-winner-badge {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .draw-status-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 12px;
-            color: #28a745;
-            font-weight: 500;
-        }
-
-        .draw-status-indicator::before {
-            content: '●';
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
 
         /* Responsividade para o grid */
         @media (max-width: 768px) {
@@ -954,7 +824,7 @@
                 </div>
             </div>
             
-            <!-- Grid com duas colunas: Meus Últimos Itens e Sorteio em Tempo Real -->
+            <!-- Grid com duas colunas: Meus Últimos Itens e Itens Liberados -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
                 <!-- Coluna Esquerda: Meus Últimos Itens -->
                 <div>
@@ -973,10 +843,9 @@
                     </div>
                 </div>
                 
-                <!-- Coluna Direita: Itens Liberados e Sorteio -->
+                <!-- Coluna Direita: Itens Liberados -->
                 <div>
-                    <!-- Seção de Itens Liberados -->
-                    <div id="released-items-section" style="margin-bottom: 30px;">
+                    <div id="released-items-section">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                             <h3>🎁 Itens Liberados</h3>
                             <div id="released-items-count" style="font-size: 12px; color: #666;">0 itens disponíveis</div>
@@ -993,62 +862,6 @@
                                 <!-- Itens liberados serão inseridos aqui via JavaScript -->
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Seção de Sorteio em Tempo Real -->
-                    <div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h3>🎲 Sorteio em Tempo Real</h3>
-                            <div id="draw-status" style="font-size: 12px; color: #666;">Aguardando sorteios...</div>
-                        </div>
-                    
-                    <div id="realtime-draw" style="background: #f8f9fa; border-radius: 12px; padding: 20px; min-height: 200px;">
-                        <div class="empty-state" id="empty-draw-state" style="padding: 40px 20px;">
-                            <div class="empty-state-icon">🎲</div>
-                            <p>Nenhum sorteio ativo no momento</p>
-                            <small style="color: #999; margin-top: 10px; display: block;">Os sorteios aparecerão aqui quando o admin selecionar itens</small>
-                        </div>
-                        
-                        <!-- Interface de Turno Ativo -->
-                        <div id="active-turn" style="display: none;">
-                            <div style="text-align: center; margin-bottom: 20px;">
-                                <div style="background: linear-gradient(135deg, #4CAF50, #45a049); color: white; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                                    <h4 style="margin: 0; font-size: 18px;">🎯 Sua Vez!</h4>
-                                </div>
-                                
-                                <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                        <span style="font-weight: bold; color: #333;">Item:</span>
-                                        <span id="current-item" style="color: #2196F3; font-weight: bold;"></span>
-                                    </div>
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                        <span style="font-weight: bold; color: #333;">Jogador:</span>
-                                        <span id="current-player" style="color: #4CAF50; font-weight: bold;"></span>
-                                    </div>
-                                    <div id="priority-info" style="display: none; background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 4px solid #2196F3;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                                            <span style="font-size: 12px; color: #666;">Posição na Fila:</span>
-                                            <span id="priority-position" style="font-size: 12px; font-weight: bold; color: #2196F3;"></span>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                                            <span style="font-size: 12px; color: #666;">Quantidade Atual:</span>
-                                            <span id="player-quantity" style="font-size: 12px; font-weight: bold; color: #FF9800;"></span>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                                            <span style="font-size: 12px; color: #666;">Total na Fila:</span>
-                                            <span id="queue-size" style="font-size: 12px; font-weight: bold; color: #4CAF50;"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <button id="skip-turn-btn" onclick="skipCurrentTurn()" 
-                                        style="background: linear-gradient(135deg, #FF9800, #F57C00); color: white; border: none; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(255,152,0,0.3);">
-                                    ⏭️ Passar para Próximo
-                                </button>
-                            </div>
-                        </div>
-                        
-
                     </div>
                 </div>
             </div>
@@ -1546,290 +1359,30 @@
             }
         }
 
-        // Variáveis globais para sorteio em tempo real
-        let currentDraw = null;
-        let drawSubscription = null;
-        let currentPlayerName = localStorage.getItem('currentPlayer') || '';
 
-        // Função para inicializar sorteio em tempo real
-        function initializeRealtimeDraw() {
-            // Configurar escuta em tempo real para mudanças na tabela players (sorteios)
-            if (typeof supabase !== 'undefined' && supabase.channel) {
-                drawSubscription = supabase
-                    .channel('draw-results')
-                    .on('postgres_changes', {
-                        event: 'INSERT',
-                        schema: 'public',
-                        table: 'players'
-                    }, handleNewDraw)
-                    .on('postgres_changes', {
-                        event: 'UPDATE', 
-                        schema: 'public',
-                        table: 'players'
-                    }, handleDrawUpdate)
-                    .on('postgres_changes', {
-                        event: 'DELETE', 
-                        schema: 'public',
-                        table: 'players'
-                    }, handleDrawDelete)
-                    .subscribe();
-                
-                console.log('Sorteio em tempo real inicializado');
-                updateDrawStatus('Conectado - Aguardando sorteios...');
-                
-                // Carregar sorteio atual se existir
-                loadCurrentDraw();
-            } else {
-                console.warn('Supabase não disponível para sorteio em tempo real');
-                updateDrawStatus('Offline - Sorteios não disponíveis');
-            }
-        }
 
-        // Função para carregar sorteio atual
-        async function loadCurrentDraw() {
-            try {
-                // Verificar localStorage primeiro
-                const localDraw = localStorage.getItem('currentDraw');
-                if (localDraw) {
-                    const drawData = JSON.parse(localDraw);
-                    currentDraw = drawData;
-                    displayCurrentDraw(drawData);
-                    return;
-                }
 
-                // Buscar na tabela players por registros de sorteio ativo
-                const { data, error } = await supabase
-                    .from('players')
-                    .select('*')
-                    .like('name', 'DRAW_ACTIVE_%')
-                    .eq('total_received', 1)
-                    .order('created_at', { ascending: false })
-                    .limit(1);
 
-                if (data && data.length > 0 && !error) {
-                    // Extrair dados do nome do registro
-                    const drawRecord = data[0];
-                    const nameParts = drawRecord.name.replace('DRAW_ACTIVE_', '').split('_');
-                    const timestamp = nameParts.pop();
-                    const itemName = nameParts.pop();
-                    const playerName = nameParts.join('_');
 
-                    const drawData = {
-                        id: drawRecord.id,
-                        player_name: playerName,
-                        item_name: itemName,
-                        draw_time: drawRecord.created_at,
-                        status: 'active'
-                    };
 
-                    currentDraw = drawData;
-                    displayCurrentDraw(drawData);
-                }
-            } catch (error) {
-                console.log('Nenhum sorteio ativo encontrado');
-            }
-        }
 
-        // Função para lidar com novos sorteios
-        function handleNewDraw(payload) {
-            console.log('Novo sorteio detectado:', payload);
-            const playerRecord = payload.new;
-            
-            // Verificar se é um registro de sorteio ativo
-            if (playerRecord.name && playerRecord.name.startsWith('DRAW_ACTIVE_') && playerRecord.total_received === 1) {
-                // Extrair dados do nome do registro
-                const nameParts = playerRecord.name.replace('DRAW_ACTIVE_', '').split('_');
-                const timestamp = nameParts.pop();
-                const itemName = nameParts.pop();
-                const playerName = nameParts.join('_');
 
-                const drawData = {
-                    id: playerRecord.id,
-                    player_name: playerName,
-                    item_name: itemName,
-                    draw_time: playerRecord.created_at,
-                    status: 'active'
-                };
 
-                currentDraw = drawData;
-                displayCurrentDraw(drawData);
-                updateDrawStatus('Sorteio ativo!');
-            }
-        }
 
-        // Função para lidar com atualizações de sorteio
-        function handleDrawUpdate(payload) {
-            console.log('Sorteio atualizado:', payload);
-            const playerRecord = payload.new;
-            
-            // Verificar se é um registro de sorteio ativo
-            if (playerRecord.name && playerRecord.name.startsWith('DRAW_ACTIVE_') && playerRecord.total_received === 1) {
-                // Extrair dados do nome do registro
-                const nameParts = playerRecord.name.replace('DRAW_ACTIVE_', '').split('_');
-                const timestamp = nameParts.pop();
-                const itemName = nameParts.pop();
-                const playerName = nameParts.join('_');
 
-                const drawData = {
-                    id: playerRecord.id,
-                    player_name: playerName,
-                    item_name: itemName,
-                    draw_time: playerRecord.created_at,
-                    status: 'active'
-                };
-
-                currentDraw = drawData;
-                displayCurrentDraw(drawData);
-            }
-        }
-
-        // Função para lidar com exclusão de sorteio
-        function handleDrawDelete(payload) {
-            console.log('Sorteio removido:', payload);
-            currentDraw = null;
-            hideCurrentDraw();
-            updateDrawStatus('Aguardando sorteios...');
-        }
-
-        // Função para exibir sorteio atual
-        function displayCurrentDraw(drawData) {
-            const emptyState = document.getElementById('empty-draw-state');
-            const activeTurn = document.getElementById('active-turn');
-            const currentItem = document.getElementById('current-item');
-            const currentPlayer = document.getElementById('current-player');
-            const skipBtn = document.getElementById('skip-turn-btn');
-            const priorityInfo = document.getElementById('priority-info');
-            const priorityPosition = document.getElementById('priority-position');
-            const playerQuantity = document.getElementById('player-quantity');
-            const queueSize = document.getElementById('queue-size');
-            
-            if (emptyState) emptyState.style.display = 'none';
-            if (activeTurn) activeTurn.style.display = 'block';
-            
-            if (currentItem) currentItem.textContent = drawData.item_name;
-            if (currentPlayer) currentPlayer.textContent = drawData.player_name;
-            
-            // Mostrar informações de prioridade se disponíveis
-            if (drawData.priority_position && priorityInfo) {
-                priorityInfo.style.display = 'block';
-                if (priorityPosition) priorityPosition.textContent = `${drawData.priority_position}º`;
-                if (playerQuantity) playerQuantity.textContent = drawData.player_quantity || '0';
-                if (queueSize) queueSize.textContent = `${drawData.total_queue_size} jogadores`;
-            } else if (priorityInfo) {
-                priorityInfo.style.display = 'none';
-            }
-            
-            // Mostrar botão apenas se for o jogador da vez
-            if (skipBtn) {
-                if (drawData.player_name === currentPlayerName) {
-                    skipBtn.style.display = 'inline-block';
-                    skipBtn.style.background = 'linear-gradient(135deg, #FF9800, #F57C00)';
-                    skipBtn.textContent = '⏭️ Passar para Próximo';
-                } else {
-                    skipBtn.style.display = 'none';
-                }
-            }
-        }
-        
-        // Função para esconder sorteio atual
-        function hideCurrentDraw() {
-            const emptyState = document.getElementById('empty-draw-state');
-            const activeTurn = document.getElementById('active-turn');
-            
-            if (emptyState) emptyState.style.display = 'block';
-            if (activeTurn) activeTurn.style.display = 'none';
-        }
-        
 
         
-        // Função para passar o turno
-        async function skipCurrentTurn() {
-            if (!currentDraw) return;
-            
-            try {
-                // Remover registro de sorteio ativo da tabela players
-                await supabase
-                    .from('players')
-                    .delete()
-                    .eq('id', currentDraw.id);
-                
-                // Limpar localStorage
-                localStorage.removeItem('currentDraw');
-                
-                // Limpar estado local
-                currentDraw = null;
-                hideCurrentDraw();
-                updateDrawStatus('Aguardando próximo sorteio...');
-                
-                console.log('Turno passado com sucesso');
-                
-                // Trigger próximo sorteio no backend
-                await triggerNextInQueue(currentDraw.item_name);
-                
-                console.log('Turno passado com sucesso');
-            } catch (error) {
-                console.error('Erro ao passar turno:', error);
-            }
-        }
-        
-        // Função para trigger próximo da fila
-        async function triggerNextInQueue(itemName) {
-            try {
-                // Simular a lógica de encontrar próximo jogador
-                // Em uma implementação real, isso seria feito no admin dashboard
-                console.log(`Próximo sorteio para ${itemName} deve ser acionado pelo admin`);
-                
-                // Notificar que o item ainda está disponível para sorteio
-                updateDrawStatus(`Item ${itemName} disponível para novo sorteio`);
-                
-                // Opcional: fazer uma chamada para notificar o admin dashboard
-                // que um jogador passou o turno e o item está disponível novamente
-                
-            } catch (error) {
-                console.error('Erro ao trigger próximo sorteio:', error);
-            }
-        }
 
-        // Função global para ser chamada pelo botão
-        window.skipCurrentTurn = skipCurrentTurn;
 
-        // Função para atualizar status do sorteio
-        function updateDrawStatus(status) {
-            const statusElement = document.getElementById('draw-status');
-            if (statusElement) {
-                statusElement.innerHTML = `<span class="draw-status-indicator">${status}</span>`;
-            }
-        }
 
-        // Função para simular sorteio (para testes)
-        function simulateDraw() {
-            const testItems = ['Espada Lendária', 'Armadura Épica', 'Poção Rara', 'Gema Mística'];
-            const testPlayers = ['João', 'Maria', 'Pedro', 'Ana', 'Carlos'];
-            
-            const randomItem = testItems[Math.floor(Math.random() * testItems.length)];
-            const numWinners = Math.random() > 0.7 ? 2 : 1; // 30% chance de múltiplos ganhadores
-            const winners = [];
-            
-            for (let i = 0; i < numWinners; i++) {
-                const availablePlayers = testPlayers.filter(p => !winners.includes(p));
-                if (availablePlayers.length > 0) {
-                    const randomPlayer = availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
-                    winners.push(randomPlayer);
-                }
-            }
-            
-            const mockDraw = {
-                id: Date.now(),
-                item_name: randomItem,
-                winners: winners,
-                created_at: new Date().toISOString()
-            };
-        }
 
-        // Os dados serão carregados após a inicialização do Supabase
-        
-        // Para testes - remover em produção
-        // setInterval(simulateDraw, 10000); // Simula sorteio a cada 10 segundos
+
+
+
+
+
+
+
     
     // ===== SISTEMA DE ITENS LIBERADOS =====
     
@@ -1960,8 +1513,7 @@
                 const { data, error } = await supabaseClient
                     .from('player_item_selections')
                     .select('item_name')
-                    .eq('player_name', currentPlayerName)
-                    .eq('status', 'active');
+                    .eq('player_name', currentPlayerName);
                 
                 if (!error && data) {
                     return new Set(data.map(selection => selection.item_name));
