@@ -3228,9 +3228,11 @@ async function initItemReleaseSystem() {
   }
   
   // Carregar dados salvos
+  await loadReleasedItems();
   await loadPlayerSelections();
   updateDistributeButtonState();
   renderPlayerSelectionsLog();
+  renderReleasedItems();
 }
 
 // Abrir modal de seleção de itens
@@ -3358,6 +3360,7 @@ async function releaseSelectedItems() {
     
     // Atualizar interface
     updateDistributeButtonState();
+    renderReleasedItems();
     
     // Fechar modal
     closeItemSelectionModal();
@@ -3422,7 +3425,62 @@ async function loadPlayerSelections() {
   }
 }
 
-// Atualizar estado do botão de distribuir
+// Carregar itens liberados do Supabase
+async function loadReleasedItems() {
+  try {
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) return;
+    
+    const { data, error } = await supabaseClient
+      .from('released_items')
+      .select('*')
+      .eq('status', 'active');
+    
+    if (error) {
+      console.error('Erro ao carregar itens liberados:', error);
+      return;
+    }
+    
+    // Limpar e recarregar itens liberados
+    releasedItems.clear();
+    if (data) {
+      data.forEach(item => {
+        releasedItems.set(item.item_name, item.quantity);
+      });
+    }
+  } catch (error) {
+    console.error('Erro ao carregar itens liberados:', error);
+  }
+}
+
+// Renderizar itens liberados na interface
+function renderReleasedItems() {
+  const displaySection = document.getElementById('released-items-display');
+  const itemsList = document.getElementById('released-items-list');
+  
+  if (!displaySection || !itemsList) return;
+  
+  if (releasedItems.size === 0) {
+    displaySection.style.display = 'none';
+    return;
+  }
+  
+  displaySection.style.display = 'block';
+  
+  let html = '';
+  for (const [itemName, quantity] of releasedItems) {
+    html += `
+      <div class="released-item">
+        <span class="released-item-name">${itemName}</span>
+        <span class="released-item-quantity">${quantity}x</span>
+      </div>
+    `;
+  }
+  
+  itemsList.innerHTML = html;
+}
+
+// Atualizar estado do botão distribuir
 function updateDistributeButtonState() {
   const btnDistribute = document.getElementById('btn-distribute-items');
   if (btnDistribute) {
