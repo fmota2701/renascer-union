@@ -777,8 +777,8 @@ function openIconUploadModal(itemName) {
       return;
     }
     
-    if (file.size > 100 * 1024) {
-      showToast('Arquivo muito grande! Máximo 100KB.', 'error');
+    if (file.size > 500 * 1024) {
+      showToast('Arquivo muito grande! Máximo 500KB.', 'error');
       return;
     }
     
