@@ -645,7 +645,7 @@ function renderItemsManager() {
   wrap.innerHTML = state.items.map(name => {
     const icon = getItemIcon(name);
     const isCustomIcon = customIcons[name];
-    const iconDisplay = isCustomIcon ? `<div style="width: 20px; height: 20px; display: inline-block; vertical-align: middle;">${icon}</div>` : icon;
+    const iconDisplay = isCustomIcon ? `<div class="custom-icon">${icon}</div>` : icon;
     
     return `
       <div class="row" data-name="${name}" style="border-left: 4px solid #ff9800; margin-bottom: 10px; padding: 10px;">
@@ -750,7 +750,7 @@ function openIconUploadModal(itemName) {
           ${customIcons[itemName] ? `<div class="current-icon" style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
             <h4>Ícone Atual:</h4>
             <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="width: 24px; height: 24px;">${customIcons[itemName]}</div>
+              <div class="custom-icon">${customIcons[itemName]}</div>
               <span>${itemName}</span>
             </div>
           </div>` : ''}
